@@ -39,7 +39,7 @@ export function CrisisModal() {
   const predatoryTag = `周转 ${Math.round(predatoryLoanApr(game.predatoryLoanCount) * 100)}%`;
 
   const loanDisabled = (l: { channel: LoanChannel }): boolean =>
-    noAp || overCap || (l.channel !== 'predatory' && bailoutExhausted);
+    noAp || (l.channel !== 'predatory' && (overCap || bailoutExhausted));
 
   const loanDef = (id: string) => CRISIS_ACTIONS.find((a) => a.id === id);
   const nonLoanActions = CRISIS_ACTIONS.filter((a) => !LOAN_IDS.has(a.id));
@@ -55,7 +55,7 @@ export function CrisisModal() {
 
       {overCap && (
         <div className="rounded-card bg-risk/15 border border-risk/30 px-4 py-2 mb-3 text-xs text-risk font-semibold">
-          已达借款上限（债务 ≥ 净资 80%），无法再借款——只能选择非贷款危机应对。
+          债务已达净资 80% 上限，银行和亲友不再出借——但高利贷仍可尝试（利率逐笔飙升）。
         </div>
       )}
       {!overCap && bailoutExhausted && (

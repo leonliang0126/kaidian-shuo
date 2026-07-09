@@ -150,14 +150,15 @@ describe('③ 危机贷款 80% 净资上限', () => {
     expect(canTakeCrisisLoan(noAp, 'bank').ok).toBe(false);
     expect(canTakeCrisisLoan(noAp, 'bank').reason).toBe('ap');
 
-    // 超上限 → 拒绝（reason='cap'），对所有渠道生效（crisisLoanCount >= 宽限期后）
+    // 超上限 → 银行/亲属拒绝（reason='cap'），高利贷始终不受限
     const cap = fresh();
     cap.netWorth = 100000;
     cap.debt = 90000;
     cap.crisisLoanCount = 3; // 超出宽限期（CRISIS_LOAN_GRACE_COUNT=2），80% 上限生效
     expect(canTakeCrisisLoan(cap, 'bank').ok).toBe(false);
     expect(canTakeCrisisLoan(cap, 'bank').reason).toBe('cap');
-    expect(canTakeCrisisLoan(cap, 'predatory').ok).toBe(false);
+    // 高利贷不受 80% 上限约束，始终可点
+    expect(canTakeCrisisLoan(cap, 'predatory').ok).toBe(true);
   });
 });
 

@@ -99,11 +99,14 @@ export function isCrisisLoanOverCap(state: GameState): boolean {
  * 玩家在危机面板手动发起危机贷款前的可借性检查。
  * - 行动点耗尽（AP≤0）：拒绝（reason='ap'）。
  * - 宽限期内（crisisLoanCount < CRISIS_LOAN_GRACE_COUNT）：跳过 80% 上限判断。
- * - 触及 80% 净资上限（isCrisisLoanOverCap）：拒绝（reason='cap'），适用所有渠道（含高利贷）。
+ * - 触及 80% 净资上限（isCrisisLoanOverCap）：拒绝（reason='cap'），仅限银行/亲属；
+ *   高利贷（predatory）始终不受上限约束（靠随机不借率 + 利率飙升劝退）。
  */
-export function canTakeCrisisLoan(state: GameState, _channel: LoanChannel): CrisisLoanCheck {
+export function canTakeCrisisLoan(state: GameState, channel: LoanChannel): CrisisLoanCheck {
   if (state.actionPointsCurrent <= 0) return { ok: false, reason: 'ap' };
-  // 前 CRISIS_LOAN_GRACE_COUNT 次借款不受 80% 上限约束（避免开局 setup 贷款使净资为负时直接封死）
+  // 高利贷不受 80% 上限约束（产品方确认）
+  if (channel === 'predatory') return { ok: true, reason: null };
+  // 前 CRISIS_LOAN_GRACE_COUNT 次借款不受 80% 上限约束
   const inGrace = (state.crisisLoanCount ?? 0) < CRISIS_LOAN_GRACE_COUNT;
   if (!inGrace && isCrisisLoanOverCap(state)) return { ok: false, reason: 'cap' };
   return { ok: true, reason: null };

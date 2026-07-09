@@ -35,7 +35,6 @@ export const CRISIS_ACTION_EFFECTS: Record<string, EffectObject> = {
     hidden: { priceControversy: 5 },
   },
   temporary_price_increase: {
-    cash: 1500,
     avgOrderValuePct: 10,
     conversionRatePct: -4,
     hidden: { priceControversy: 8, customerTrust: -3 },
