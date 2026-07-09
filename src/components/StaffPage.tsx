@@ -33,9 +33,10 @@ export function StaffPage() {
   const capacity = computeCapacity(employees);
   const staffCost = computeStaffCost(employees);
   const maxEmployees = getMaxEmployees(store.decorationLevel);
+  const notifications = game.staffNotifications ?? [];
 
   return (
-    <div className="fixed inset-0 z-40 bg-background overflow-y-auto">
+    <div className="fixed inset-0 z-40 bg-bg overflow-y-auto">
       <div className="max-w-[480px] mx-auto px-4 py-4 space-y-3">
         {/* 标题行 */}
         <div className="flex items-center justify-between">
@@ -52,6 +53,20 @@ export function StaffPage() {
             </Button>
           </div>
         </div>
+
+        {/* 员工事件通知 */}
+        {notifications.length > 0 && (
+          <div className="space-y-1">
+            {notifications.map((note, i) => (
+              <div
+                key={i}
+                className="rounded-card bg-risk/10 border border-risk/20 px-3 py-2 text-xs text-risk"
+              >
+                {note}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* 排班摘要 */}
         <Card className="px-4 py-3">

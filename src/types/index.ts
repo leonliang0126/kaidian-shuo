@@ -284,6 +284,8 @@ export interface GameState {
   bailoutRateMultiplier: number; // 下一笔高利贷相对基准利率乘子 = PREDATORY_APR_ESCALATION ^ predatoryLoanCount
   /** 累计危机借款次数（含自动兜底 + 手动危机贷）。前 2 次不触发 80% 上限判断，第 3 次起才判断。 */
   crisisLoanCount: number;
+  /** 员工事件通知（离职/罢工/士气警告等），每次 endDay 生成，打开员工页后清空。 */
+  staffNotifications: string[];
 }
 
 export type { EffectObject, EventDef, EndingDef, EventOption, EventCategory };

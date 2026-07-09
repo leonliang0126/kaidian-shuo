@@ -453,10 +453,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       };
     }
 
-    // 如果有员工事件，写入经营日志
-    if (staffEvents.length > 0) {
-      // 暂时用 note 记录
-    }
+    // 如果有员工事件，保存到通知（供 StaffPage 展示）
+    s.staffNotifications = staffEvents;
 
     // 7) 偶发暗线重罚（现金 + 评级 + 日志）
     const hits = applyHiddenLineDailyHits(s, rng);
@@ -556,7 +554,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // ====== 员工系统 actions ======
 
   openStaffPage: () => {
-    set({ staffPageOpen: true, hirePageOpen: false });
+    const s = get().game;
+    if (s && s.staffNotifications.length > 0) {
+      const cleared = cloneState(s);
+      cleared.staffNotifications = [];
+      set({ staffPageOpen: true, hirePageOpen: false, game: cleared });
+    } else {
+      set({ staffPageOpen: true, hirePageOpen: false });
+    }
   },
 
   closeStaffPage: () => {

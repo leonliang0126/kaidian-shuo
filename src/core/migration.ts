@@ -196,6 +196,7 @@ export function migrateGameState(raw: unknown): GameState {
     bailoutRateMultiplier:
       typeof src.bailoutRateMultiplier === 'number' ? src.bailoutRateMultiplier : 1,
     crisisLoanCount: typeof src.crisisLoanCount === 'number' ? src.crisisLoanCount : 0,
+    staffNotifications: Array.isArray(src.staffNotifications) ? (src.staffNotifications as string[]) : [],
   };
 
   // 用真实公式修正净资产（若旧档没有则按 cash 兜底），并同步峰值净资。

@@ -190,6 +190,7 @@ export function createNewGame(cfg: OpeningConfig, rng: RNG): GameState {
     predatoryLoanCount: 0,
     bailoutRateMultiplier: 1,
     crisisLoanCount: 0,
+    staffNotifications: [],
   };
 
   // 应用初始五项决策的即时效果（hidden/soft/cash 等；Pct 由结算时 addDecisionModifiers 处理）

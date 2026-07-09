@@ -26,7 +26,7 @@ export function HirePage() {
   const isFull = store.employees.length >= maxEmployees;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
+    <div className="fixed inset-0 z-50 bg-bg overflow-y-auto">
       <div className="max-w-[480px] mx-auto px-4 py-4 space-y-3">
         {/* 标题行 */}
         <div className="flex items-center justify-between">
