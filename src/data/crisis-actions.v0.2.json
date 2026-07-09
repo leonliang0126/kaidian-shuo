@@ -1,0 +1,62 @@
+[
+  {
+    "id": "bank_loan",
+    "name": "银行贷款",
+    "effect": "现金增加，债务和月供增加，信用良好时更容易通过。",
+    "risk": "未来债务压力上升。"
+  },
+  {
+    "id": "friend_family_loan",
+    "name": "亲友借款",
+    "effect": "低息或无息续命。",
+    "risk": "逾期影响心理压力和声誉。"
+  },
+  {
+    "id": "micro_loan",
+    "name": "小额周转贷",
+    "effect": "立刻到账。",
+    "risk": "利息高，债务结局权重上升。"
+  },
+  {
+    "id": "delay_rent",
+    "name": "拖欠房租",
+    "effect": "本月现金压力下降。",
+    "risk": "房东关注和收铺风险大幅上升。"
+  },
+  {
+    "id": "delay_supplier_payment",
+    "name": "拖欠供应商",
+    "effect": "短期现金压力下降。",
+    "risk": "供应链隐患、断供、坐地起价权重上升。"
+  },
+  {
+    "id": "layoff",
+    "name": "裁员",
+    "effect": "人工成本下降。",
+    "risk": "承载下降、员工压力和服务风险上升。"
+  },
+  {
+    "id": "sell_equipment",
+    "name": "卖设备",
+    "effect": "现金回升。",
+    "risk": "出餐效率下降，未来上限下降。"
+  },
+  {
+    "id": "clearance_sale",
+    "name": "清仓促销",
+    "effect": "快速回笼现金，减少库存。",
+    "risk": "毛利下降，价格锚点受损。"
+  },
+  {
+    "id": "temporary_price_increase",
+    "name": "临时涨价",
+    "effect": "短期客单价和现金改善。",
+    "risk": "价格争议和成交下降。"
+  },
+  {
+    "id": "close_shop",
+    "name": "关店止损",
+    "effect": "进入体面撤退或对应结局。",
+    "risk": "结束当前店，但可能保住剩余资产。"
+  }
+]

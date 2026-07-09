@@ -1,0 +1,25 @@
+# 依赖
+node_modules/
+
+# 构建产物
+dist/
+dist-ssr/
+
+# 构建期生成的 JS/声明（源为 vite.config.ts / tsconfig*.json）
+vite.config.js
+vite.config.d.ts
+
+# TS 增量编译缓存
+*.tsbuildinfo
+
+# 本地环境变量
+*.local
+.env
+.env.*
+
+# 系统/编辑器
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/

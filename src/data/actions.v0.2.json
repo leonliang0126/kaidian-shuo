@@ -1,0 +1,528 @@
+[
+  {
+    "actionId": "handle_bad_reviews",
+    "name": "处理差评",
+    "category": "稳口碑",
+    "costAP": 1,
+    "costCash": {
+      "min": 500,
+      "max": 1500
+    },
+    "cooldownDays": 2,
+    "visibleEffects": {
+      "rating": "+small",
+      "conversionRate": "+small"
+    },
+    "hiddenEffects": {
+      "TRUST": 6,
+      "PRICE": -5,
+      "HYPE": -3
+    },
+    "eventWeightEffects": {
+      "bad_review_spread": -0.2,
+      "word_of_mouth_recovery": 0.1,
+      "short_video_backlash": -0.1
+    },
+    "windMessages": [
+      "几条差评被处理后，评论区没那么刺眼了。",
+      "顾客的火气降了一点，但不是所有人都会回来。"
+    ],
+    "tradeoff": "花钱且不直接增加今日流水。",
+    "crisisAvailable": true,
+    "requiresNonCrisis": false
+  },
+  {
+    "actionId": "short_video_ads",
+    "name": "做短视频投流",
+    "category": "拉客流",
+    "costAP": 1,
+    "costCash": {
+      "min": 1000,
+      "max": 5000
+    },
+    "cooldownDays": 1,
+    "visibleEffects": {
+      "exposure": "+medium",
+      "newCustomers": "+medium",
+      "promoCost": "+medium"
+    },
+    "hiddenEffects": {
+      "HYPE": 10,
+      "LAND": 4,
+      "PRICE": 4,
+      "STAFF": 5
+    },
+    "eventWeightEffects": {
+      "short_video_small_hit": 0.25,
+      "short_video_viral": 0.12,
+      "short_video_backlash": 0.15,
+      "influencer_invitation": 0.1,
+      "landlord_pass_by": 0.1,
+      "competitor_enters": 0.08
+    },
+    "windMessages": [
+      "更多人刷到了你的店，但他们带着更高的期待来。",
+      "新客变多了，店里的承载也开始被试探。"
+    ],
+    "tradeoff": "可能爆火，也可能暴雷。",
+    "crisisAvailable": false,
+    "requiresNonCrisis": true
+  },
+  {
+    "actionId": "loyal_customer_care",
+    "name": "老客维护",
+    "category": "稳口碑",
+    "costAP": 1,
+    "costCash": {
+      "min": 300,
+      "max": 1000
+    },
+    "cooldownDays": 1,
+    "visibleEffects": {
+      "repurchaseRate": "+medium",
+      "exposure": "no_change"
+    },
+    "hiddenEffects": {
+      "TRUST": 8,
+      "HYPE": -4,
+      "PLATFORM": -3
+    },
+    "eventWeightEffects": {
+      "old_customer_return": 0.15,
+      "word_of_mouth_recovery": 0.1,
+      "promo_backlash": -0.1
+    },
+    "windMessages": [
+      "老客开始更稳定地回来，但今天不会突然排大队。"
+    ],
+    "tradeoff": "增长慢，不适合短期翻盘。",
+    "crisisAvailable": true,
+    "requiresNonCrisis": false
+  },
+  {
+    "actionId": "staff_training",
+    "name": "培训员工",
+    "category": "管员工",
+    "costAP": 1,
+    "costCash": {
+      "min": 800,
+      "max": 2000
+    },
+    "cooldownDays": 3,
+    "visibleEffects": {
+      "capacity": "+medium",
+      "serviceStability": "+medium",
+      "staffCost": "+small"
+    },
+    "hiddenEffects": {
+      "STAFF": -8,
+      "HYGIENE": -3,
+      "TRUST": 4
+    },
+    "eventWeightEffects": {
+      "employee_leave": -0.12,
+      "bad_service_review": -0.15,
+      "training_success": 0.12
+    },
+    "windMessages": [
+      "今天后厨没那么乱了，员工知道自己该干什么。"
+    ],
+    "tradeoff": "短期花钱，不一定立刻提高流水。",
+    "crisisAvailable": false,
+    "requiresNonCrisis": true
+  },
+  {
+    "actionId": "temporary_staff",
+    "name": "临时加人",
+    "category": "管员工",
+    "costAP": 1,
+    "costCash": {
+      "min": 500,
+      "max": 1500
+    },
+    "cooldownDays": 1,
+    "visibleEffects": {
+      "capacity": "+medium_today",
+      "staffCost": "+medium",
+      "delayRisk": "-medium"
+    },
+    "hiddenEffects": {
+      "STAFF": -5,
+      "BOSS_STRAIN": -4,
+      "TRUST": 1
+    },
+    "eventWeightEffects": {
+      "rush_hour_collapse": -0.15,
+      "service_instability": 0.05
+    },
+    "windMessages": [
+      "人手暂时够了，但临时工还没完全熟悉节奏。"
+    ],
+    "tradeoff": "适合今天救火，不适合长期管理。",
+    "crisisAvailable": true,
+    "requiresNonCrisis": false
+  },
+  {
+    "actionId": "owner_shift",
+    "name": "老板亲自顶班",
+    "category": "救现金",
+    "costAP": 1,
+    "costCash": {
+      "min": 0,
+      "max": 0
+    },
+    "cooldownDays": 0,
+    "visibleEffects": {
+      "staffCost": "-small",
+      "capacity": "+small_today"
+    },
+    "hiddenEffects": {
+      "BOSS_STRAIN": 12,
+      "STAFF": 2
+    },
+    "eventWeightEffects": {
+      "owner_overwork": 0.25,
+      "decision_mistake": 0.15,
+      "bad_service_review": 0.08
+    },
+    "windMessages": [
+      "你今天省下了人工，也把自己往后厨里多塞了一点。"
+    ],
+    "tradeoff": "短期省钱，长期埋雷。老板透支高时次日行动点上限下降。",
+    "crisisAvailable": true,
+    "requiresNonCrisis": false
+  },
+  {
+    "actionId": "equipment_maintenance",
+    "name": "设备维护",
+    "category": "控风险",
+    "costAP": 1,
+    "costCash": {
+      "min": 1000,
+      "max": 3000
+    },
+    "cooldownDays": 5,
+    "visibleEffects": {
+      "netProfit": "-small_today",
+      "equipmentFailureRisk": "-large",
+      "shutdownRisk": "-medium"
+    },
+    "hiddenEffects": {
+      "HYGIENE": -6,
+      "SUPPLY": -2,
+      "STAFF": -3
+    },
+    "eventWeightEffects": {
+      "fridge_failure": -0.25,
+      "kitchen_leak": -0.18,
+      "shutdown_repair": -0.15,
+      "inspection_pass": 0.08
+    },
+    "windMessages": [
+      "机器今天没帮你赚钱，但它也没有选择背叛你。"
+    ],
+    "tradeoff": "短期亏，长期稳。",
+    "crisisAvailable": false,
+    "requiresNonCrisis": true
+  },
+  {
+    "actionId": "food_safety_check",
+    "name": "食安自查",
+    "category": "控风险",
+    "costAP": 1,
+    "costCash": {
+      "min": 500,
+      "max": 2000
+    },
+    "cooldownDays": 4,
+    "visibleEffects": {
+      "efficiency": "-small_today",
+      "ratingStability": "+small"
+    },
+    "hiddenEffects": {
+      "HYGIENE": -10,
+      "TRUST": 3,
+      "STAFF": 2
+    },
+    "eventWeightEffects": {
+      "hygiene_inspection": -0.2,
+      "food_safety_complaint": -0.25,
+      "inspection_pass": 0.1
+    },
+    "windMessages": [
+      "后厨被重新整理了一遍，至少今天看起来不像灾难预告片。"
+    ],
+    "tradeoff": "不涨销量，但防止暴死。",
+    "crisisAvailable": false,
+    "requiresNonCrisis": true
+  },
+  {
+    "actionId": "inventory_check",
+    "name": "盘库存",
+    "category": "控风险",
+    "costAP": 1,
+    "costCash": {
+      "min": 0,
+      "max": 500
+    },
+    "cooldownDays": 2,
+    "visibleEffects": {
+      "waste": "-medium",
+      "stockoutRisk": "-small",
+      "efficiency": "-small_today"
+    },
+    "hiddenEffects": {
+      "SUPPLY": -7,
+      "HYGIENE": -4,
+      "STAFF": 2
+    },
+    "eventWeightEffects": {
+      "stockout": -0.15,
+      "expired_inventory": -0.2,
+      "waste_spike": -0.15
+    },
+    "windMessages": [
+      "库存终于被认真看了一遍，有些问题还没变成钱的尸体。"
+    ],
+    "tradeoff": "今天不刺激，但防止明天被库存背刺。",
+    "crisisAvailable": true,
+    "requiresNonCrisis": false
+  },
+  {
+    "actionId": "negotiate_supplier",
+    "name": "谈供应商",
+    "category": "谈资源",
+    "costAP": 2,
+    "costCash": {
+      "min": 0,
+      "max": 1000
+    },
+    "cooldownDays": 7,
+    "visibleEffects": {
+      "supplierCost": "chance_down",
+      "paymentTerms": "chance_improve",
+      "supplyStability": "chance_improve"
+    },
+    "hiddenEffects": {
+      "SUPPLY": "chance_-8_or_+8",
+      "CREDIT": "chance_change"
+    },
+    "eventWeightEffects": {
+      "supplier_price_hike": "chance_-0.15_or_+0.1",
+      "supplier_credit_terms": 0.1
+    },
+    "resultChances": {
+      "success": 0.45,
+      "neutral": 0.35,
+      "fail": 0.2
+    },
+    "windMessages": [
+      "供应商愿意多聊几句，但他不是慈善机构。"
+    ],
+    "tradeoff": "消耗 2 点，失败也有代价。",
+    "crisisAvailable": true,
+    "requiresNonCrisis": false
+  },
+  {
+    "actionId": "switch_supplier",
+    "name": "换供应商",
+    "category": "谈资源",
+    "costAP": 2,
+    "costCash": {
+      "min": 1000,
+      "max": 3000
+    },
+    "cooldownDays": 10,
+    "visibleEffects": {
+      "supplierCost": "reroll",
+      "quality": "reroll",
+      "supplyStability": "reroll",
+      "productStability": "-temporary"
+    },
+    "hiddenEffects": {
+      "SUPPLY": 10,
+      "TRUST": "chance_-5",
+      "PRICE": 0
+    },
+    "eventWeightEffects": {
+      "quality_fluctuation": 0.15,
+      "stockout": 0.08,
+      "supplier_price_hike": "reroll"
+    },
+    "windMessages": [
+      "新供应商看起来不错，只是顾客还不知道味道会不会变。"
+    ],
+    "tradeoff": "可能救毛利，也可能毁稳定。",
+    "crisisAvailable": false,
+    "requiresNonCrisis": true
+  },
+  {
+    "actionId": "negotiate_rent",
+    "name": "谈房租",
+    "category": "谈资源",
+    "costAP": 2,
+    "costCash": {
+      "min": 0,
+      "max": 500
+    },
+    "cooldownDays": 15,
+    "visibleEffects": {
+      "futureRentPressure": "chance_down_or_no_change"
+    },
+    "hiddenEffects": {
+      "LAND": "chance_-10_or_+10"
+    },
+    "eventWeightEffects": {
+      "rent_increase": "chance_-0.2_or_+0.15",
+      "landlord_lease_talk": 0.05
+    },
+    "resultChances": {
+      "success": 0.35,
+      "neutral": 0.4,
+      "fail": 0.25
+    },
+    "windMessages": [
+      "房东听完你的解释后笑了笑，这不一定是好信号。"
+    ],
+    "tradeoff": "高价值，但失败会反噬。",
+    "crisisAvailable": true,
+    "requiresNonCrisis": false
+  },
+  {
+    "actionId": "scout_backup_location",
+    "name": "找备用铺",
+    "category": "谈资源",
+    "costAP": 2,
+    "costCash": {
+      "min": 1000,
+      "max": 3000
+    },
+    "cooldownDays": 10,
+    "visibleEffects": {
+      "cash": "-cost",
+      "relocationOption": "unlock_progress"
+    },
+    "hiddenEffects": {
+      "LAND": -5,
+      "BOSS_STRAIN": 5,
+      "TRUST": "future_relocation_risk"
+    },
+    "eventWeightEffects": {
+      "forced_relocation_damage": -0.15,
+      "rent_increase_pressure": -0.08
+    },
+    "windMessages": [
+      "你开始看别的铺位了。不是要走，是终于有了退路。"
+    ],
+    "tradeoff": "不直接赚钱，但能防房东卡脖子。",
+    "crisisAvailable": false,
+    "requiresNonCrisis": true
+  },
+  {
+    "actionId": "develop_new_product",
+    "name": "开发新品",
+    "category": "拉客流",
+    "costAP": 2,
+    "costCash": {
+      "min": 2000,
+      "max": 6000
+    },
+    "cooldownDays": 10,
+    "visibleEffects": {
+      "avgOrderValue": "chance_up",
+      "exposure": "chance_up",
+      "complexity": "+medium"
+    },
+    "hiddenEffects": {
+      "HYPE": "chance_+8",
+      "SUPPLY": "chance_+6",
+      "TRUST": "chance_+6_or_-6",
+      "STAFF": 5
+    },
+    "eventWeightEffects": {
+      "short_video_small_hit": 0.1,
+      "stockout": 0.08,
+      "expectation_gap": 0.08
+    },
+    "resultChances": {
+      "success": 0.3,
+      "normal": 0.5,
+      "fail": 0.2
+    },
+    "windMessages": [
+      "新品有点意思，但后厨已经开始怀疑人生。"
+    ],
+    "tradeoff": "有爆款可能，也有复杂度代价。",
+    "crisisAvailable": false,
+    "requiresNonCrisis": true
+  },
+  {
+    "actionId": "optimize_menu",
+    "name": "优化菜单",
+    "category": "控风险",
+    "costAP": 1,
+    "costCash": {
+      "min": 500,
+      "max": 1500
+    },
+    "cooldownDays": 5,
+    "visibleEffects": {
+      "efficiency": "+medium",
+      "waste": "-medium",
+      "menuBreadth": "-small"
+    },
+    "hiddenEffects": {
+      "STAFF": -6,
+      "SUPPLY": -5,
+      "TRUST": "chance_-2"
+    },
+    "eventWeightEffects": {
+      "rush_hour_collapse": -0.1,
+      "waste_spike": -0.12,
+      "customer_lost_specific_item": 0.05
+    },
+    "windMessages": [
+      "菜单薄了一点，后厨活得像个人了一点。"
+    ],
+    "tradeoff": "效率变好，但可能失去小部分客群。",
+    "crisisAvailable": true,
+    "requiresNonCrisis": false
+  },
+  {
+    "actionId": "all_in_promotion",
+    "name": "搏一把推广",
+    "category": "拉客流",
+    "costAP": 3,
+    "costCash": {
+      "min": 5000,
+      "max": 15000
+    },
+    "cooldownDays": 15,
+    "visibleEffects": {
+      "exposure": "+very_large",
+      "orders": "chance_very_large_up",
+      "cashPressure": "+large"
+    },
+    "hiddenEffects": {
+      "HYPE": 25,
+      "STAFF": 18,
+      "PRICE": 10,
+      "LAND": 12
+    },
+    "eventWeightEffects": {
+      "short_video_viral": 0.35,
+      "short_video_backlash": 0.35,
+      "employee_breakdown": 0.15,
+      "landlord_pass_by": 0.2,
+      "competitor_enters": 0.12
+    },
+    "requiresConfirmation": true,
+    "confirmationText": "这不是稳健经营。\n这是把灭火器当火箭燃料。\n确认搏一把？",
+    "windMessages": [
+      "你把今天所有精力都押在流量上了。希望店接得住，真的。"
+    ],
+    "tradeoff": "可能救命，也可能加速死亡。",
+    "crisisAvailable": false,
+    "requiresNonCrisis": true
+  }
+]

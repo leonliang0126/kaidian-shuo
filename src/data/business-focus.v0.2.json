@@ -1,0 +1,103 @@
+[
+  {
+    "id": "cash_stability",
+    "name": "稳现金流",
+    "description": "减少无效支出，让今日净利更稳定，但增长变慢。",
+    "effectTags": [
+      "net_profit_stability_up",
+      "growth_down"
+    ],
+    "modifiers": {
+      "wasteCost": -0.1,
+      "exposureGrowth": -0.08
+    }
+  },
+  {
+    "id": "push_revenue",
+    "name": "冲营业额",
+    "description": "提高推广和引流效果，但员工压力与差评风险上升。",
+    "effectTags": [
+      "revenue_up",
+      "staff_pressure_up",
+      "review_risk_up"
+    ],
+    "modifiers": {
+      "promotionEffect": 0.2,
+      "employeePressureGain": 0.15
+    }
+  },
+  {
+    "id": "protect_reputation",
+    "name": "稳口碑",
+    "description": "增强处理差评和员工培训效果，短期利润下降。",
+    "effectTags": [
+      "trust_up",
+      "rating_stability_up",
+      "short_term_profit_down"
+    ],
+    "modifiers": {
+      "handleBadReviewsEffect": 0.3,
+      "trainingEffect": 0.2,
+      "costMultiplier": 1.05
+    }
+  },
+  {
+    "id": "cut_cost",
+    "name": "降成本",
+    "description": "强化谈供应商、优化菜单、盘库存效果，但可能伤害品质和员工。",
+    "effectTags": [
+      "cost_down",
+      "quality_risk_up"
+    ],
+    "modifiers": {
+      "supplierNegotiationEffect": 0.2,
+      "inventoryEffect": 0.2,
+      "trustGain": -0.05
+    }
+  },
+  {
+    "id": "build_repurchase",
+    "name": "做复购",
+    "description": "强化老客维护，复购更稳定，但新客增长较慢。",
+    "effectTags": [
+      "repurchase_up",
+      "new_customer_growth_down"
+    ],
+    "modifiers": {
+      "loyalCustomerEffect": 0.3,
+      "exposureGrowth": -0.05
+    }
+  },
+  {
+    "id": "internal_cleanup",
+    "name": "处理内务",
+    "description": "增强设备维护、食安自查、盘库存效果，但今日流水增长偏弱。",
+    "effectTags": [
+      "risk_down",
+      "revenue_growth_down"
+    ],
+    "modifiers": {
+      "maintenanceEffect": 0.3,
+      "hygieneCheckEffect": 0.3,
+      "inventoryEffect": 0.3,
+      "revenueGrowth": -0.05
+    }
+  },
+  {
+    "id": "all_in",
+    "name": "搏一把",
+    "description": "推广类效果大幅增强，爆火和暴雷权重同时上升。",
+    "effectTags": [
+      "promotion_effect_up",
+      "viral_weight_up",
+      "backlash_weight_up",
+      "landlord_attention_up"
+    ],
+    "modifiers": {
+      "promotionEffect": 0.5,
+      "hypeGain": 0.25,
+      "employeePressureGain": 0.2,
+      "landlordAttentionGain": 0.15
+    }
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "CATEGORY_DEFAULT": {
+    "weather": { "metric": "exposure", "polarity": "good", "mag": { "small": 5, "medium": 10, "large": 15, "fate": 15 } },
+    "district": { "metric": "exposure", "polarity": "good", "mag": { "small": 5, "medium": 10, "large": 15, "fate": 15 } },
+    "landlord": { "metric": "exposure", "polarity": "bad", "mag": { "small": 10, "medium": 20, "large": 35, "fate": 35 } },
+    "staff": { "metric": "conversionRate", "polarity": "bad", "mag": { "small": 10, "medium": 20, "large": 35, "fate": 35 } },
+    "supplier": { "metric": "repurchaseRate", "polarity": "bad", "mag": { "small": 10, "medium": 20, "large": 35, "fate": 35 } },
+    "promotion": { "metric": "exposure", "polarity": "good", "mag": { "small": 5, "medium": 10, "large": 15, "fate": 15 } },
+    "platform": { "metric": "deliveryExposure", "polarity": "bad", "mag": { "small": 10, "medium": 20, "large": 35, "fate": 35 } },
+    "competitor": { "metric": "exposure", "polarity": "bad", "mag": { "small": 10, "medium": 20, "large": 35, "fate": 35 } },
+    "equipment": { "metric": "orders", "polarity": "bad", "mag": { "small": 10, "medium": 20, "large": 35, "fate": 35 } },
+    "compliance": { "metric": "rating", "polarity": "bad", "mag": { "small": 10, "medium": 20, "large": 35, "fate": 35 } },
+    "forced": { "metric": "cash", "polarity": "bad", "mag": { "small": 0, "medium": 0, "large": 0, "fate": 0 } }
+  },
+  "HARD_HIT": {
+    "E032": { "metric": "exposure", "cashDelta": 0, "ratingDelta": 0 },
+    "E058": { "metric": "orders", "cashDelta": -3000, "ratingDelta": 0 },
+    "E020": { "metric": "cash", "cashDelta": -30000, "ratingDelta": 0 },
+    "E008": { "metric": "exposure", "cashDelta": 0, "ratingDelta": 0 },
+    "E055": { "metric": "exposure", "cashDelta": 0, "ratingDelta": 0 },
+    "E006": { "metric": "cash", "cashDelta": -20000, "ratingDelta": 0 },
+    "E059": { "metric": "rating", "cashDelta": -5000, "ratingDelta": -40 },
+    "E060": { "metric": "rating", "cashDelta": -8000, "ratingDelta": -40 }
+  },
+  "HARD_HIT_MAGNITUDE": { "exposure": -50, "orders": -50 }
+}

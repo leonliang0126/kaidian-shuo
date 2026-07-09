@@ -1,0 +1,2697 @@
+[
+  {
+    "id": "E001",
+    "title": "小雨",
+    "category": "weather",
+    "level": "small",
+    "trigger": "普通天气池；外卖开启时权重上升",
+    "cooldownDays": 2,
+    "options": [
+      {
+        "id": "auto",
+        "label": "自动发生",
+        "visibleEffect": "堂食客流略降，外卖曝光略升。",
+        "effects": {
+          "dineInExposurePct": -5,
+          "deliveryExposurePct": 8,
+          "hidden": {
+            "platformDependence": 2
+          }
+        }
+      }
+    ],
+    "wind": "今天堂食少了点，外卖倒是更热闹。"
+  },
+  {
+    "id": "E002",
+    "title": "暴雨",
+    "category": "weather",
+    "level": "medium",
+    "trigger": "天气池；雨季权重上升",
+    "cooldownDays": 7,
+    "options": [
+      {
+        "id": "normal",
+        "label": "照常营业",
+        "visibleEffect": "堂食大降，外卖小升，员工压力增加。",
+        "effects": {
+          "dineInExposurePct": -20,
+          "deliveryExposurePct": 15,
+          "hidden": {
+            "employeePressure": 5
+          }
+        }
+      },
+      {
+        "id": "delivery",
+        "label": "主推外卖",
+        "visibleEffect": "外卖订单明显增加，但平台依赖和差评风险上升。",
+        "effects": {
+          "deliveryExposurePct": 30,
+          "hidden": {
+            "platformDependence": 8,
+            "employeePressure": 5
+          }
+        }
+      },
+      {
+        "id": "close_early",
+        "label": "提前收店",
+        "visibleEffect": "当天流水减少，但员工压力下降。",
+        "effects": {
+          "revenuePct": -25,
+          "hidden": {
+            "employeePressure": -5
+          }
+        }
+      }
+    ],
+    "wind": "雨天带来了外卖，也带来了配送延迟和差评的味道。"
+  },
+  {
+    "id": "E003",
+    "title": "高温天",
+    "category": "weather",
+    "level": "medium",
+    "trigger": "夏季；奶茶饮品权重上升",
+    "cooldownDays": 7,
+    "options": [
+      {
+        "id": "cold_drink",
+        "label": "推冷饮爆款",
+        "effects": {
+          "revenuePct": 20,
+          "hidden": {
+            "employeePressure": 5
+          }
+        },
+        "visibleEffect": "饮品销量上升，但出餐压力增加。"
+      },
+      {
+        "id": "normal",
+        "label": "保持菜单",
+        "effects": {
+          "revenuePct": 8
+        },
+        "visibleEffect": "自然受益，小幅增长。"
+      },
+      {
+        "id": "raise_price",
+        "label": "提价热门品",
+        "effects": {
+          "avgOrderValuePct": 8,
+          "conversionRatePct": -5,
+          "hidden": {
+            "priceControversy": 8
+          }
+        },
+        "visibleEffect": "客单价上升，但价格争议增加。"
+      }
+    ],
+    "wind": "天气帮你带来了客人，但客人不会顺便帮你出餐。"
+  },
+  {
+    "id": "E004",
+    "title": "寒潮",
+    "category": "weather",
+    "level": "medium",
+    "trigger": "冬季；粉面和热食品类权重上升",
+    "cooldownDays": 7,
+    "options": [
+      {
+        "id": "hot_combo",
+        "label": "推热食套餐",
+        "effects": {
+          "revenuePct": 18,
+          "hidden": {
+            "customerTrust": 3
+          }
+        },
+        "visibleEffect": "热食销量上涨。"
+      },
+      {
+        "id": "discount",
+        "label": "做满减活动",
+        "effects": {
+          "ordersPct": 15,
+          "marginPct": -5
+        },
+        "visibleEffect": "订单增加但毛利下降。"
+      },
+      {
+        "id": "none",
+        "label": "不调整",
+        "effects": {},
+        "visibleEffect": "影响较小。"
+      }
+    ],
+    "wind": "冷天让热食更好卖，前提是你真有东西热。"
+  },
+  {
+    "id": "E005",
+    "title": "连续阴雨",
+    "category": "weather",
+    "level": "medium",
+    "trigger": "连续雨天后权重上升",
+    "cooldownDays": 14,
+    "options": [
+      {
+        "id": "better_package",
+        "label": "强化外卖包装",
+        "effects": {
+          "cash": -300,
+          "rating": 3,
+          "hidden": {
+            "platformDependence": 3
+          }
+        },
+        "visibleEffect": "成本上升，评分更稳。"
+      },
+      {
+        "id": "dine_discount",
+        "label": "做堂食折扣",
+        "effects": {
+          "conversionRatePct": 8,
+          "marginPct": -3
+        },
+        "visibleEffect": "堂食成交回升，毛利下降。"
+      },
+      {
+        "id": "endure",
+        "label": "先扛着",
+        "effects": {
+          "rating": -2,
+          "hidden": {
+            "employeePressure": 5
+          }
+        },
+        "visibleEffect": "不花钱，但差评风险上升。"
+      }
+    ],
+    "wind": "天气不是大问题，连续几天的小问题才是。"
+  },
+  {
+    "id": "E006",
+    "title": "台风预警",
+    "category": "weather",
+    "level": "large",
+    "trigger": "极低概率；极端天气",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "close",
+        "label": "停业一天",
+        "effects": {
+          "revenuePct": -100,
+          "hidden": {
+            "employeePressure": -8,
+            "customerTrust": 3
+          }
+        },
+        "visibleEffect": "当天无流水，员工压力下降。"
+      },
+      {
+        "id": "half_day",
+        "label": "半天营业",
+        "effects": {
+          "revenuePct": -50
+        },
+        "visibleEffect": "收入减半，风险较低。"
+      },
+      {
+        "id": "normal",
+        "label": "照常营业",
+        "effects": {
+          "revenuePct": -20,
+          "hidden": {
+            "hygieneRisk": 8
+          }
+        },
+        "visibleEffect": "仍有收入，但设备和卫生风险上升。"
+      }
+    ],
+    "wind": "你可以硬开，但天气不会因为你努力就讲道理。"
+  },
+  {
+    "id": "E007",
+    "title": "写字楼加班潮",
+    "category": "district",
+    "level": "medium",
+    "trigger": "写字楼商圈",
+    "cooldownDays": 14,
+    "options": [
+      {
+        "id": "extend",
+        "label": "延长营业",
+        "effects": {
+          "revenuePct": 15,
+          "hidden": {
+            "employeePressure": 8
+          }
+        },
+        "visibleEffect": "晚间流水上涨，员工压力增加。"
+      },
+      {
+        "id": "dinner_combo",
+        "label": "做晚餐套餐",
+        "effects": {
+          "avgOrderValuePct": 8,
+          "hidden": {
+            "customerTrust": 3
+          }
+        },
+        "visibleEffect": "客单价上升，顾客信任小升。"
+      },
+      {
+        "id": "none",
+        "label": "不调整",
+        "effects": {},
+        "visibleEffect": "错过机会。"
+      }
+    ],
+    "wind": "附近人确实更多了，只是他们看起来都不太快乐。"
+  },
+  {
+    "id": "E008",
+    "title": "附近大公司搬走",
+    "category": "district",
+    "level": "large",
+    "trigger": "写字楼商圈；中低概率",
+    "cooldownDays": 90,
+    "options": [
+      {
+        "id": "delivery",
+        "label": "加大外卖",
+        "effects": {
+          "deliveryExposurePct": 20,
+          "hidden": {
+            "platformDependence": 10
+          }
+        },
+        "visibleEffect": "部分恢复曝光，但平台依赖上升。"
+      },
+      {
+        "id": "community",
+        "label": "转向社区客群",
+        "effects": {
+          "revenuePct": -10,
+          "repurchaseRatePct": 5
+        },
+        "visibleEffect": "短期流水下降，长期复购改善。"
+      },
+      {
+        "id": "cheap_lunch",
+        "label": "推低价工作餐",
+        "effects": {
+          "conversionRatePct": 8,
+          "marginPct": -5
+        },
+        "visibleEffect": "成交率上升，毛利下降。"
+      },
+      {
+        "id": "none",
+        "label": "什么都不做",
+        "effects": {
+          "futureEffect": "未来30天午餐曝光 -25%"
+        },
+        "visibleEffect": "未来午餐客流明显下降。"
+      }
+    ],
+    "wind": "不是你突然变差了，是你的客人搬走了。"
+  },
+  {
+    "id": "E009",
+    "title": "学校放假",
+    "category": "district",
+    "level": "medium",
+    "trigger": "学校商圈",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "less_stock",
+        "label": "减少备货",
+        "effects": {
+          "revenuePct": -15,
+          "hidden": {
+            "supplyRisk": -3
+          }
+        },
+        "visibleEffect": "流水下降但损耗减少。"
+      },
+      {
+        "id": "delivery",
+        "label": "加外卖推广",
+        "effects": {
+          "exposurePct": 10,
+          "hidden": {
+            "platformDependence": 5
+          }
+        },
+        "visibleEffect": "曝光回升，平台依赖上升。"
+      },
+      {
+        "id": "holiday_combo",
+        "label": "做假期套餐",
+        "effects": {
+          "conversionRatePct": 5,
+          "marginPct": -3
+        },
+        "visibleEffect": "成交率小幅回升。"
+      }
+    ],
+    "wind": "学生走了，价格敏感客也跟着一起消失了。"
+  },
+  {
+    "id": "E010",
+    "title": "商场活动",
+    "category": "district",
+    "level": "medium",
+    "trigger": "商场商圈；周末权重上升",
+    "cooldownDays": 14,
+    "options": [
+      {
+        "id": "extra_staff",
+        "label": "临时加人",
+        "effects": {
+          "staffCost": 300,
+          "revenuePct": 20,
+          "hidden": {
+            "employeePressure": -3
+          }
+        },
+        "visibleEffect": "能接住人流，但人工成本上升。"
+      },
+      {
+        "id": "combo",
+        "label": "推套餐",
+        "effects": {
+          "ordersPct": 15,
+          "marginPct": -4
+        },
+        "visibleEffect": "订单增加，毛利下降。"
+      },
+      {
+        "id": "natural",
+        "label": "接住自然流量",
+        "effects": {
+          "revenuePct": 10,
+          "hidden": {
+            "employeePressure": 8
+          }
+        },
+        "visibleEffect": "流水上升，员工压力增加。"
+      }
+    ],
+    "wind": "人流来了，后厨也开始冒烟了。"
+  },
+  {
+    "id": "E011",
+    "title": "道路施工",
+    "category": "district",
+    "level": "medium",
+    "trigger": "街边店、社区店",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "delivery",
+        "label": "做外卖",
+        "effects": {
+          "dineInExposurePct": -15,
+          "hidden": {
+            "platformDependence": 8
+          }
+        },
+        "visibleEffect": "堂食减少，外卖依赖上升。"
+      },
+      {
+        "id": "private",
+        "label": "做老客社群",
+        "effects": {
+          "repurchaseRatePct": 5,
+          "hidden": {
+            "customerTrust": 5
+          }
+        },
+        "visibleEffect": "复购和信任上升。"
+      },
+      {
+        "id": "endure",
+        "label": "忍着",
+        "effects": {
+          "entryRatePct": -15,
+          "durationDays": 7
+        },
+        "visibleEffect": "未来7天进店率下降。"
+      }
+    ],
+    "wind": "路被挖开后，顾客终于有了不来的正当理由。"
+  },
+  {
+    "id": "E012",
+    "title": "地铁口开通",
+    "category": "district",
+    "level": "fate",
+    "trigger": "低概率命运事件",
+    "cooldownDays": 180,
+    "options": [
+      {
+        "id": "promote",
+        "label": "加大推广",
+        "effects": {
+          "exposurePct": 30,
+          "hidden": {
+            "promoHype": 10,
+            "landlordAttention": 10
+          }
+        },
+        "visibleEffect": "曝光大涨，房东关注也上涨。"
+      },
+      {
+        "id": "quality",
+        "label": "稳住品质",
+        "effects": {
+          "revenuePct": 12,
+          "hidden": {
+            "customerTrust": 8
+          }
+        },
+        "visibleEffect": "稳健承接新增客流。"
+      },
+      {
+        "id": "raise_price",
+        "label": "准备涨价",
+        "effects": {
+          "avgOrderValuePct": 8,
+          "hidden": {
+            "priceControversy": 8,
+            "landlordAttention": 5
+          }
+        },
+        "visibleEffect": "客单价上涨，价格争议增加。"
+      }
+    ],
+    "wind": "好消息是人多了。坏消息是房东也知道了。"
+  },
+  {
+    "id": "E013",
+    "title": "新楼盘入住",
+    "category": "district",
+    "level": "medium",
+    "trigger": "社区商圈",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "membership",
+        "label": "做社区会员",
+        "effects": {
+          "repurchaseRatePct": 8,
+          "hidden": {
+            "customerTrust": 5
+          }
+        },
+        "visibleEffect": "复购率和顾客信任上升。"
+      },
+      {
+        "id": "flyer",
+        "label": "发传单",
+        "effects": {
+          "exposurePct": 15,
+          "promoCost": 300
+        },
+        "visibleEffect": "曝光增加，需要推广成本。"
+      },
+      {
+        "id": "none",
+        "label": "不动",
+        "effects": {
+          "exposurePct": 5
+        },
+        "visibleEffect": "自然客流小幅上升。"
+      }
+    ],
+    "wind": "新住户开始找附近能长期吃的店了。"
+  },
+  {
+    "id": "E014",
+    "title": "夜市爆火",
+    "category": "district",
+    "level": "medium",
+    "trigger": "夜间品类、小吃烧烤权重上升",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "extend",
+        "label": "延长营业",
+        "effects": {
+          "revenuePct": 20,
+          "hidden": {
+            "employeePressure": 12
+          }
+        },
+        "visibleEffect": "夜间流水上涨，员工压力增加。"
+      },
+      {
+        "id": "night_product",
+        "label": "上夜宵产品",
+        "effects": {
+          "avgOrderValuePct": 6,
+          "hidden": {
+            "supplyRisk": 5
+          }
+        },
+        "visibleEffect": "客单价小升，供应链更复杂。"
+      },
+      {
+        "id": "none",
+        "label": "不参与",
+        "effects": {},
+        "visibleEffect": "错过短期热度。"
+      }
+    ],
+    "wind": "夜里的人流很香，员工的脸色也很黑。"
+  },
+  {
+    "id": "E015",
+    "title": "房东路过",
+    "category": "landlord",
+    "level": "small",
+    "trigger": "连续盈利、客流上升",
+    "cooldownDays": 7,
+    "options": [
+      {
+        "id": "auto",
+        "label": "自动发生",
+        "effects": {
+          "hidden": {
+            "landlordAttention": 8
+          }
+        },
+        "visibleEffect": "房东关注上升。"
+      }
+    ],
+    "wind": "房东最近出现得有点频繁，他不像是来消费的。"
+  },
+  {
+    "id": "E016",
+    "title": "房东涨租",
+    "category": "landlord",
+    "level": "large",
+    "trigger": "landlordAttention > 50；租约接近月结",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "accept",
+        "label": "接受涨租",
+        "effects": {
+          "rentPct": 15,
+          "hidden": {
+            "landlordAttention": -10
+          }
+        },
+        "visibleEffect": "固定成本上升，房东关注下降。"
+      },
+      {
+        "id": "negotiate",
+        "label": "谈判",
+        "effects": {
+          "random": "50%涨幅降至8%；30%无效；20% landlordAttention +15"
+        },
+        "visibleEffect": "可能压价，也可能激怒房东。"
+      },
+      {
+        "id": "move_prepare",
+        "label": "准备搬店",
+        "effects": {
+          "cash": -5000,
+          "hidden": {
+            "customerTrust": -5
+          },
+          "unlock": "move_route"
+        },
+        "visibleEffect": "现金压力上升，解锁搬店路线。"
+      },
+      {
+        "id": "pretend_poor",
+        "label": "装穷拖延",
+        "effects": {
+          "hidden": {
+            "landlordAttention": 20
+          },
+          "landlordPatience": -10
+        },
+        "visibleEffect": "本月不变，但房东耐心下降。"
+      }
+    ],
+    "wind": "你赚的钱终于引来了最稳定的竞争者：房东。"
+  },
+  {
+    "id": "E017",
+    "title": "提前续约",
+    "category": "landlord",
+    "level": "medium",
+    "trigger": "landlordAttention 中高；现金健康",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "lock_rent",
+        "label": "交押金锁租",
+        "effects": {
+          "cash": "-1_month_rent",
+          "cooldown": "rent_increase_60_days"
+        },
+        "visibleEffect": "现金减少，未来60天涨租冷却。"
+      },
+      {
+        "id": "reject",
+        "label": "拒绝",
+        "effects": {
+          "hidden": {
+            "landlordAttention": 8
+          }
+        },
+        "visibleEffect": "暂不花钱，房东关注上升。"
+      },
+      {
+        "id": "short_term",
+        "label": "谈更短租期",
+        "effects": {
+          "random": "成功则现金压力较低；失败 landlordAttention +5"
+        },
+        "visibleEffect": "降低承诺，但有谈判风险。"
+      }
+    ],
+    "wind": "锁住租金需要钱，不锁住租金需要运气。"
+  },
+  {
+    "id": "E018",
+    "title": "房东免租半个月",
+    "category": "landlord",
+    "level": "medium",
+    "trigger": "低概率；房东关系好或商圈冷",
+    "cooldownDays": 120,
+    "options": [
+      {
+        "id": "save",
+        "label": "接受并维持经营",
+        "effects": {
+          "cash": "+half_month_rent"
+        },
+        "visibleEffect": "现金压力缓解。"
+      },
+      {
+        "id": "promote",
+        "label": "把省下的钱投推广",
+        "effects": {
+          "exposurePct": 15,
+          "hidden": {
+            "promoHype": 5
+          }
+        },
+        "visibleEffect": "曝光上升，虚火略升。"
+      },
+      {
+        "id": "pay_supplier",
+        "label": "还供应商账款",
+        "effects": {
+          "hidden": {
+            "supplyRisk": -8,
+            "customerTrust": 2
+          }
+        },
+        "visibleEffect": "供应链隐患下降。"
+      }
+    ],
+    "wind": "房东突然善良，通常不是童话，是市场冷了。"
+  },
+  {
+    "id": "E019",
+    "title": "物业统一装修",
+    "category": "landlord",
+    "level": "medium",
+    "trigger": "商场、商业街",
+    "cooldownDays": 120,
+    "options": [
+      {
+        "id": "full",
+        "label": "按要求装修",
+        "effects": {
+          "cash": -8000,
+          "entryRatePct": 5
+        },
+        "visibleEffect": "花钱提高形象。"
+      },
+      {
+        "id": "simple",
+        "label": "简化处理",
+        "effects": {
+          "cash": -3000,
+          "hidden": {
+            "hygieneRisk": 3
+          }
+        },
+        "visibleEffect": "少花钱，但隐患增加。"
+      },
+      {
+        "id": "delay",
+        "label": "申请延期",
+        "effects": {
+          "hidden": {
+            "landlordAttention": 8
+          }
+        },
+        "visibleEffect": "短期不花钱，房东关注上升。"
+      }
+    ],
+    "wind": "你以为装修完了，物业觉得没有。"
+  },
+  {
+    "id": "E020",
+    "title": "房东卖铺",
+    "category": "landlord",
+    "level": "large",
+    "trigger": "低概率",
+    "cooldownDays": 180,
+    "options": [
+      {
+        "id": "wait",
+        "label": "继续观望",
+        "effects": {
+          "futureEffect": "不确定事件权重上升"
+        },
+        "visibleEffect": "暂不花钱，但未来不确定性提高。"
+      },
+      {
+        "id": "long_contract",
+        "label": "谈长期租约",
+        "effects": {
+          "cash": "-deposit",
+          "stability": 10
+        },
+        "visibleEffect": "现金减少，稳定性提高。"
+      },
+      {
+        "id": "move_prepare",
+        "label": "准备搬店",
+        "effects": {
+          "cash": -3000,
+          "unlock": "new_location_scouting"
+        },
+        "visibleEffect": "解锁新选址观察。"
+      }
+    ],
+    "wind": "店还在，地基开始不属于你了。"
+  },
+  {
+    "id": "E021",
+    "title": "员工临时请假",
+    "category": "staff",
+    "level": "medium",
+    "trigger": "employeePressure > 40",
+    "cooldownDays": 7,
+    "options": [
+      {
+        "id": "owner",
+        "label": "老板顶班",
+        "effects": {
+          "staffCost": -200,
+          "ownerFatigue": 10,
+          "hidden": {
+            "employeePressure": 5
+          }
+        },
+        "visibleEffect": "省人工，但老板透支上升。"
+      },
+      {
+        "id": "temp",
+        "label": "临时工",
+        "effects": {
+          "staffCost": 400
+        },
+        "visibleEffect": "成本上升，服务稳定。"
+      },
+      {
+        "id": "limit_order",
+        "label": "减少接单",
+        "effects": {
+          "revenuePct": -10
+        },
+        "visibleEffect": "流水下降，评分稳定。"
+      }
+    ],
+    "wind": "人手少的时候，每一单都像在测试人性。"
+  },
+  {
+    "id": "E022",
+    "title": "核心员工离职",
+    "category": "staff",
+    "level": "large",
+    "trigger": "employeePressure > 70 或拖欠工资",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "raise",
+        "label": "加薪挽留",
+        "effects": {
+          "staffCostPct": 10,
+          "hidden": {
+            "employeePressure": -10
+          }
+        },
+        "visibleEffect": "人工成本上升，员工压力下降。"
+      },
+      {
+        "id": "hire",
+        "label": "放人，重新招",
+        "effects": {
+          "cash": -3000,
+          "efficiencyPct": -15,
+          "futureEffect": "培训事件权重上升"
+        },
+        "visibleEffect": "短期效率下降。"
+      },
+      {
+        "id": "owner",
+        "label": "老板亲自顶",
+        "effects": {
+          "ownerFatigue": 20,
+          "rating": -2
+        },
+        "visibleEffect": "老板透支，服务风险上升。"
+      }
+    ],
+    "wind": "你省下的人工，正在以另一种形式回来收账。"
+  },
+  {
+    "id": "E023",
+    "title": "员工要求涨薪",
+    "category": "staff",
+    "level": "medium",
+    "trigger": "连续高订单；employeePressure 高",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "raise",
+        "label": "涨薪",
+        "effects": {
+          "staffCostPct": 8,
+          "hidden": {
+            "employeePressure": -12
+          }
+        },
+        "visibleEffect": "人工成本上升，员工压力下降。"
+      },
+      {
+        "id": "promise",
+        "label": "画饼",
+        "effects": {
+          "hidden": {
+            "employeePressure": 12
+          },
+          "futureEffect": "离职权重上升"
+        },
+        "visibleEffect": "短期不花钱，未来更危险。"
+      },
+      {
+        "id": "hire_new",
+        "label": "招新人分担",
+        "effects": {
+          "cash": -2000,
+          "hidden": {
+            "employeePressure": 5
+          },
+          "delayedEffect": "长期 employeePressure -5"
+        },
+        "visibleEffect": "短期混乱，长期分担压力。"
+      }
+    ],
+    "wind": "员工也会算账，只是他们的账本里没有你的梦想。"
+  },
+  {
+    "id": "E024",
+    "title": "服务被顾客夸",
+    "category": "staff",
+    "level": "medium",
+    "trigger": "员工状态稳定；评分较高",
+    "cooldownDays": 14,
+    "options": [
+      {
+        "id": "praise",
+        "label": "表扬员工",
+        "effects": {
+          "hidden": {
+            "customerTrust": 5,
+            "employeePressure": -3
+          }
+        },
+        "visibleEffect": "顾客信任上升，员工压力下降。"
+      },
+      {
+        "id": "bonus",
+        "label": "发小奖金",
+        "effects": {
+          "cash": -300,
+          "hidden": {
+            "customerTrust": 6,
+            "employeePressure": -8
+          }
+        },
+        "visibleEffect": "花小钱稳团队。"
+      },
+      {
+        "id": "ignore",
+        "label": "当没看见",
+        "effects": {},
+        "visibleEffect": "无明显变化。"
+      }
+    ],
+    "wind": "今天店员把服务做得很好，顾客真的会记得。"
+  },
+  {
+    "id": "E025",
+    "title": "新人培训见效",
+    "category": "staff",
+    "level": "small",
+    "trigger": "近期招人或培训",
+    "cooldownDays": 14,
+    "options": [
+      {
+        "id": "auto",
+        "label": "自动发生",
+        "effects": {
+          "efficiencyPct": 8,
+          "rating": 2,
+          "hidden": {
+            "employeePressure": -8
+          }
+        },
+        "visibleEffect": "出餐效率提升，员工压力下降。"
+      }
+    ],
+    "wind": "新人终于不像一台刚开机的收银机了。"
+  },
+  {
+    "id": "E026",
+    "title": "员工集体不满",
+    "category": "staff",
+    "level": "large",
+    "trigger": "employeePressure > 80",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "rest",
+        "label": "休整一天",
+        "effects": {
+          "revenuePct": -100,
+          "hidden": {
+            "employeePressure": -25
+          }
+        },
+        "visibleEffect": "当天无流水，员工压力大降。"
+      },
+      {
+        "id": "bonus",
+        "label": "发奖金",
+        "effects": {
+          "cash": -3000,
+          "hidden": {
+            "employeePressure": -20
+          }
+        },
+        "visibleEffect": "现金减少，团队稳定。"
+      },
+      {
+        "id": "force",
+        "label": "强压继续干",
+        "effects": {
+          "hidden": {
+            "employeePressure": 15
+          },
+          "futureEffect": "罢工/离职权重上升"
+        },
+        "visibleEffect": "短期营业，未来更危险。"
+      },
+      {
+        "id": "short_hours",
+        "label": "减少营业时段",
+        "effects": {
+          "revenuePct": -20,
+          "hidden": {
+            "employeePressure": -10
+          }
+        },
+        "visibleEffect": "流水下降，压力缓解。"
+      }
+    ],
+    "wind": "店还开着，但里面的人已经不太想配合你演了。"
+  },
+  {
+    "id": "E027",
+    "title": "老板顶班过劳",
+    "category": "staff",
+    "level": "medium",
+    "trigger": "多次选择老板自己顶",
+    "cooldownDays": 14,
+    "options": [
+      {
+        "id": "rest",
+        "label": "休息半天",
+        "effects": {
+          "revenuePct": -20,
+          "ownerFatigue": -15
+        },
+        "visibleEffect": "流水下降，老板恢复。"
+      },
+      {
+        "id": "continue",
+        "label": "继续硬撑",
+        "effects": {
+          "rating": -2,
+          "futureEffect": "决策失误权重上升"
+        },
+        "visibleEffect": "继续开，但服务风险上升。"
+      },
+      {
+        "id": "temp",
+        "label": "请临时工",
+        "effects": {
+          "cash": -500,
+          "ownerFatigue": -8
+        },
+        "visibleEffect": "花钱换恢复。"
+      }
+    ],
+    "wind": "你不是铁人，你只是暂时还没倒下。"
+  },
+  {
+    "id": "E028",
+    "title": "招到熟手",
+    "category": "staff",
+    "level": "medium",
+    "trigger": "现金健康；员工压力高时中低概率",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "hire",
+        "label": "录用",
+        "effects": {
+          "staffCostPct": 10,
+          "efficiencyPct": 15,
+          "hidden": {
+            "employeePressure": -10
+          }
+        },
+        "visibleEffect": "人工成本上升，效率提升。"
+      },
+      {
+        "id": "reject",
+        "label": "嫌贵不用",
+        "effects": {},
+        "visibleEffect": "无变化。"
+      },
+      {
+        "id": "trial",
+        "label": "试用三天",
+        "effects": {
+          "cash": -800,
+          "random": "50% 转正成功"
+        },
+        "visibleEffect": "低成本试用，有不确定性。"
+      }
+    ],
+    "wind": "熟手贵，但新手出错也不便宜。"
+  },
+  {
+    "id": "E029",
+    "title": "原料小涨价",
+    "category": "supplier",
+    "level": "medium",
+    "trigger": "供应商池",
+    "cooldownDays": 14,
+    "options": [
+      {
+        "id": "absorb",
+        "label": "吸收成本",
+        "effects": {
+          "marginPct": -3
+        },
+        "visibleEffect": "毛利下降，顾客无感。"
+      },
+      {
+        "id": "raise_price",
+        "label": "小幅涨价",
+        "effects": {
+          "avgOrderValuePct": 3,
+          "hidden": {
+            "priceControversy": 5
+          }
+        },
+        "visibleEffect": "客单小升，价格争议上升。"
+      },
+      {
+        "id": "cheap",
+        "label": "换便宜货",
+        "effects": {
+          "marginPct": 0,
+          "hidden": {
+            "supplyRisk": 8,
+            "customerTrust": -3
+          }
+        },
+        "visibleEffect": "毛利稳定，但供应和信任受损。"
+      }
+    ],
+    "wind": "原料涨得不多，但利润本来就没厚到哪里去。"
+  },
+  {
+    "id": "E030",
+    "title": "供应商坐地起价",
+    "category": "supplier",
+    "level": "medium",
+    "trigger": "supplyRisk > 50 或供应商关系差",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "accept",
+        "label": "接受",
+        "effects": {
+          "marginPct": -6,
+          "hidden": {
+            "supplyRisk": -3
+          }
+        },
+        "visibleEffect": "毛利下降，供应较稳。"
+      },
+      {
+        "id": "switch",
+        "label": "换供应商",
+        "effects": {
+          "marginPct": 3,
+          "hidden": {
+            "supplyRisk": 12
+          },
+          "qualityVariance": 10
+        },
+        "visibleEffect": "成本下降，质量波动上升。"
+      },
+      {
+        "id": "credit_terms",
+        "label": "谈账期",
+        "effects": {
+          "random": "信用好则现金压力下降；失败 supplyRisk +8"
+        },
+        "visibleEffect": "可能缓解现金流，也可能谈崩。"
+      }
+    ],
+    "wind": "供应商也发现你离不开他了。多美妙的商业关系。"
+  },
+  {
+    "id": "E031",
+    "title": "供应商给账期",
+    "category": "supplier",
+    "level": "medium",
+    "trigger": "顾客信任高、供应关系好",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "accept",
+        "label": "接受账期",
+        "effects": {
+          "cash": 3000,
+          "accountsPayable": 3000,
+          "hidden": {
+            "supplyRisk": -5
+          }
+        },
+        "visibleEffect": "短期现金改善，未来应付账款增加。"
+      },
+      {
+        "id": "cash_pay",
+        "label": "继续现结",
+        "effects": {
+          "credit": 2
+        },
+        "visibleEffect": "信用稳定。"
+      },
+      {
+        "id": "stock_more",
+        "label": "多进货",
+        "effects": {
+          "cash": -2000,
+          "hidden": {
+            "supplyRisk": -5
+          },
+          "wasteRisk": 8
+        },
+        "visibleEffect": "断货风险下降，损耗风险上升。"
+      }
+    ],
+    "wind": "账期能救现金流，也能帮你把坑挖得更整齐。"
+  },
+  {
+    "id": "E032",
+    "title": "核心原料断货",
+    "category": "supplier",
+    "level": "large",
+    "trigger": "supplyRisk > 65",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "pause_signature",
+        "label": "暂停售卖招牌",
+        "effects": {
+          "revenuePct": -20,
+          "hidden": {
+            "customerTrust": -5
+          }
+        },
+        "visibleEffect": "流水下降，顾客信任下降。"
+      },
+      {
+        "id": "substitute",
+        "label": "换替代原料",
+        "effects": {
+          "rating": -3,
+          "hidden": {
+            "customerTrust": -8
+          }
+        },
+        "visibleEffect": "继续卖，但评分和信任受损。"
+      },
+      {
+        "id": "buy_expensive",
+        "label": "高价抢货",
+        "effects": {
+          "cash": -4000
+        },
+        "visibleEffect": "现金减少，品质稳定。"
+      }
+    ],
+    "wind": "顾客终于想买你的招牌款，供应商却选择了失踪。"
+  },
+  {
+    "id": "E033",
+    "title": "临期低价货",
+    "category": "supplier",
+    "level": "medium",
+    "trigger": "低价供应商",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "use",
+        "label": "使用",
+        "effects": {
+          "marginPct": 8,
+          "hidden": {
+            "hygieneRisk": 15,
+            "customerTrust": -5
+          }
+        },
+        "visibleEffect": "毛利提高，卫生和信任风险上升。"
+      },
+      {
+        "id": "reject",
+        "label": "拒绝",
+        "effects": {},
+        "visibleEffect": "无变化。"
+      },
+      {
+        "id": "small_test",
+        "label": "少量试用",
+        "effects": {
+          "marginPct": 3,
+          "hidden": {
+            "hygieneRisk": 5
+          }
+        },
+        "visibleEffect": "小幅提升毛利，略增风险。"
+      }
+    ],
+    "wind": "便宜货最诱人的地方，是它不会提前告诉你代价。"
+  },
+  {
+    "id": "E034",
+    "title": "高端原料到货",
+    "category": "supplier",
+    "level": "medium",
+    "trigger": "高端供应商；咖啡/甜品类权重上升",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "new_product",
+        "label": "上新品",
+        "effects": {
+          "avgOrderValuePct": 8,
+          "marginPct": -3,
+          "hidden": {
+            "customerTrust": 5
+          }
+        },
+        "visibleEffect": "客单价上升，毛利略降，信任上升。"
+      },
+      {
+        "id": "limited",
+        "label": "做限量款",
+        "effects": {
+          "hidden": {
+            "promoHype": 6,
+            "customerTrust": 4,
+            "supplyRisk": 3
+          }
+        },
+        "visibleEffect": "传播性上升，供应复杂度上升。"
+      },
+      {
+        "id": "skip",
+        "label": "不采购",
+        "effects": {},
+        "visibleEffect": "无变化。"
+      }
+    ],
+    "wind": "好原料能提高上限，也能提高你对现金流的误解。"
+  },
+  {
+    "id": "E035",
+    "title": "物流延迟",
+    "category": "supplier",
+    "level": "medium",
+    "trigger": "外地供应商、天气差",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "local_buy",
+        "label": "临时本地采购",
+        "effects": {
+          "marginPct": -5
+        },
+        "visibleEffect": "毛利下降，供应稳定。"
+      },
+      {
+        "id": "missing_menu",
+        "label": "菜单缺货",
+        "effects": {
+          "revenuePct": -15,
+          "hidden": {
+            "customerTrust": -5
+          }
+        },
+        "visibleEffect": "流水和信任下降。"
+      },
+      {
+        "id": "late_open",
+        "label": "延迟开店",
+        "effects": {
+          "revenuePct": -25,
+          "hidden": {
+            "customerTrust": -2
+          }
+        },
+        "visibleEffect": "流水下降。"
+      }
+    ],
+    "wind": "供应链慢一天，顾客不会陪你理解供应链。"
+  },
+  {
+    "id": "E036",
+    "title": "稳定供应商合作",
+    "category": "supplier",
+    "level": "medium",
+    "trigger": "长期使用稳定供应商",
+    "cooldownDays": 90,
+    "options": [
+      {
+        "id": "contract",
+        "label": "签长期合作",
+        "effects": {
+          "marginPct": -2,
+          "hidden": {
+            "supplyRisk": -15
+          }
+        },
+        "visibleEffect": "毛利略降，供应风险大降。"
+      },
+      {
+        "id": "normal",
+        "label": "保持现状",
+        "effects": {},
+        "visibleEffect": "稳定。"
+      },
+      {
+        "id": "bargain",
+        "label": "压价",
+        "effects": {
+          "marginPct": 3,
+          "hidden": {
+            "supplyRisk": 5
+          }
+        },
+        "visibleEffect": "毛利上升，关系变差。"
+      }
+    ],
+    "wind": "稳定通常不便宜，不稳定更贵。"
+  },
+  {
+    "id": "E037",
+    "title": "短视频小火",
+    "category": "promotion",
+    "level": "medium",
+    "trigger": "推广投入、装修传播性、产品记忆点",
+    "cooldownDays": 14,
+    "options": [
+      {
+        "id": "receive",
+        "label": "接住流量",
+        "effects": {
+          "exposurePct": 25,
+          "hidden": {
+            "employeePressure": 8
+          }
+        },
+        "visibleEffect": "曝光上升，员工压力增加。"
+      },
+      {
+        "id": "limited",
+        "label": "限量销售",
+        "effects": {
+          "revenuePct": 12,
+          "hidden": {
+            "customerTrust": 5
+          }
+        },
+        "visibleEffect": "流水上升，口碑较稳。"
+      },
+      {
+        "id": "boost",
+        "label": "继续加投",
+        "effects": {
+          "exposurePct": 40,
+          "hidden": {
+            "promoHype": 12,
+            "employeePressure": 12
+          }
+        },
+        "visibleEffect": "曝光大涨，虚火和压力上升。"
+      }
+    ],
+    "wind": "视频带来了人，也带来了期待。"
+  },
+  {
+    "id": "E038",
+    "title": "短视频爆火",
+    "category": "promotion",
+    "level": "large",
+    "trigger": "promoHype 高；推广强",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "extra_staff",
+        "label": "临时加人",
+        "effects": {
+          "cash": -2000,
+          "revenuePct": 35,
+          "hidden": {
+            "employeePressure": 5
+          }
+        },
+        "visibleEffect": "花钱接住流量。"
+      },
+      {
+        "id": "limited",
+        "label": "限量保护口碑",
+        "effects": {
+          "revenuePct": 18,
+          "hidden": {
+            "customerTrust": 8
+          }
+        },
+        "visibleEffect": "流水上涨较稳，信任提升。"
+      },
+      {
+        "id": "more_promo",
+        "label": "继续猛推",
+        "effects": {
+          "revenuePct": 50,
+          "hidden": {
+            "promoHype": 20
+          },
+          "futureEffect": "暴雷权重上升"
+        },
+        "visibleEffect": "短期收入大涨，暴雷风险上升。"
+      },
+      {
+        "id": "stop_promo",
+        "label": "暂停推广",
+        "effects": {
+          "revenuePct": 10,
+          "hidden": {
+            "promoHype": -8
+          }
+        },
+        "visibleEffect": "降温处理。"
+      }
+    ],
+    "wind": "爆火不是奖励，是压力测试。"
+  },
+  {
+    "id": "E039",
+    "title": "评论区价格争议",
+    "category": "promotion",
+    "level": "medium",
+    "trigger": "priceControversy > 45；推广后更容易",
+    "cooldownDays": 14,
+    "options": [
+      {
+        "id": "discount_explain",
+        "label": "降价解释",
+        "effects": {
+          "conversionRatePct": 5,
+          "marginPct": -4,
+          "hidden": {
+            "priceControversy": -5
+          }
+        },
+        "visibleEffect": "成交回升，毛利下降。"
+      },
+      {
+        "id": "quality",
+        "label": "强调品质",
+        "effects": {
+          "hidden": {
+            "customerTrust": 5,
+            "priceControversy": 3
+          }
+        },
+        "visibleEffect": "信任上升，但争议仍在。"
+      },
+      {
+        "id": "ignore",
+        "label": "不回应",
+        "effects": {
+          "conversionRatePct": -5,
+          "hidden": {
+            "priceControversy": 10
+          }
+        },
+        "visibleEffect": "成交下降，争议加剧。"
+      }
+    ],
+    "wind": "顾客开始讨论你贵不贵，这比你自己觉得值不值重要。"
+  },
+  {
+    "id": "E040",
+    "title": "投放失效",
+    "category": "promotion",
+    "level": "medium",
+    "trigger": "连续推广；promoHype 高但 customerTrust 低",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "stop_review",
+        "label": "停投复盘",
+        "effects": {
+          "promoCost": -500,
+          "hidden": {
+            "promoHype": -8
+          }
+        },
+        "visibleEffect": "推广成本下降，虚火下降。"
+      },
+      {
+        "id": "change_material",
+        "label": "换素材",
+        "effects": {
+          "cash": -1000,
+          "random": "50% exposure +15%"
+        },
+        "visibleEffect": "花钱尝试优化。"
+      },
+      {
+        "id": "pay_more",
+        "label": "加钱硬投",
+        "effects": {
+          "cash": -3000,
+          "hidden": {
+            "promoHype": 10
+          },
+          "random": "可能无效"
+        },
+        "visibleEffect": "继续烧钱，结果不稳定。"
+      }
+    ],
+    "wind": "不是所有曝光都叫流量，有些只是把钱撒得比较有仪式感。"
+  },
+  {
+    "id": "E041",
+    "title": "探店邀约",
+    "category": "promotion",
+    "level": "medium",
+    "trigger": "promoHype 中高、rating 高",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "free",
+        "label": "接受免费探店",
+        "effects": {
+          "random": "可能小火，也可能争议"
+        },
+        "visibleEffect": "不花钱，结果不可控。"
+      },
+      {
+        "id": "paid",
+        "label": "付费合作",
+        "effects": {
+          "cash": -3000,
+          "exposurePct": 30,
+          "hidden": {
+            "promoHype": 10
+          }
+        },
+        "visibleEffect": "曝光提高，虚火上升。"
+      },
+      {
+        "id": "reject",
+        "label": "拒绝",
+        "effects": {},
+        "visibleEffect": "无风险，错过曝光。"
+      }
+    ],
+    "wind": "有人愿意拍你了，问题是他会怎么拍。"
+  },
+  {
+    "id": "E042",
+    "title": "打卡客变多",
+    "category": "promotion",
+    "level": "medium",
+    "trigger": "网红装修、短视频后",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "photo_flow",
+        "label": "做拍照动线",
+        "effects": {
+          "entryRatePct": 8,
+          "repurchaseRatePct": -3
+        },
+        "visibleEffect": "进店率上升，复购略降。"
+      },
+      {
+        "id": "efficiency",
+        "label": "提升出餐效率",
+        "effects": {
+          "cash": -1500,
+          "hidden": {
+            "employeePressure": -5
+          }
+        },
+        "visibleEffect": "花钱降低压力。"
+      },
+      {
+        "id": "ignore",
+        "label": "不管",
+        "effects": {
+          "hidden": {
+            "employeePressure": 8,
+            "customerTrust": -3
+          }
+        },
+        "visibleEffect": "店里更乱，信任下降。"
+      }
+    ],
+    "wind": "拍照的人多了，真正想吃的人可能排烦了。"
+  },
+  {
+    "id": "E043",
+    "title": "团购爆单",
+    "category": "promotion",
+    "level": "medium",
+    "trigger": "团购推广",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "full",
+        "label": "接满",
+        "effects": {
+          "ordersPct": 40,
+          "marginPct": -8,
+          "hidden": {
+            "employeePressure": 15
+          }
+        },
+        "visibleEffect": "订单暴涨，利润变薄，压力上升。"
+      },
+      {
+        "id": "limited",
+        "label": "限量",
+        "effects": {
+          "ordersPct": 18,
+          "hidden": {
+            "customerTrust": 5
+          }
+        },
+        "visibleEffect": "稳健增长。"
+      },
+      {
+        "id": "threshold",
+        "label": "提高门槛",
+        "effects": {
+          "ordersPct": 8,
+          "marginPct": -3
+        },
+        "visibleEffect": "订单小增，利润较稳。"
+      }
+    ],
+    "wind": "团购订单像水，利润像漏勺。"
+  },
+  {
+    "id": "E044",
+    "title": "期待落差",
+    "category": "promotion",
+    "level": "medium",
+    "trigger": "promoHype 高，产品质量一般",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "improve",
+        "label": "优化产品",
+        "effects": {
+          "cash": -3000,
+          "hidden": {
+            "customerTrust": 8
+          }
+        },
+        "visibleEffect": "花钱修复信任。"
+      },
+      {
+        "id": "lower_promo",
+        "label": "降低宣传",
+        "effects": {
+          "hidden": {
+            "promoHype": -8,
+            "priceControversy": -5
+          }
+        },
+        "visibleEffect": "虚火和争议下降。"
+      },
+      {
+        "id": "continue_packaging",
+        "label": "继续包装",
+        "effects": {
+          "exposurePct": 10,
+          "hidden": {
+            "customerTrust": -12
+          },
+          "futureEffect": "暴雷权重上升"
+        },
+        "visibleEffect": "短期曝光上升，长期风险更大。"
+      }
+    ],
+    "wind": "宣传可以把人带来，不能替你把东西变好。"
+  },
+  {
+    "id": "E045",
+    "title": "平台流量扶持",
+    "category": "platform",
+    "level": "medium",
+    "trigger": "外卖开启，评分高",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "receive",
+        "label": "接住",
+        "effects": {
+          "deliveryOrdersPct": 25,
+          "hidden": {
+            "employeePressure": 8
+          }
+        },
+        "visibleEffect": "外卖订单上升，员工压力增加。"
+      },
+      {
+        "id": "control",
+        "label": "控制接单",
+        "effects": {
+          "deliveryOrdersPct": 10,
+          "rating": 2
+        },
+        "visibleEffect": "增长较稳，评分更稳。"
+      },
+      {
+        "id": "discount",
+        "label": "搭配满减",
+        "effects": {
+          "deliveryOrdersPct": 35,
+          "marginPct": -6,
+          "hidden": {
+            "platformDependence": 8
+          }
+        },
+        "visibleEffect": "订单大增，毛利下降。"
+      }
+    ],
+    "wind": "平台给你流量的时候，也在看你能不能被它养成依赖。"
+  },
+  {
+    "id": "E046",
+    "title": "满减活动邀请",
+    "category": "platform",
+    "level": "medium",
+    "trigger": "platformDependence 中高",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "join",
+        "label": "参加",
+        "effects": {
+          "ordersPct": 35,
+          "marginPct": -10,
+          "hidden": {
+            "platformDependence": 10
+          }
+        },
+        "visibleEffect": "订单增加，利润变薄。"
+      },
+      {
+        "id": "small",
+        "label": "小力度参加",
+        "effects": {
+          "ordersPct": 15,
+          "marginPct": -4
+        },
+        "visibleEffect": "温和增长。"
+      },
+      {
+        "id": "reject",
+        "label": "拒绝",
+        "effects": {
+          "deliveryExposurePct": -5
+        },
+        "visibleEffect": "平台曝光小降。"
+      }
+    ],
+    "wind": "满减让订单变多，也让利润变薄。神奇，且残忍。"
+  },
+  {
+    "id": "E047",
+    "title": "骑手不足",
+    "category": "platform",
+    "level": "medium",
+    "trigger": "雨天、晚高峰、外卖高占比",
+    "cooldownDays": 14,
+    "options": [
+      {
+        "id": "extend_eta",
+        "label": "延长出餐预估",
+        "effects": {
+          "ordersPct": -8
+        },
+        "visibleEffect": "订单略降，评分稳定。"
+      },
+      {
+        "id": "keep",
+        "label": "继续接单",
+        "effects": {
+          "rating": -4,
+          "futureEffect": "差评权重上升"
+        },
+        "visibleEffect": "订单稳定，评分下降。"
+      },
+      {
+        "id": "pause_delivery",
+        "label": "暂停外卖",
+        "effects": {
+          "revenuePct": -20,
+          "hidden": {
+            "platformDependence": -5
+          }
+        },
+        "visibleEffect": "流水下降，平台依赖下降。"
+      }
+    ],
+    "wind": "不是你做得慢，但差评会先找到你。"
+  },
+  {
+    "id": "E048",
+    "title": "差评影响排名",
+    "category": "platform",
+    "level": "medium",
+    "trigger": "rating 下降、外卖差评",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "compensate",
+        "label": "赔付安抚",
+        "effects": {
+          "cash": -1000,
+          "rating": 3,
+          "hidden": {
+            "customerTrust": 3
+          }
+        },
+        "visibleEffect": "花钱修复评分。"
+      },
+      {
+        "id": "package",
+        "label": "优化包装",
+        "effects": {
+          "cash": -2000,
+          "rating": 2,
+          "hidden": {
+            "platformDependence": -3
+          }
+        },
+        "visibleEffect": "成本上升，评分回稳。"
+      },
+      {
+        "id": "ignore",
+        "label": "不处理",
+        "effects": {
+          "rating": -3,
+          "deliveryExposurePct": -15
+        },
+        "visibleEffect": "外卖曝光下降。"
+      }
+    ],
+    "wind": "平台排名下去的时候，订单不会敲门告别。"
+  },
+  {
+    "id": "E049",
+    "title": "平台规则调整",
+    "category": "platform",
+    "level": "medium",
+    "trigger": "platformDependence > 60",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "continue",
+        "label": "继续依赖平台",
+        "effects": {
+          "platformCostPct": 5
+        },
+        "visibleEffect": "订单稳定，平台成本上升。"
+      },
+      {
+        "id": "private",
+        "label": "做私域",
+        "effects": {
+          "cash": -2000,
+          "repurchaseRatePct": 5,
+          "hidden": {
+            "platformDependence": -8
+          }
+        },
+        "visibleEffect": "短期花钱，长期降低依赖。"
+      },
+      {
+        "id": "reduce",
+        "label": "降低外卖占比",
+        "effects": {
+          "revenuePct": -10,
+          "marginPct": 3
+        },
+        "visibleEffect": "流水下降，毛利改善。"
+      }
+    ],
+    "wind": "你越依赖平台，平台调整规则时你越像乘客。"
+  },
+  {
+    "id": "E050",
+    "title": "包装成本上涨",
+    "category": "platform",
+    "level": "medium",
+    "trigger": "外卖高占比",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "absorb",
+        "label": "吸收成本",
+        "effects": {
+          "marginPct": -3
+        },
+        "visibleEffect": "毛利下降。"
+      },
+      {
+        "id": "cheap_packaging",
+        "label": "换便宜包装",
+        "effects": {
+          "rating": -2,
+          "hidden": {
+            "hygieneRisk": 3
+          }
+        },
+        "visibleEffect": "评分和卫生风险受影响。"
+      },
+      {
+        "id": "raise_delivery_price",
+        "label": "提高外卖价",
+        "effects": {
+          "conversionRatePct": -3,
+          "hidden": {
+            "priceControversy": 5
+          }
+        },
+        "visibleEffect": "成交略降，价格争议上升。"
+      }
+    ],
+    "wind": "外卖不是把堂食装进袋子那么简单，袋子也要钱。"
+  },
+  {
+    "id": "E051",
+    "title": "隔壁新店开业",
+    "category": "competitor",
+    "level": "medium",
+    "trigger": "商圈热度高",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "promo",
+        "label": "开业对冲活动",
+        "effects": {
+          "promoCost": 1000,
+          "conversionRatePct": 5,
+          "marginPct": -3
+        },
+        "visibleEffect": "花钱稳成交。"
+      },
+      {
+        "id": "loyalty",
+        "label": "强化老客",
+        "effects": {
+          "repurchaseRatePct": 5,
+          "hidden": {
+            "customerTrust": 5
+          }
+        },
+        "visibleEffect": "复购和信任上升。"
+      },
+      {
+        "id": "observe",
+        "label": "观察",
+        "effects": {
+          "entryRatePct": -8
+        },
+        "visibleEffect": "短期进店下降。"
+      }
+    ],
+    "wind": "隔壁也开始做梦了，现在你们可以一起算账。"
+  },
+  {
+    "id": "E052",
+    "title": "竞品9.9促销",
+    "category": "competitor",
+    "level": "medium",
+    "trigger": "价格敏感商圈",
+    "cooldownDays": 14,
+    "options": [
+      {
+        "id": "match",
+        "label": "跟价",
+        "effects": {
+          "ordersPct": 12,
+          "marginPct": -8,
+          "hidden": {
+            "priceControversy": -3
+          }
+        },
+        "visibleEffect": "订单上升，毛利下降。"
+      },
+      {
+        "id": "ignore",
+        "label": "不跟",
+        "effects": {
+          "conversionRatePct": -8,
+          "hidden": {
+            "customerTrust": 3
+          }
+        },
+        "visibleEffect": "短期成交下降，品质信任小升。"
+      },
+      {
+        "id": "combo",
+        "label": "做组合套餐",
+        "effects": {
+          "ordersPct": 8,
+          "marginPct": -4
+        },
+        "visibleEffect": "温和应对。"
+      }
+    ],
+    "wind": "低价战最公平，大家一起少赚钱。"
+  },
+  {
+    "id": "E053",
+    "title": "竞品食安翻车",
+    "category": "competitor",
+    "level": "medium",
+    "trigger": "竞品池；低概率",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "hygiene",
+        "label": "强调卫生",
+        "effects": {
+          "entryRatePct": 5,
+          "hidden": {
+            "customerTrust": 8
+          }
+        },
+        "visibleEffect": "信任和进店上升。"
+      },
+      {
+        "id": "no_hype",
+        "label": "不蹭热度",
+        "effects": {
+          "hidden": {
+            "customerTrust": 3
+          }
+        },
+        "visibleEffect": "稳健处理。"
+      },
+      {
+        "id": "secret_promo",
+        "label": "暗中投流",
+        "effects": {
+          "exposurePct": 10,
+          "hidden": {
+            "priceControversy": 3
+          },
+          "random": "可能反噬"
+        },
+        "visibleEffect": "曝光上升，但有反噬风险。"
+      }
+    ],
+    "wind": "别人的事故给了你机会，也提醒你别成为下一个。"
+  },
+  {
+    "id": "E054",
+    "title": "竞品倒闭",
+    "category": "competitor",
+    "level": "medium",
+    "trigger": "竞品存在；中低概率",
+    "cooldownDays": 90,
+    "options": [
+      {
+        "id": "take_customers",
+        "label": "接收客群",
+        "effects": {
+          "entryRatePct": 10,
+          "hidden": {
+            "customerTrust": 3
+          }
+        },
+        "visibleEffect": "进店率和信任上升。"
+      },
+      {
+        "id": "hire_staff",
+        "label": "招对方员工",
+        "effects": {
+          "cash": -2000,
+          "efficiencyPct": 8
+        },
+        "visibleEffect": "现金减少，效率提升。"
+      },
+      {
+        "id": "none",
+        "label": "不动",
+        "effects": {
+          "entryRatePct": 5
+        },
+        "visibleEffect": "自然客流小幅上升。"
+      }
+    ],
+    "wind": "竞争对手走了，但它的失败原因可能还在这个商圈里。"
+  },
+  {
+    "id": "E055",
+    "title": "连锁品牌进场",
+    "category": "competitor",
+    "level": "large",
+    "trigger": "商圈热度高",
+    "cooldownDays": 90,
+    "options": [
+      {
+        "id": "differentiate",
+        "label": "做差异化",
+        "effects": {
+          "revenuePct": -5,
+          "hidden": {
+            "customerTrust": 8
+          }
+        },
+        "visibleEffect": "短期流水略降，长期信任上升。"
+      },
+      {
+        "id": "discount",
+        "label": "跟促销",
+        "effects": {
+          "ordersPct": 10,
+          "marginPct": -10
+        },
+        "visibleEffect": "订单增加，利润大降。"
+      },
+      {
+        "id": "old_customers",
+        "label": "转向老客",
+        "effects": {
+          "entryRatePct": -5,
+          "repurchaseRatePct": 8
+        },
+        "visibleEffect": "新客少些，复购更稳。"
+      },
+      {
+        "id": "move_prepare",
+        "label": "准备搬店",
+        "effects": {
+          "cash": -3000,
+          "unlock": "location_scouting"
+        },
+        "visibleEffect": "花钱观察新选址。"
+      }
+    ],
+    "wind": "连锁品牌不是一定赢，但它亏得起的时间通常比你长。"
+  },
+  {
+    "id": "E056",
+    "title": "冰箱故障",
+    "category": "equipment",
+    "level": "medium",
+    "trigger": "设备维护低；甜品/轻食品类权重上升",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "repair",
+        "label": "立刻维修",
+        "effects": {
+          "cash": -3000,
+          "hidden": {
+            "hygieneRisk": -5
+          }
+        },
+        "visibleEffect": "花钱消除隐患。"
+      },
+      {
+        "id": "temporary",
+        "label": "临时处理",
+        "effects": {
+          "cash": -800,
+          "hidden": {
+            "hygieneRisk": 12
+          },
+          "futureEffect": "损耗风险上升"
+        },
+        "visibleEffect": "少花钱，风险增加。"
+      },
+      {
+        "id": "pause_items",
+        "label": "停卖相关产品",
+        "effects": {
+          "revenuePct": -15,
+          "hidden": {
+            "customerTrust": -3
+          }
+        },
+        "visibleEffect": "流水下降，顾客信任略降。"
+      }
+    ],
+    "wind": "设备坏的时候，最先坏掉的是你对成本的幻想。"
+  },
+  {
+    "id": "E057",
+    "title": "收银系统故障",
+    "category": "equipment",
+    "level": "medium",
+    "trigger": "低概率",
+    "cooldownDays": 60,
+    "options": [
+      {
+        "id": "manual",
+        "label": "临时手动记账",
+        "effects": {
+          "revenuePct": -8,
+          "accountingErrorRisk": 5
+        },
+        "visibleEffect": "流水略降，账目误差风险上升。"
+      },
+      {
+        "id": "repair_close",
+        "label": "停业维修",
+        "effects": {
+          "revenuePct": -30,
+          "cash": -1000
+        },
+        "visibleEffect": "流水下降，花钱修复。"
+      },
+      {
+        "id": "cash_only",
+        "label": "只收现金/转账",
+        "effects": {
+          "conversionRatePct": -5,
+          "hidden": {
+            "customerTrust": -2
+          }
+        },
+        "visibleEffect": "成交下降，信任略降。"
+      }
+    ],
+    "wind": "顾客可以理解故障，但不会因此多等太久。"
+  },
+  {
+    "id": "E058",
+    "title": "后厨漏水",
+    "category": "equipment",
+    "level": "large",
+    "trigger": "暴雨后；设备风险高",
+    "cooldownDays": 90,
+    "options": [
+      {
+        "id": "close_repair",
+        "label": "停业维修",
+        "effects": {
+          "revenuePct": -100,
+          "cash": -4000,
+          "hidden": {
+            "hygieneRisk": -10
+          }
+        },
+        "visibleEffect": "当天无流水，风险下降。"
+      },
+      {
+        "id": "simple",
+        "label": "简单处理",
+        "effects": {
+          "cash": -1000,
+          "hidden": {
+            "hygieneRisk": 6
+          }
+        },
+        "visibleEffect": "少花钱，但隐患仍在。"
+      },
+      {
+        "id": "continue",
+        "label": "继续营业",
+        "effects": {
+          "rating": -3,
+          "hidden": {
+            "hygieneRisk": 18
+          }
+        },
+        "visibleEffect": "继续卖，但卫生和评分风险大增。"
+      }
+    ],
+    "wind": "水往低处流，风险往省钱的地方流。"
+  },
+  {
+    "id": "E059",
+    "title": "卫生检查",
+    "category": "compliance",
+    "level": "large",
+    "trigger": "hygieneRisk > 50",
+    "cooldownDays": 90,
+    "options": [
+      {
+        "id": "rectify",
+        "label": "立刻整改",
+        "effects": {
+          "cash": -3000,
+          "hidden": {
+            "hygieneRisk": -20
+          }
+        },
+        "visibleEffect": "花钱降低卫生风险。"
+      },
+      {
+        "id": "temporary",
+        "label": "临时应付",
+        "effects": {
+          "cash": -800,
+          "random": "50%通过；失败停业"
+        },
+        "visibleEffect": "便宜但风险很高。"
+      },
+      {
+        "id": "self_check",
+        "label": "停业自查",
+        "effects": {
+          "revenuePct": -100,
+          "hidden": {
+            "hygieneRisk": -25,
+            "customerTrust": 3
+          }
+        },
+        "visibleEffect": "当天无流水，风险大幅下降。"
+      }
+    ],
+    "wind": "卫生问题平时不说话，检查时会替你大声发言。"
+  },
+  {
+    "id": "E060",
+    "title": "食安投诉",
+    "category": "compliance",
+    "level": "large",
+    "trigger": "hygieneRisk > 70 或低价供应商 + 差评",
+    "cooldownDays": 120,
+    "options": [
+      {
+        "id": "compensate",
+        "label": "赔付并整改",
+        "effects": {
+          "cash": -5000,
+          "rating": -2,
+          "hidden": {
+            "hygieneRisk": -20
+          }
+        },
+        "visibleEffect": "花钱止损，评分仍下降。"
+      },
+      {
+        "id": "deny",
+        "label": "否认",
+        "effects": {
+          "rating": -8,
+          "hidden": {
+            "customerTrust": -15
+          },
+          "futureEffect": "合规停业权重上升"
+        },
+        "visibleEffect": "短期省钱，长期危险。"
+      },
+      {
+        "id": "close_check",
+        "label": "停业彻查",
+        "effects": {
+          "revenuePct": -100,
+          "cash": -3000,
+          "hidden": {
+            "customerTrust": 5,
+            "hygieneRisk": -30
+          }
+        },
+        "visibleEffect": "当天无流水，信任和风险修复。"
+      }
+    ],
+    "wind": "有些投诉不是扣分，是倒计时。"
+  },
+  {
+    "id": "F001",
+    "title": "现金流危机",
+    "category": "forced",
+    "level": "forced",
+    "trigger": "cash < 0 或月结账单无法支付",
+    "cooldownDays": 0,
+    "options": [
+      {
+        "id": "bank_loan",
+        "label": "银行贷款",
+        "effects": {
+          "cash": 30000,
+          "debt": 30000,
+          "monthlyRepayment": 2500,
+          "credit": -3
+        },
+        "visibleEffect": "现金增加，债务和月还款上升。"
+      },
+      {
+        "id": "family",
+        "label": "亲友借款",
+        "effects": {
+          "cash": 20000,
+          "debt": 20000,
+          "monthlyRepayment": 1000,
+          "hidden": {
+            "customerTrust": 0
+          }
+        },
+        "visibleEffect": "立刻续命，但人情压力增加。"
+      },
+      {
+        "id": "micro_loan",
+        "label": "小额周转贷",
+        "effects": {
+          "cash": 15000,
+          "debt": 18000,
+          "monthlyRepayment": 3500,
+          "credit": -8
+        },
+        "visibleEffect": "到账快，利息高。"
+      },
+      {
+        "id": "delay_rent",
+        "label": "拖欠房租",
+        "effects": {
+          "credit": -10,
+          "hidden": {
+            "landlordAttention": 20
+          }
+        },
+        "visibleEffect": "短期活命，房东风险大增。"
+      },
+      {
+        "id": "delay_supplier",
+        "label": "拖欠供应商",
+        "effects": {
+          "credit": -5,
+          "hidden": {
+            "supplyRisk": 20
+          }
+        },
+        "visibleEffect": "短期活命，供应链风险大增。"
+      },
+      {
+        "id": "layoff",
+        "label": "裁员降本",
+        "effects": {
+          "staffCostPct": -20,
+          "efficiencyPct": -10,
+          "hidden": {
+            "employeePressure": 12
+          }
+        },
+        "visibleEffect": "成本下降，效率和员工状态受损。"
+      },
+      {
+        "id": "sell_equipment",
+        "label": "卖设备",
+        "effects": {
+          "cash": 10000,
+          "efficiencyPct": -15
+        },
+        "visibleEffect": "现金增加，经营上限下降。"
+      },
+      {
+        "id": "close_shop",
+        "label": "主动关店止损",
+        "effects": {
+          "ending": "decent_exit"
+        },
+        "visibleEffect": "进入止损结局。"
+      }
+    ],
+    "wind": "你不是不赚钱，你是没钱付今天该付的钱。"
+  },
+  {
+    "id": "F002",
+    "title": "月底房租不足",
+    "category": "forced",
+    "level": "forced",
+    "trigger": "月结时 cash < rent + monthlyRepayment + staffMonthlyCost",
+    "cooldownDays": 0,
+    "options": [
+      {
+        "id": "loan",
+        "label": "使用贷款补齐",
+        "effects": {
+          "cash": 30000,
+          "debt": 30000,
+          "monthlyRepayment": 2500
+        },
+        "visibleEffect": "用债务补账单。"
+      },
+      {
+        "id": "negotiate_landlord",
+        "label": "和房东谈缓租",
+        "effects": {
+          "random": "成功则延后支付；失败 landlordAttention +20",
+          "hidden": {
+            "landlordAttention": 10
+          }
+        },
+        "visibleEffect": "可能缓租，也可能惹怒房东。"
+      },
+      {
+        "id": "default_rent",
+        "label": "拖欠房租",
+        "effects": {
+          "credit": -10,
+          "hidden": {
+            "landlordAttention": 20
+          },
+          "futureEffect": "房东收铺权重上升"
+        },
+        "visibleEffect": "房东风险大幅上升。"
+      },
+      {
+        "id": "close_shop",
+        "label": "关店止损",
+        "effects": {
+          "ending": "decent_exit"
+        },
+        "visibleEffect": "进入止损结局。"
+      }
+    ],
+    "wind": "月底账单不会因为你努力营业就自动消失。"
+  },
+  {
+    "id": "F003",
+    "title": "债务压力爆表",
+    "category": "forced",
+    "level": "forced",
+    "trigger": "monthlyRepayment > 月均毛利的50%",
+    "cooldownDays": 30,
+    "options": [
+      {
+        "id": "stop_loss",
+        "label": "提前止损",
+        "effects": {
+          "ending": "decent_exit"
+        },
+        "visibleEffect": "体面撤退。"
+      },
+      {
+        "id": "cut_cost",
+        "label": "压缩成本",
+        "effects": {
+          "staffCostPct": -15,
+          "marginPct": 3,
+          "hidden": {
+            "employeePressure": 10,
+            "supplyRisk": 8
+          }
+        },
+        "visibleEffect": "成本下降，隐患上升。"
+      },
+      {
+        "id": "more_loan",
+        "label": "继续借款",
+        "effects": {
+          "cash": 20000,
+          "debt": 25000,
+          "monthlyRepayment": 4000,
+          "credit": -10,
+          "futureEffect": "债务结局权重上升"
+        },
+        "visibleEffect": "短期续命，长期更重。"
+      },
+      {
+        "id": "gamble_promo",
+        "label": "搏一把推广",
+        "effects": {
+          "cash": -5000,
+          "random": "可能翻盘，也可能暴雷",
+          "hidden": {
+            "promoHype": 25
+          }
+        },
+        "visibleEffect": "高风险高波动。"
+      }
+    ],
+    "wind": "你已经不是在经营店铺，而是在用明天补昨天。"
+  }
+]

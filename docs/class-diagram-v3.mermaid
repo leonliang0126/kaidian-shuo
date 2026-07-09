@@ -1,0 +1,109 @@
+classDiagram
+    class GameState {
+        +number day
+        +number cash
+        +number netWorth
+        +Loan[] loans
+        +number actionPointsMax
+        +number actionPointsCurrent
+        +string selectedDailyFocus
+        +string[] selectedActionsToday
+        +Record~string,number~ actionCooldowns
+        +number bossStrain
+        +number cashNegativeStreak
+        +number hiddenHealthyStreak
+        +number cumulativeNetProfit
+        +StoreState[] stores
+        +HiddenLines hiddenLines
+        +DayModifiers dayModifiers
+    }
+    class StoreState {
+        +number heat
+        +number currentBatchQuality
+        +number batchRenewDay
+        +number supplierStability
+        +number repurchaseRate
+        +number rating
+        +string supplierTier
+        +string staffTier
+        +string priceStrategy
+    }
+    class Loan {
+        +string id
+        +'bank'|'private'|'predatory' channel
+        +number principal
+        +number apr
+        +number balance
+        +number accruedInterest
+        +number startDate
+        +number overdueDays
+    }
+    class ActionDef {
+        +string actionId
+        +string category
+        +number costAP
+        +object costCash
+        +number cooldownDays
+        +object visibleEffects
+        +object hiddenEffects
+        +object eventWeightEffects
+    }
+    class FocusDef {
+        +string id
+        +object modifiers
+    }
+    class CrisisActionDef {
+        +string id
+        +string name
+    }
+    class actionSystem {
+        +takeAction(state, actionId, rng) state
+        +takeCrisisAction(state, crisisId, rng) state
+        +canTakeAction(state, actionId) bool
+    }
+    class focusSystem {
+        +applyFocusToAction(base, focusId) ActionEffects
+        +getFocusModifiers(focusId) FocusModifiers
+    }
+    class eventVisibleShock {
+        +computeEventShock(event) ShockResult
+        +applyEventShock(state, event) state
+    }
+    class segmentProfiles {
+        +applySegmentModulation(state, store) DayModifiers
+    }
+    class repurchaseHeat {
+        +decayHeat(state) state
+        +computeRepurchase(store, hidden) number
+        +qualityScore(hidden) number
+    }
+    class supplierStability {
+        +rollBatchIfDue(state, rng) state
+        +batchQualityMods(store) DayModifiers
+    }
+    class loanSystem {
+        +computeSetupLoan(over) Loan
+        +takeCrisisLoan(state, kind, rng) state
+        +applyMonthlyInterest(state) state
+        +prepayLoan(state, id, amt) state
+    }
+    class endingEngine {
+        +evaluateEndings(state) EndingResult
+    }
+    class settlement {
+        +settleAllStores(state, rng) result
+    }
+
+    GameState "1" *-- "0..*" Loan : loans
+    GameState "1" *-- "1..*" StoreState : stores
+    GameState "1" *-- "0..1" FocusDef : selectedDailyFocus
+    GameState "1" *-- "0..*" ActionDef : selectedActionsToday
+    settlement ..> segmentProfiles : 调用
+    settlement ..> supplierStability : 调用
+    settlement ..> repurchaseHeat : 调用
+    actionSystem ..> focusSystem : 调用
+    actionSystem ..> ActionDef : 读
+    eventVisibleShock ..> eventShockData : 读(category+level)
+    loanSystem ..> Loan : 创建/更新
+    endingEngine ..> GameState : 读
+    settlement ..> GameState : 编排

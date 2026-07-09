@@ -1,0 +1,67 @@
+sequenceDiagram
+    autonumber
+    participant P as 玩家
+    participant S as gameStore
+    participant EV as eventEngine
+    participant ES as eventVisibleShock
+    participant FS as focusSystem
+    participant AS as actionSystem
+    participant ST as settlement
+    participant SP as segmentProfiles
+    participant SS as supplierStability
+    participant RH as repurchaseHeat
+    participant LN as loanSystem
+    participant EE as endingEngine
+    participant UI as 仪表盘/风向/结局
+
+    Note over S: beginDay：AP 重置(老板透支高→上限-1)，冷却 tick，dayModifiers 清空
+    S->>EV: drawEvent / checkForcedEvents
+    EV-->>S: todayEvent（或 crisis）
+    S->>EV: applyEffects(option.effects)
+    S->>ES: applyEventShock(state, event)
+    ES-->>S: dayModifiers += 明线冲击；cash-=罚款；rating-=血条（仅非forced）
+    S-->>UI: 展示今日事件 + 当天已可见的数字变化
+
+    P->>S: setDecision(售价/供应商/人员 3 滑块)
+    P->>S: chooseFocus(经营重点 7选1)
+    S-->>FS: 记录 selectedDailyFocus
+    P->>S: chooseAction(actionId) ×N（每天≤3点）
+    S->>AS: takeAction(state, actionId, rng)
+    AS->>FS: applyFocusToAction(基础效果, focusId)
+    AS-->>S: 扣AP+扣现金；dayModifiers+=明线；hiddenLines+=暗线；eventWeight+=权重；wind+=风向；actionCooldowns 写入
+    S-->>UI: 行动点 N/3、行动影响摘要、风向更新
+
+    P->>S: chooseCrisisLoan(危机态可用)  %% cash<0 时
+    S->>LN: takeCrisisLoan(state, kind, rng)
+    LN-->>S: 扣1 AP + cash+=本金 + loans[] 写入
+    S-->>P: 回到当天继续操作（不结束日）
+
+    P->>S: endDay（显式「结束今日」按钮）
+    S->>SS: rollBatchIfDue(state, rng)
+    SS-->>S: 到期则重抽 currentBatchQuality（~7天）
+    S->>SP: applySegmentModulation(state, store)  %% 商圈极端敏感度
+    SP-->>S: 返回 DayModifiers 修正
+    S->>SS: batchQualityMods(store)
+    SS-->>S: 品质→明线/暗线修正
+    S->>RH: computeRepurchase(store, hidden)
+    RH-->>S: 复购率（heat 崩溃/品质托底）
+    S->>ST: settleAllStores(合并 事件冲击+决策+客群+供应商+复购)
+    ST-->>S: 主店 DailyResult + totalNetProfit → cash+=净利
+    S->>RH: decayHeat(state)  %% 每日 ~8 衰减
+    S->>EV: applyHiddenLineDailyHits（偶发暗线重罚，沿用 v2）
+    S-->>UI: 结算弹窗 → 日志/风向/仪表盘
+
+    alt 月结日（day%30==0）
+        S->>LN: applyMonthlyInterest(state)  %% 扣 balance×apr/12；高利贷逾期累计+催收
+    end
+    S->>EE: evaluateEndings(state)
+    EE-->>S: EndingResult|null
+    alt 触发结局
+        S-->>UI: EndingScreen（数据回顾+胜负+重开）
+    else 现金仍<0
+        S-->>UI: CrisisModal（危机行动，含危机贷款）
+    else 月结
+        S-->>UI: MonthModal
+    else 正常
+        S-->>S: advanceDayState → beginDay（下一天）
+    end

@@ -1,0 +1,449 @@
+// Zustand 状态管理：持有 GameState + actions（UI 只调 action，action 调 core 纯函数）。
+import { create } from 'zustand';
+import type {
+  GameState,
+  EventDef,
+  EventOption,
+  DailyResult,
+  MonthlyReport,
+  DecisionState,
+  BusinessLogEntry,
+} from '../types';
+import type { RNG } from '../core/rng';
+import type { LoanChannel, EndingResult } from '../types/actions';
+import { createRng } from '../core/rng';
+import { cloneState, applyEffects, applyDuePendingEffects } from '../core/effectResolver';
+import { emptyModifiers, addEffectModifiers } from '../core/modifiers';
+import { settleAllStores } from '../core/settlement';
+import { computeNetWorth } from '../core/branch';
+import { updateHiddenLines, decaySoftHidden } from '../core/hiddenLines';
+import { generateWind } from '../core/wind';
+import { drawEvent, dailyWeatherFluctuation } from '../core/eventEngine';
+import { applyHiddenLineDailyHits } from '../core/hiddenPenalties';
+import { runMonthSettlement, applyMonthOption } from '../core/monthlyReport';
+import { createNewGame, type OpeningConfig } from '../core/createNewGame';
+import {
+  saveGame,
+  loadGame,
+  isTutorialSeen,
+  setTutorialSeen,
+  clearSave,
+  clearTutorialSeen,
+} from '../core/storage';
+import { getStaffCapacity, getDecisionEffects, getOption } from '../data/decisionOptions';
+import { stabilityToBaseQuality, BATCH_CYCLE } from '../data/supplierStability';
+import { isMonthEnd, monthOfDay, clamp } from '../utils/constants';
+import {
+  canTakeAction,
+  takeAction,
+  takeCrisisAction as applyCrisisAction,
+  resetDailyActionState,
+} from '../core/actionSystem';
+import { applyEventShock } from '../core/eventVisibleShock';
+import { takeCrisisLoan as takeLoanCore } from '../core/loanSystem';
+import { applySegmentModulation } from '../core/segmentProfiles';
+import { rollBatchIfDue, batchQualityMods } from '../core/supplierStability';
+import { decayHeat, computeRepurchase } from '../core/repurchaseHeat';
+import { evaluateEndings } from '../core/endingEngine';
+
+type Phase = 'tutorial' | 'opening' | 'playing';
+
+interface GameStore {
+  phase: Phase;
+  game: GameState | null;
+  // —— UI 弹窗/临时状态 ——
+  eventModal: EventDef | null;
+  resolvedEvent: { event: EventDef; option: EventOption } | null;
+  crisisOpen: boolean;
+  settlementModal: DailyResult | null;
+  monthModal: MonthlyReport | null;
+  lastEnding: EndingResult | null;
+
+  // —— actions ——
+  init: () => void;
+  dismissTutorial: (neverShow: boolean) => void;
+  reopenTutorial: () => void;
+  startGame: (cfg: OpeningConfig) => void;
+  chooseEventOption: (optionId: string) => void;
+  setDecision: (key: keyof DecisionState, value: DecisionState[keyof DecisionState]) => void;
+  chooseAction: (actionId: string) => void;
+  chooseFocus: (focusId: string | null) => void;
+  takeCrisisLoan: (kind: LoanChannel) => void;
+  takeCrisisAction: (crisisId: string) => void;
+  endDay: () => void;
+  closeSettlement: () => void;
+  chooseMonthOption: (optionId: string) => void;
+  resetGame: () => void;
+}
+
+// 模块级 RNG（可被开局 seed 重置）
+let rng: RNG = createRng();
+
+function commit(state: GameState, extra: Partial<GameStore> = {}): Partial<GameStore> {
+  saveGame(state);
+  return { game: state, ...extra };
+}
+
+/** 开启新的一天（不推进 day）：重置行动点/冷却、检查危机、抽事件。 */
+function beginDay(state: GameState): Partial<GameStore> {
+  let s = cloneState(state);
+  s = applyDuePendingEffects(s);
+  // 重置行动点上限（老板透支高则 −1）并 tick 冷却
+  s = resetDailyActionState(s);
+  s.dayModifiers = emptyModifiers();
+
+  // 现金流危机（cash<0）：直接打开危机面板（数据驱动危机行动/贷款）
+  if (s.cash < 0) {
+    return commit(s, { crisisOpen: true, eventModal: null, resolvedEvent: null });
+  }
+
+  // 抽普通事件
+  const ev = drawEvent(s, rng);
+  if (ev) {
+    if (ev.level === 'small' && ev.options.length === 1 && ev.options[0].id === 'auto') {
+      // 小事件自动发生（含当天明线冲击）
+      const opt = ev.options[0];
+      s = applyEffects(s, opt.effects, rng, { accumulateMods: true, source: `${ev.id}:auto` });
+      s = applyEventShock(s, ev);
+      s.eventHistory = [
+        ...s.eventHistory,
+        { day: s.day, eventId: ev.id, optionId: opt.id, title: ev.title, visibleEffect: opt.visibleEffect },
+      ];
+      return commit(s, { resolvedEvent: { event: ev, option: opt }, eventModal: null, crisisOpen: false });
+    }
+    // 中/大事件需玩家选择
+    return commit(s, { eventModal: ev, resolvedEvent: null, crisisOpen: false });
+  }
+
+  return commit(s, { eventModal: null, resolvedEvent: null, crisisOpen: false });
+}
+
+/** 结算后推进阶段：结局 > 危机 > 月结 > 进入下一天。 */
+function proceedAfterSettlement(state: GameState): Partial<GameStore> {
+  // 1) 结局（单判定表，终端展示）
+  const ending = evaluateEndings(state);
+  if (ending) {
+    const s = cloneState(state);
+    if (!s.endingsUnlocked.includes(ending.def.id)) s.endingsUnlocked.push(ending.def.id);
+    s.gameOver = true;
+    return commit(s, { lastEnding: ending, crisisOpen: false });
+  }
+  // 2) 现金流危机
+  if (state.cash < 0) {
+    return commit(state, { crisisOpen: true });
+  }
+  // 3) 月结
+  if (isMonthEnd(state.day)) {
+    const { state: ms, report } = runMonthSettlement(state, rng);
+    return commit(ms, { monthModal: report });
+  }
+  // 4) 进入下一天
+  return advanceDayState(state);
+}
+
+/** 推进到新一天（day+1 后 beginDay）。 */
+function advanceDayState(state: GameState): Partial<GameStore> {
+  let s = cloneState(state);
+  s.day += 1;
+  s.month = monthOfDay(s.day);
+  s = decaySoftHidden(s);
+  return beginDay(s);
+}
+
+export const useGameStore = create<GameStore>((set, get) => ({
+  phase: 'tutorial',
+  game: null,
+  eventModal: null,
+  resolvedEvent: null,
+  crisisOpen: false,
+  settlementModal: null,
+  monthModal: null,
+  lastEnding: null,
+
+  init: () => {
+    const save = loadGame();
+    if (save) {
+      rng = createRng(save.seed);
+      set({ game: save, phase: 'playing' });
+      set(beginDay(save));
+      return;
+    }
+    if (!isTutorialSeen()) {
+      set({ phase: 'tutorial', game: null });
+    } else {
+      set({ phase: 'opening', game: null });
+    }
+  },
+
+  dismissTutorial: (neverShow) => {
+    if (neverShow) setTutorialSeen(true);
+    const save = loadGame();
+    if (save) {
+      rng = createRng(save.seed);
+      set({ game: save, phase: 'playing' });
+      set(beginDay(save));
+    } else {
+      set({ phase: 'opening', game: null });
+    }
+  },
+
+  reopenTutorial: () => {
+    set({ phase: 'tutorial' });
+  },
+
+  startGame: (cfg) => {
+    rng = createRng(cfg.seed);
+    const state = createNewGame(cfg, rng);
+    set({
+      game: state,
+      phase: 'playing',
+      eventModal: null,
+      resolvedEvent: null,
+      crisisOpen: false,
+      settlementModal: null,
+      monthModal: null,
+      lastEnding: null,
+    });
+    set(beginDay(state));
+  },
+
+  chooseEventOption: (optionId) => {
+    const g = get().game;
+    const ev = get().eventModal;
+    if (!g || !ev) return;
+    const opt = ev.options.find((o) => o.id === optionId) ?? ev.options[0];
+    let s = applyEffects(g, opt.effects, rng, { accumulateMods: true, source: `${ev.id}:${opt.id}` });
+    // 事件当天明线冲击（叠加层，玩家当天可见）
+    s = applyEventShock(s, ev);
+    s.eventHistory = [
+      ...s.eventHistory,
+      { day: s.day, eventId: ev.id, optionId: opt.id, title: ev.title, visibleEffect: opt.visibleEffect },
+    ];
+    if (ev.level === 'large' || ev.level === 'fate') s.lastLargeEventDay = s.day;
+    s.netWorth = computeNetWorth(s);
+    s.brandRating = s.stores[0]?.rating ?? s.brandRating;
+    set(commit(s, { eventModal: null, resolvedEvent: { event: ev, option: opt } }));
+  },
+
+  setDecision: (key, value) => {
+    const g = get().game;
+    if (!g) return;
+    // 装修为开局专属，运行期不可改（§4）
+    if (key === 'decorationLevel') return;
+    let s = cloneState(g);
+    const decisions = { ...s.decisions, [key]: value } as DecisionState;
+    s.decisions = decisions;
+    // 同步所有门店的对应档位 + 重算承载
+    s.stores = s.stores.map((st) => {
+      const next = { ...st, [key]: value } as typeof st;
+      if (key === 'staffTier') {
+        next.capacity = Math.round(getStaffCapacity(value as string) * (st.efficiency / 100));
+      }
+      if (key === 'supplierTier') {
+        const stability = getOption('supplierTier', value as string)?.stability ?? st.supplierStability;
+        next.supplierStability = stability;
+        next.currentBatchQuality = stabilityToBaseQuality(stability);
+        next.batchRenewDay = s.day + BATCH_CYCLE;
+      }
+      return next;
+    });
+    // 应用该决策项的即时效果（hidden/soft/cash 等；Pct 由结算处理）
+    const cat = key as 'supplierTier' | 'priceStrategy' | 'decorationLevel' | 'promotionTier' | 'staffTier';
+    const eff = getDecisionEffects(cat, value as string);
+    s = applyEffects(s, eff, rng, { accumulateMods: false });
+    s.bossStrain = s.softHidden.ownerFatigue;
+    set(commit(s));
+  },
+
+  chooseAction: (actionId) => {
+    const g = get().game;
+    if (!g) return;
+    const res = takeAction(g, actionId, rng);
+    set(commit(res.state));
+  },
+
+  chooseFocus: (focusId) => {
+    const g = get().game;
+    if (!g) return;
+    const s = cloneState(g);
+    s.selectedDailyFocus = focusId;
+    set(commit(s));
+  },
+
+  takeCrisisLoan: (kind) => {
+    const g = get().game;
+    if (!g) return;
+    if (g.actionPointsCurrent <= 0) return; // AP=0 禁用（不可透支）
+    let s = takeLoanCore(g, kind, rng);
+    s.netWorth = computeNetWorth(s);
+    s.bossStrain = s.softHidden.ownerFatigue;
+    const closed = s.cash >= 0;
+    set(commit(s, { crisisOpen: closed ? false : true }));
+  },
+
+  takeCrisisAction: (crisisId) => {
+    const g = get().game;
+    if (!g) return;
+    const res = applyCrisisAction(g, crisisId, rng);
+    let s = res.state;
+    s.netWorth = computeNetWorth(s);
+    s.bossStrain = s.softHidden.ownerFatigue;
+    if (crisisId === 'close_shop') {
+      // 主动关店 → 进入结局判定（不结束存档）
+      set(commit(s, { crisisOpen: false }));
+      set(proceedAfterSettlement(s));
+      return;
+    }
+    const closed = s.cash >= 0;
+    set(commit(s, { crisisOpen: closed ? false : true }));
+  },
+
+  endDay: () => {
+    const g = get().game;
+    if (!g) return;
+    let s = cloneState(g);
+
+    // 1) 供应商批次到期重抽
+    s = rollBatchIfDue(s, rng);
+
+    // 2) 客群敏感 + 供应商品质 → 并入当日修正（结算前）
+    const main = s.stores[0];
+    if (main) {
+      const seg = applySegmentModulation(s, main);
+      s.dayModifiers = addEffectModifiers(s.dayModifiers, seg);
+      const sup = batchQualityMods(main);
+      s.dayModifiers = addEffectModifiers(s.dayModifiers, sup);
+    }
+
+    // 3) 复购率由 computeRepurchase 覆盖（取代 store.repurchaseRate 基线）
+    s.stores = s.stores.map((st) => ({
+      ...st,
+      repurchaseRate: computeRepurchase(st, s.hiddenLines),
+    }));
+
+    // 4) 天气波动叠加到 dayModifiers（结算前）
+    s.dayModifiers = {
+      ...s.dayModifiers,
+      exposurePct: s.dayModifiers.exposurePct + dailyWeatherFluctuation(rng),
+    };
+
+    // 5) 结算全门店
+    const settle = settleAllStores(s, rng);
+    const mainDaily: DailyResult = {
+      ...settle.mainDaily,
+      eventId:
+        get().resolvedEvent?.event.id ??
+        get().eventModal?.id ??
+        null,
+    };
+    s = {
+      ...s,
+      stores: settle.stores,
+      cash: s.cash + settle.totalNetProfit,
+      lastSettlement: mainDaily,
+    };
+
+    // 6) 老板顶班每日疲劳累加（owner 每日再 +15）
+    if (s.stores[0]?.staffTier === 'owner') {
+      s.softHidden = {
+        ...s.softHidden,
+        ownerFatigue: clamp(s.softHidden.ownerFatigue + 15, 0, 100),
+      };
+    }
+
+    // 7) 偶发暗线重罚（现金 + 评级 + 日志）
+    const hits = applyHiddenLineDailyHits(s, rng);
+    s = hits.state;
+
+    s.netWorth = computeNetWorth(s);
+    s.brandRating = s.stores[0]?.rating ?? s.brandRating;
+
+    // 8) 峰值净资 / 现金负连续 / 累计净利 / 暗线健康
+    s.peakNetWorth = Math.max(s.peakNetWorth, s.netWorth);
+    s.cashNegativeStreak = s.cash < 0 ? s.cashNegativeStreak + 1 : 0;
+    s.cumulativeNetProfit += mainDaily.netProfit;
+    const allHealthy = (Object.values(s.hiddenLines ?? {}) as number[]).every(
+      (v) => v <= 40,
+    );
+    s.hiddenHealthyStreak = allHealthy ? s.hiddenHealthyStreak + 1 : 0;
+
+    // 9) 隐藏暗线夹紧
+    s = updateHiddenLines(s, s.dayModifiers);
+
+    // 10) 品质波动导致评分抖动
+    if (s.softHidden.qualityVariance > 50 && s.stores[0]) {
+      const jitter = (rng() - 0.5) * 2 * (s.softHidden.qualityVariance / 100) * 4;
+      s.stores[0].rating = clamp(s.stores[0].rating + jitter, 0, 100);
+      s.brandRating = s.stores[0].rating;
+    }
+
+    // 11) 店里风向
+    const wind = generateWind(s);
+    s.windMessages = [...s.windMessages, wind].slice(-30);
+
+    // 12) 经营日志
+    const logEntries: BusinessLogEntry[] = [
+      {
+        day: s.day,
+        eventId: mainDaily.eventId,
+        eventTitle: get().resolvedEvent?.event.title,
+        decisions: s.decisions,
+        revenue: mainDaily.revenue,
+        netProfit: mainDaily.netProfit,
+        cashAfter: s.cash,
+      },
+    ];
+    for (const log of hits.logs) {
+      logEntries.push({
+        day: log.day,
+        eventId: null,
+        note: log.note,
+        decisions: s.decisions,
+        revenue: 0,
+        netProfit: log.cashDelta,
+        cashAfter: s.cash,
+      });
+    }
+    s.businessLog = [...s.businessLog, ...logEntries].slice(-200);
+
+    // 13) 复购热度衰减（每日 ~8）
+    s = decayHeat(s);
+
+    s.bossStrain = s.softHidden.ownerFatigue;
+
+    set(commit(s, { settlementModal: mainDaily, eventModal: null, resolvedEvent: null }));
+  },
+
+  closeSettlement: () => {
+    const g = get().game;
+    if (!g) return;
+    set({ settlementModal: null });
+    set(proceedAfterSettlement(g));
+  },
+
+  chooseMonthOption: (optionId) => {
+    const g = get().game;
+    if (!g) return;
+    let s = applyMonthOption(g, optionId, rng);
+    set({ monthModal: null });
+    set(advanceDayState(s));
+  },
+
+  resetGame: () => {
+    clearSave();
+    set({
+      game: null,
+      phase: 'opening',
+      eventModal: null,
+      resolvedEvent: null,
+      crisisOpen: false,
+      settlementModal: null,
+      monthModal: null,
+      lastEnding: null,
+    });
+  },
+}));
+
+// 供测试/调试访问
+export { clearTutorialSeen };
+export { canTakeAction };

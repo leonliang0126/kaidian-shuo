@@ -1,0 +1,266 @@
+{
+  "supplierTier": [
+    {
+      "id": "cheap",
+      "label": "低价供应商",
+      "stability": 0.3,
+      "effects": {
+        "marginPct": 5,
+        "hidden": {
+          "supplyRisk": 8,
+          "hygieneRisk": 5,
+          "customerTrust": -3
+        }
+      }
+    },
+    {
+      "id": "local",
+      "label": "本地食材行",
+      "stability": 0.6,
+      "effects": {
+        "marginPct": 0,
+        "hidden": {
+          "supplyRisk": 0
+        }
+      }
+    },
+    {
+      "id": "stable",
+      "label": "稳定品牌供应商",
+      "stability": 0.7,
+      "effects": {
+        "marginPct": -3,
+        "hidden": {
+          "supplyRisk": -8,
+          "customerTrust": 3
+        }
+      }
+    },
+    {
+      "id": "premium",
+      "label": "高端供应商",
+      "stability": 0.9,
+      "effects": {
+        "marginPct": -8,
+        "avgOrderValuePct": 6,
+        "hidden": {
+          "customerTrust": 8,
+          "supplyRisk": -5
+        }
+      }
+    }
+  ],
+  "priceStrategy": [
+    {
+      "id": "low",
+      "label": "低价引流",
+      "effects": {
+        "avgOrderValuePct": -10,
+        "conversionRatePct": 10,
+        "marginPct": -5,
+        "hidden": {
+          "priceControversy": -5,
+          "customerTrust": 2
+        }
+      }
+    },
+    {
+      "id": "normal",
+      "label": "持平",
+      "effects": {}
+    },
+    {
+      "id": "raise",
+      "label": "小幅涨价",
+      "effects": {
+        "avgOrderValuePct": 8,
+        "conversionRatePct": -4,
+        "hidden": {
+          "priceControversy": 5
+        }
+      }
+    },
+    {
+      "id": "premium",
+      "label": "高价定位",
+      "effects": {
+        "avgOrderValuePct": 18,
+        "conversionRatePct": -12,
+        "hidden": {
+          "priceControversy": 12,
+          "customerTrust": -3
+        }
+      }
+    }
+  ],
+  "decorationLevel": [
+    {
+      "id": "bare",
+      "label": "能开就行",
+      "initialCost": 10000,
+      "effects": {
+        "entryRatePct": -5,
+        "hidden": {
+          "landlordAttention": -3
+        }
+      }
+    },
+    {
+      "id": "clean",
+      "label": "干净标准",
+      "initialCost": 30000,
+      "effects": {}
+    },
+    {
+      "id": "memorable",
+      "label": "有记忆点",
+      "initialCost": 60000,
+      "effects": {
+        "entryRatePct": 5,
+        "hidden": {
+          "promoHype": 3
+        }
+      }
+    },
+    {
+      "id": "viral",
+      "label": "网红装修",
+      "initialCost": 120000,
+      "effects": {
+        "entryRatePct": 10,
+        "avgOrderValuePct": 5,
+        "hidden": {
+          "promoHype": 8,
+          "landlordAttention": 5
+        }
+      }
+    },
+    {
+      "id": "designer",
+      "label": "高级设计",
+      "initialCost": 200000,
+      "effects": {
+        "entryRatePct": 8,
+        "avgOrderValuePct": 12,
+        "hidden": {
+          "priceControversy": 5,
+          "landlordAttention": 8
+        }
+      }
+    }
+  ],
+  "promotionTier": [
+    {
+      "id": "none",
+      "label": "不推广",
+      "cost": 0,
+      "effects": {
+        "exposurePct": -5
+      }
+    },
+    {
+      "id": "light",
+      "label": "轻推广",
+      "cost": 300,
+      "effects": {
+        "exposurePct": 8,
+        "hidden": {
+          "promoHype": 2
+        }
+      }
+    },
+    {
+      "id": "normal",
+      "label": "正常推广",
+      "cost": 800,
+      "effects": {
+        "exposurePct": 18,
+        "hidden": {
+          "promoHype": 5,
+          "employeePressure": 3
+        }
+      }
+    },
+    {
+      "id": "heavy",
+      "label": "猛推",
+      "cost": 2000,
+      "effects": {
+        "exposurePct": 35,
+        "hidden": {
+          "promoHype": 12,
+          "employeePressure": 8,
+          "landlordAttention": 3
+        }
+      }
+    },
+    {
+      "id": "gamble",
+      "label": "搏一把",
+      "cost": 5000,
+      "effects": {
+        "exposurePct": 60,
+        "hidden": {
+          "promoHype": 25,
+          "employeePressure": 15,
+          "landlordAttention": 8,
+          "priceControversy": 5
+        }
+      }
+    }
+  ],
+  "staffTier": [
+    {
+      "id": "owner",
+      "label": "老板自己顶",
+      "dailyCost": 0,
+      "capacity": 90,
+      "effects": {
+        "hidden": {
+          "employeePressure": -3
+        },
+        "ownerFatigue": 15
+      }
+    },
+    {
+      "id": "basic",
+      "label": "基础配置",
+      "dailyCost": 250,
+      "capacity": 140,
+      "effects": {
+        "hidden": {
+          "employeePressure": 5
+        }
+      }
+    },
+    {
+      "id": "standard",
+      "label": "标准配置",
+      "dailyCost": 450,
+      "capacity": 280,
+      "effects": {}
+    },
+    {
+      "id": "peak",
+      "label": "高峰配置",
+      "dailyCost": 750,
+      "capacity": 330,
+      "effects": {
+        "hidden": {
+          "employeePressure": -5
+        }
+      }
+    },
+    {
+      "id": "redundant",
+      "label": "冗余配置",
+      "dailyCost": 1200,
+      "capacity": 450,
+      "effects": {
+        "hidden": {
+          "employeePressure": -10
+        }
+      }
+    }
+  ]
+}

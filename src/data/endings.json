@@ -1,0 +1,78 @@
+[
+  {
+    "id": "chain_empire",
+    "title": "连锁帝国",
+    "type": "hidden",
+    "conditions": [
+      "storeCount >= 10",
+      "totalNetProfitPositiveForMonths >= 2",
+      "brandRating >= 4.2",
+      "noSevereFoodSafetyOrDebtCrisis == true",
+      "headquarterCashflowPositive == true"
+    ],
+    "text": "你已经开出了 10 家门店。你不再每天亲自盯店，但每天要看更多报表。你从开店老板，变成了餐饮系统里的另一个打工人。",
+    "buttons": [
+      "保存结局",
+      "继续经营"
+    ]
+  },
+  {
+    "id": "financial_freedom",
+    "title": "财富自由",
+    "type": "hidden",
+    "conditions": [
+      "netWorth >= 5000000",
+      "totalNetProfitPositiveForMonths >= 3",
+      "debtPressure <= light",
+      "storesStillOperating == true"
+    ],
+    "netWorthFormula": "cash + storeValuation - debt",
+    "text": "你终于赚到了足够的钱。不是流水，不是估值，也不是借来的额度。是扣掉债务之后，真正属于你的钱。",
+    "buttons": [
+      "保存结局",
+      "继续游戏"
+    ]
+  },
+  {
+    "id": "decent_exit",
+    "title": "体面撤退",
+    "type": "stop_loss",
+    "text": "你没有赚到钱，但你保住了剩下的钱。在餐饮创业里，这已经比很多人强。"
+  },
+  {
+    "id": "landlord_win",
+    "title": "房东的胜利",
+    "type": "failure",
+    "text": "你不是输给了顾客。你输给了每月准时出现的房租。"
+  },
+  {
+    "id": "debt_trap",
+    "title": "用明天补昨天",
+    "type": "failure",
+    "text": "你成功活过了好几天。代价是之后每一天都不太想活。"
+  },
+  {
+    "id": "one_person_shop",
+    "title": "老板一个人的店",
+    "type": "failure",
+    "text": "你省下了人工，也省下了继续开店的可能。"
+  },
+  {
+    "id": "menu_without_supply",
+    "title": "菜单还在，东西没了",
+    "type": "failure",
+    "text": "顾客终于想买你的招牌款。可惜供应商已经不想理你了。"
+  },
+  {
+    "id": "viral_failure",
+    "title": "红过，也烂过",
+    "type": "failure",
+    "text": "你的店确实被很多人知道了。主要是因为大家都在骂。"
+  },
+  {
+    "id": "suspended",
+    "title": "暂停营业",
+    "type": "failure",
+    "text": "店门上贴了一张通知。这可能是你这家店最醒目的招牌。"
+  }
+]
