@@ -13,6 +13,7 @@ import { FocusSelector } from './components/FocusSelector';
 import { ActionPointPanel } from './components/ActionPointPanel';
 import { StaffPage } from './components/StaffPage';
 import { HirePage } from './components/HirePage';
+import { StaffEventModal } from './components/StaffEventModal';
 import { Button } from './components/ui/Button';
 import { TutorialModal } from './components/modals/TutorialModal';
 import { OpeningSetup } from './components/OpeningSetup';
@@ -30,6 +31,7 @@ export default function App() {
   const monthModal = useGameStore((s) => s.monthModal);
   const settlementModal = useGameStore((s) => s.settlementModal);
   const lastEnding = useGameStore((s) => s.lastEnding);
+  const staffNotifications = useGameStore((s) => s.game?.staffNotifications ?? []);
   const openStaffPage = useGameStore((s) => s.openStaffPage);
 
   useEffect(() => {
@@ -71,12 +73,15 @@ export default function App() {
       </div>
       <EndDayButton />
 
-      {/* 弹窗优先级：结局 > 危机 > 月结 > 事件 > 结算 */}
+      {/* 弹窗优先级：结局 > 危机 > 月结 > 员工动态 > 事件 > 结算 */}
       {lastEnding && <EndingScreen />}
       {!lastEnding && crisisOpen && <CrisisModal />}
       {!lastEnding && !crisisOpen && monthModal && <MonthModal />}
-      {!lastEnding && !crisisOpen && !monthModal && eventModal && <EventModal />}
-      {!lastEnding && !crisisOpen && !monthModal && !eventModal && settlementModal && (
+      {!lastEnding && !crisisOpen && !monthModal && (
+        <StaffEventModal />
+      )}
+      {!lastEnding && !crisisOpen && !monthModal && !staffNotifications.length && eventModal && <EventModal />}
+      {!lastEnding && !crisisOpen && !monthModal && !eventModal && !staffNotifications.length && settlementModal && (
         <SettlementModal />
       )}
 

@@ -10,6 +10,7 @@ import type { RNG } from './rng';
 import { BASE_EXPOSURE, clamp } from '../utils/constants';
 import { getStoreProfile } from '../data/storeProfiles';
 import { getLocationProfile } from '../data/locationProfiles';
+import { getTrafficWaves } from '../data/trafficPatterns';
 import { getPromotionCost } from '../data/decisionOptions';
 import { buildDailyModifiers, addPenaltyModifiers } from './modifiers';
 import { deriveDailyPenalties, ramp } from './hiddenPenalties';
@@ -30,8 +31,10 @@ export function resolveSettlement(
   const loc = getLocationProfile(store.locationType);
   const sp = getStoreProfile(store.storeType);
 
-  // 1) 基准曝光与拆分
-  const baseExposure = BASE_EXPOSURE * loc.trafficCoef * sp.exposureFactor;
+  // 1) 基准曝光与拆分（乘入当日客流波动系数，贯穿后续拆分与 Pct 链路）
+  const waves = getTrafficWaves(state.day, store.locationType, store.storeType);
+  const baseExposure =
+    BASE_EXPOSURE * loc.trafficCoef * sp.exposureFactor * waves.combined;
   const dineInExp =
     baseExposure *
     (1 - store.deliveryRatio) *

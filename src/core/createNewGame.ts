@@ -130,6 +130,7 @@ export function createNewGame(cfg: OpeningConfig, rng: RNG): GameState {
     __version: 1, // 存档版本标记（v3 = 1）
     day: 1,
     month: 1,
+    currentWeek: 1,
     cash,
     debt,
     monthlyRepayment,

@@ -10,6 +10,7 @@ import { computeCapacity, computeStaffCost } from '../src/core/staffSystem';
 import { STORE_PROFILES } from '../src/data/storeProfiles';
 import { LOCATION_PROFILES } from '../src/data/locationProfiles';
 import { BASE_EXPOSURE } from '../src/utils/constants';
+import { getTrafficWaves } from '../src/data/trafficPatterns';
 import type { GameState } from '../src/types';
 
 function freshGame(): GameState {
@@ -48,8 +49,12 @@ describe('结算公式（架构 §5.3）', () => {
     const sp = STORE_PROFILES[store.storeType];
     const loc = LOCATION_PROFILES[store.locationType];
 
-    // 1) 基准曝光与拆分（promo=light → exposurePct=8）
-    const baseExposure = BASE_EXPOSURE * loc.trafficCoef * sp.exposureFactor;
+    // 1) 基准曝光与拆分（promo=light → exposurePct=8，并乘当日客流波动 combined）
+    const baseExposure =
+      BASE_EXPOSURE *
+      loc.trafficCoef *
+      sp.exposureFactor *
+      getTrafficWaves(state.day, store.locationType, store.storeType).combined;
     const dineInExp = baseExposure * (1 - store.deliveryRatio) * (1 + mods.exposurePct / 100);
     const deliveryExp = baseExposure * store.deliveryRatio * (1 + mods.exposurePct / 100);
     expect(daily.exposure).toBe(Math.round(dineInExp + deliveryExp));

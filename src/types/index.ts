@@ -237,6 +237,7 @@ export interface GameState {
   __version: number;
   day: number; // 1..
   month: number; // 1..
+  currentWeek: number; // 当前周数（Math.ceil(day/7)，初始 1）
   cash: number;
   debt: number;
   monthlyRepayment: number;

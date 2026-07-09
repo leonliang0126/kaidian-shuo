@@ -6,7 +6,7 @@ import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { EmployeeDetailModal } from './EmployeeDetailModal';
 import { LayoffConfirmModal } from './LayoffConfirmModal';
-import { computeCapacity, computeStaffCost, getScheduledCount, getMaxEmployees } from '../core/staffSystem';
+import { computeCapacity, computeStaffCost, getScheduledCount, getMaxEmployees, dayOfWeekLabel } from '../core/staffSystem';
 import { ATTRIBUTE_LABELS, ATTRIBUTE_EMOJI } from '../types/employee';
 import type { Employee } from '../types/employee';
 import { fmtMoney } from '../utils/format';
@@ -33,7 +33,6 @@ export function StaffPage() {
   const capacity = computeCapacity(employees);
   const staffCost = computeStaffCost(employees);
   const maxEmployees = getMaxEmployees(store.decorationLevel);
-  const notifications = game.staffNotifications ?? [];
 
   return (
     <div className="fixed inset-0 z-40 bg-bg overflow-y-auto">
@@ -53,20 +52,6 @@ export function StaffPage() {
             </Button>
           </div>
         </div>
-
-        {/* 员工事件通知 */}
-        {notifications.length > 0 && (
-          <div className="space-y-1">
-            {notifications.map((note, i) => (
-              <div
-                key={i}
-                className="rounded-card bg-risk/10 border border-risk/20 px-3 py-2 text-xs text-risk"
-              >
-                {note}
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* 排班摘要 */}
         <Card className="px-4 py-3">
@@ -144,7 +129,7 @@ export function StaffPage() {
                   {/* 本周排班信息 */}
                   <div className="flex items-center justify-between text-xs text-sub mb-2">
                     <span>
-                      本周已上: {emp.daysWorkedThisWeek}天
+                      {dayOfWeekLabel(game.day)} · 本周已上: {emp.daysWorkedThisWeek}天
                       {emp.daysWorkedThisWeek >= 5 && (
                         <span className="text-risk ml-1">⚠️ 超时</span>
                       )}

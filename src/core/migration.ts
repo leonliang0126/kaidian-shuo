@@ -16,6 +16,7 @@ import { computeNetWorth } from './branch';
 import { HEAT_INIT } from '../data/repurchaseHeat';
 import { stabilityToBaseQuality, BATCH_CYCLE } from '../data/supplierStability';
 import { monthOfDay } from '../utils/constants';
+import { getWeekNumber } from './staffSystem';
 
 /** 当前存档版本（v3 = 1）。 */
 export const SAVE_VERSION = 1;
@@ -130,6 +131,8 @@ export function migrateGameState(raw: unknown): GameState {
     __version: SAVE_VERSION,
     day,
     month,
+    currentWeek:
+      typeof src.currentWeek === 'number' ? src.currentWeek : getWeekNumber(day),
     cash,
     debt: typeof src.debt === 'number' ? src.debt : 0,
     monthlyRepayment: typeof src.monthlyRepayment === 'number' ? src.monthlyRepayment : 0,

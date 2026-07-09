@@ -380,11 +380,31 @@ export function fireEmployee(
   };
 }
 
+// ====== 周/日期工具 ======
+
+/** 计算某一天是周几（1-7，1=周一，7=周日） */
+export function getDayOfWeek(day: number): number {
+  // ((day - 1) % 7) + 1：保证 JS 负数取模也得到 1-7
+  return ((day - 1) % 7 + 7) % 7 + 1;
+}
+
+/** 计算某一天所在周数（每 7 天一周，第 1 周为 1-7 天） */
+export function getWeekNumber(day: number): number {
+  return Math.ceil(day / 7);
+}
+
+/** 返回"周一" ~ "周日"标签 */
+export function dayOfWeekLabel(day: number): string {
+  const labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+  const idx = getDayOfWeek(day) - 1;
+  return labels[idx] ?? '?';
+}
+
 // ====== 周重置 ======
 
-/** 是否为周一开始（day % 7 === 1） */
+/** 判断是否为周一（getDayOfWeek(day) === 1） */
 export function isWeekStart(day: number): boolean {
-  return day % 7 === 1;
+  return getDayOfWeek(day) === 1;
 }
 
 /** 重置所有员工的每周排班数据 */

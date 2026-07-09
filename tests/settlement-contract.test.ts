@@ -12,6 +12,7 @@ import { computeStaffCost } from '../src/core/staffSystem';
 import { STORE_PROFILES } from '../src/data/storeProfiles';
 import { LOCATION_PROFILES } from '../src/data/locationProfiles';
 import { BASE_EXPOSURE } from '../src/utils/constants';
+import { getTrafficWaves } from '../src/data/trafficPatterns';
 import type { GameState } from '../src/types';
 
 function freshGame(): GameState {
@@ -95,7 +96,11 @@ describe('B.1 结算公式数值正确性（架构 §5.3）', () => {
     const sp = STORE_PROFILES[store.storeType];
     const loc = LOCATION_PROFILES[store.locationType];
 
-    const baseExposure = BASE_EXPOSURE * loc.trafficCoef * sp.exposureFactor;
+    const baseExposure =
+      BASE_EXPOSURE *
+      loc.trafficCoef *
+      sp.exposureFactor *
+      getTrafficWaves(state.day, store.locationType, store.storeType).combined;
     const dineInExp = baseExposure * (1 - store.deliveryRatio) * (1 + mods.exposurePct / 100);
     const deliveryExp = baseExposure * store.deliveryRatio * (1 + mods.exposurePct / 100);
     expect(daily.exposure).toBe(Math.round(dineInExp + deliveryExp));
@@ -171,7 +176,9 @@ describe('B.1 Pct 契约（百分点加法 vs 百分比乘法 vs 持久改 rent�
     const sR = applyEffects(state, { revenuePct: 100 }, rng, { accumulateMods: true });
     const mR = buildDailyModifiers(sR, sR.decisions);
     const { daily: dR } = resolveSettlement(sR, sR.stores[0], sR.decisions, mR, rng);
-    expect(dR.revenue / d0.revenue).toBeCloseTo(4, 2);
+    // 容忍波系数缩放曝光量后 orders 取整带来的边界误差（Pct 契约仍成立 ≈4×）：
+    // revenuePct=100 在 orders 与 revenue 两处各 ×2，合计 ×4。
+    expect(dR.revenue / d0.revenue).toBeCloseTo(4, 1);
   });
 
   it('rentPct = 持久修改 store.rent（而非当日）', () => {

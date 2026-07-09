@@ -16,6 +16,9 @@ import {
   setEmployeeSchedule,
   fireEmployee,
   isWeekStart,
+  getDayOfWeek,
+  getWeekNumber,
+  dayOfWeekLabel,
   resetWeeklyWorkDays,
   applyAllRest,
   applySalaryRaise,
@@ -697,12 +700,35 @@ describe('fireEmployee', () => {
 // 9. 周重置
 // ==============================================================================
 describe('周重置', () => {
-  it('isWeekStart: day%7===1 返回 true', () => {
+  it('getDayOfWeek: 正确计算周几（1=周一, 7=周日）', () => {
+    expect(getDayOfWeek(1)).toBe(1);  // Day 1 = 周一
+    expect(getDayOfWeek(2)).toBe(2);  // Day 2 = 周二
+    expect(getDayOfWeek(7)).toBe(7);  // Day 7 = 周日
+    expect(getDayOfWeek(8)).toBe(1);  // Day 8 = 周一
+    expect(getDayOfWeek(14)).toBe(7); // Day 14 = 周日
+    expect(getDayOfWeek(15)).toBe(1); // Day 15 = 周一
+  });
+
+  it('getWeekNumber: Math.ceil(day/7)', () => {
+    expect(getWeekNumber(1)).toBe(1);
+    expect(getWeekNumber(7)).toBe(1);
+    expect(getWeekNumber(8)).toBe(2);
+    expect(getWeekNumber(14)).toBe(2);
+    expect(getWeekNumber(15)).toBe(3);
+  });
+
+  it('dayOfWeekLabel: 返回中文标签', () => {
+    expect(dayOfWeekLabel(1)).toBe('周一');
+    expect(dayOfWeekLabel(7)).toBe('周日');
+    expect(dayOfWeekLabel(5)).toBe('周五');
+  });
+
+  it('isWeekStart: getDayOfWeek===1（周一）返回 true', () => {
     expect(isWeekStart(1)).toBe(true);
     expect(isWeekStart(8)).toBe(true);
     expect(isWeekStart(15)).toBe(true);
-    expect(isWeekStart(2)).toBe(false);
     expect(isWeekStart(7)).toBe(false);
+    expect(isWeekStart(14)).toBe(false);
     expect(isWeekStart(0)).toBe(false);
   });
 

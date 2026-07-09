@@ -1,6 +1,8 @@
 // 顶部状态栏：天数、现金、净资产、品牌评分、现金流状态、行动点、负债月供、复购热度。
 import { useGameStore } from '../store/gameStore';
 import { fmtMoney, ratingToStars } from '../utils/format';
+import { getWeekNumber, dayOfWeekLabel } from '../core/staffSystem';
+import TrafficPill from './TrafficPill';
 import clsx from 'clsx';
 
 const CASHFLOW_COLOR: Record<string, string> = {
@@ -22,10 +24,20 @@ export function StatusBar() {
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs text-sub">
-            第 {game.day} 天 · 第 {game.month} 月
+            第 {game.day} 天 · {dayOfWeekLabel(game.day)} · 第{getWeekNumber(game.day)}周 · 第 {game.month} 月
           </div>
           <div className="text-lg font-bold text-ink">现金 {fmtMoney(game.cash)}</div>
         </div>
+        {main && (
+          <div className="mt-2">
+            <TrafficPill
+              day={game.day}
+              locationType={main.locationType}
+              storeType={main.storeType}
+              showMain={game.storeCount > 1}
+            />
+          </div>
+        )}
         <div className="text-right">
           <div className="text-xs text-sub">净资产</div>
           <div className="text-sm font-semibold text-ink">{fmtMoney(game.netWorth)}</div>

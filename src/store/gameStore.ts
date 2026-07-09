@@ -56,7 +56,8 @@ import {
   checkResignOrStrike,
   tryExposeAttributes,
   resetWeeklyWorkDays,
-  isWeekStart,
+  getDayOfWeek,
+  getWeekNumber,
   applyAllRest,
   applySalaryRaise,
   getMaxEmployees,
@@ -106,6 +107,7 @@ interface GameStore {
   fireEmployee: (employeeId: string) => void;
   adjustSalary: (employeeId: string, amount: number) => void;
   allRestDay: () => void;
+  dismissStaffNotifications: () => void;
 }
 
 // 模块级 RNG（可被开局 seed 重置）
@@ -201,6 +203,7 @@ function proceedAfterSettlement(state: GameState): Partial<GameStore> {
 function advanceDayState(state: GameState): Partial<GameStore> {
   let s = cloneState(state);
   s.day += 1;
+  s.currentWeek = getWeekNumber(s.day);
   s.month = monthOfDay(s.day);
   s = decaySoftHidden(s);
   return beginDay(s);
@@ -406,6 +409,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     s.stores = s.stores.map((store) => {
       let employees = store.employees;
 
+      // 自动排班：今日已排班的员工 daysWorkedThisWeek +1
+      employees = employees.map((e) => {
+        if (e.isScheduledToday) {
+          return { ...e, daysWorkedThisWeek: e.daysWorkedThisWeek + 1 };
+        }
+        return e;
+      });
+
       // 士气衰减/恢复
       const moraleResult = applyMoraleDecay(employees, s.day);
       employees = moraleResult.employees;
@@ -434,8 +445,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         staffEvents.push(strikeResult.description);
       }
 
-      // 周重置
-      if (isWeekStart(s.day)) {
+      // 周重置：周日结束后重置，为新周一准备
+      if (getDayOfWeek(s.day) === 7) {
         employees = resetWeeklyWorkDays(employees);
       }
 
@@ -455,6 +466,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // 如果有员工事件，保存到通知（供 StaffPage 展示）
     s.staffNotifications = staffEvents;
+
+    // 同步当前周数
+    s.currentWeek = getWeekNumber(s.day);
 
     // 7) 偶发暗线重罚（现金 + 评级 + 日志）
     const hits = applyHiddenLineDailyHits(s, rng);
@@ -554,14 +568,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // ====== 员工系统 actions ======
 
   openStaffPage: () => {
-    const s = get().game;
-    if (s && s.staffNotifications.length > 0) {
-      const cleared = cloneState(s);
-      cleared.staffNotifications = [];
-      set({ staffPageOpen: true, hirePageOpen: false, game: cleared });
-    } else {
-      set({ staffPageOpen: true, hirePageOpen: false });
-    }
+    set({ staffPageOpen: true, hirePageOpen: false });
   },
 
   closeStaffPage: () => {
@@ -689,6 +696,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newStores = [...s.stores];
     newStores[0] = newStore;
     s.stores = newStores;
+    set(commit(s));
+  },
+
+  dismissStaffNotifications: () => {
+    const g = get().game;
+    if (!g) return;
+    const s = cloneState(g);
+    s.staffNotifications = [];
     set(commit(s));
   },
 }));
