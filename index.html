@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="theme-color" content="#FFFDF9" />
+    <title>开店说｜餐饮开店模拟经营</title>
+    <script type="module" crossorigin src="/kaidian-shuo/assets/index-Nzp__-nN.js"></script>
+    <link rel="stylesheet" crossorigin href="/kaidian-shuo/assets/index-BZFGBokO.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- 兜底：若模块解析/执行失败（如旧版 webview 引擎不兼容），#root 将保持为空。
+         该经典脚本不受 type=module 加载失败影响，可在此情况下给出可见提示而非白屏。 -->
+    <script>
+      window.addEventListener('error', function (e) {
+        if (e && e.message) console.error('[bootstrap]', e.message);
+      });
+      setTimeout(function () {
+        var root = document.getElementById('root');
+        if (!window.__rootMounted && (!root || root.childElementCount === 0)) {
+          if (root) {
+            root.innerHTML =
+              '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fffdf9;color:#2b2b2b;text-align:center">' +
+              '<div style="max-width:480px">' +
+              '<div style="font-size:40px;margin-bottom:8px">😵‍💫</div>' +
+              '<h1 style="font-size:18px;margin:0 0 8px">页面加载失败</h1>' +
+              '<p style="font-size:14px;color:#888;line-height:1.6;margin:0">你的浏览器/网页环境暂不支持本页面所需的特性。请尝试在系统浏览器中打开，或升级微信/QQ 到最新版本后重试。</p>' +
+              '</div></div>';
+          }
+        }
+      }, 4000);
+    </script>
+  </body>
+</html>
