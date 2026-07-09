@@ -16,6 +16,9 @@ export const FINANCIAL_FREEDOM_NET_WORTH = 12000000;
 /** 高利贷跑路：predatory 贷款 overdueDays 阈值。 */
 export const PREDATORY_OVERDUE_DEBT_RUN = 5;
 
+/** 被银行收店：Σ(本金+累计利息) 超过 主店估值 × 该倍数 且 净资产<0 时触发（复用 suspended 文案）。 */
+export const BANK_FORECLOSURE_DEBT_MULTIPLIER = 1.5;
+
 /** 8 暗线"全健康"阈值（每根暗线 ≤ 此值视为健康）。 */
 export const HEALTHY_LINE_THRESHOLD = 40;
 

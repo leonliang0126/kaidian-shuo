@@ -193,6 +193,11 @@ export function migrateGameState(raw: unknown): GameState {
     cumulativeNetProfit:
       typeof src.cumulativeNetProfit === 'number' ? src.cumulativeNetProfit : 0,
     eventWeightMods: (src.eventWeightMods as Record<string, number> | undefined) ?? {},
+    // —— 贷款子系统增量字段（缺即补默认，绝不因 undefined 崩溃）——
+    autoBailoutCount: typeof src.autoBailoutCount === 'number' ? src.autoBailoutCount : 0,
+    predatoryLoanCount: typeof src.predatoryLoanCount === 'number' ? src.predatoryLoanCount : 0,
+    bailoutRateMultiplier:
+      typeof src.bailoutRateMultiplier === 'number' ? src.bailoutRateMultiplier : 1,
   };
 
   // 用真实公式修正净资产（若旧档没有则按 cash 兜底），并同步峰值净资。

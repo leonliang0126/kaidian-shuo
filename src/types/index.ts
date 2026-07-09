@@ -281,6 +281,10 @@ export interface GameState {
   peakNetWorth: number; // 峰值净资（财务自由/连锁帝国触发用）
   cumulativeNetProfit: number; // 累计净利（仅 EndingScreen 数据回顾）
   eventWeightMods: Record<string, number>; // 行动事件权重累加器（→ eventEngine 选池偏置）
+  // —— 贷款子系统增量字段（INCREMENTAL_LOANFIX）——
+  autoBailoutCount: number; // 自动银行兜底已使用次数（0–2）；仅 cash<0 自动兜底成功 +1
+  predatoryLoanCount: number; // 已借高利贷笔数（利率飙升计数器，逻辑真相源）
+  bailoutRateMultiplier: number; // 下一笔高利贷相对基准利率乘子 = PREDATORY_APR_ESCALATION ^ predatoryLoanCount
 }
 
 export type { EffectObject, EventDef, EndingDef, EventOption, EventCategory };

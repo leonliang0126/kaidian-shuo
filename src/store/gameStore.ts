@@ -40,7 +40,8 @@ import {
   resetDailyActionState,
 } from '../core/actionSystem';
 import { applyEventShock } from '../core/eventVisibleShock';
-import { takeCrisisLoan as takeLoanCore } from '../core/loanSystem';
+import { takeCrisisLoan as takeLoanCore, canTakeCrisisLoan } from '../core/loanSystem';
+import { AUTO_BAILOUT_MAX } from '../data/setupCosts';
 import { applySegmentModulation } from '../core/segmentProfiles';
 import { rollBatchIfDue, batchQualityMods } from '../core/supplierStability';
 import { decayHeat, computeRepurchase } from '../core/repurchaseHeat';
@@ -92,9 +93,19 @@ function beginDay(state: GameState): Partial<GameStore> {
   s = resetDailyActionState(s);
   s.dayModifiers = emptyModifiers();
 
-  // 现金流危机（cash<0）：直接打开危机面板（数据驱动危机行动/贷款）
+  // 现金流危机（cash<0）：自动兜底限次 / 否则强制弹危机面板
   if (s.cash < 0) {
-    return commit(s, { crisisOpen: true, eventModal: null, resolvedEvent: null });
+    // 前 AUTO_BAILOUT_MAX 次自动银行 4% 兜底，不弹面板、扣 1 行动点、autoBailoutCount+1
+    if (s.autoBailoutCount < AUTO_BAILOUT_MAX) {
+      s = takeLoanCore(s, 'bank', rng);
+      s.autoBailoutCount += 1;
+      s.netWorth = computeNetWorth(s);
+      s.bossStrain = s.softHidden.ownerFatigue;
+      // 兜底成功：现金回正，继续正常抽事件（不弹面板）
+    } else {
+      // 兜底已用尽：强制弹危机面板（仅允许高利贷）
+      return commit(s, { crisisOpen: true, eventModal: null, resolvedEvent: null });
+    }
   }
 
   // 抽普通事件
@@ -128,8 +139,22 @@ function proceedAfterSettlement(state: GameState): Partial<GameStore> {
     s.gameOver = true;
     return commit(s, { lastEnding: ending, crisisOpen: false });
   }
-  // 2) 现金流危机
+  // 2) 现金流危机（cash<0）：自动兜底限次 / 否则强制弹危机面板
   if (state.cash < 0) {
+    // 前 AUTO_BAILOUT_MAX 次自动银行 4% 兜底，不弹面板，回正后继续月结/进入下一天
+    if (state.autoBailoutCount < AUTO_BAILOUT_MAX) {
+      let s = takeLoanCore(state, 'bank', rng);
+      s.autoBailoutCount += 1;
+      s.netWorth = computeNetWorth(s);
+      s.bossStrain = s.softHidden.ownerFatigue;
+      // 兜底成功：继续月结或进入下一天（与下方 3/4 同款推进）
+      if (isMonthEnd(s.day)) {
+        const { state: ms, report } = runMonthSettlement(s, rng);
+        return commit(ms, { monthModal: report });
+      }
+      return advanceDayState(s);
+    }
+    // 兜底已用尽：强制弹危机面板（仅允许高利贷）
     return commit(state, { crisisOpen: true });
   }
   // 3) 月结
@@ -273,7 +298,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   takeCrisisLoan: (kind) => {
     const g = get().game;
     if (!g) return;
-    if (g.actionPointsCurrent <= 0) return; // AP=0 禁用（不可透支）
+    // 玩家手动发起：强制 80% 净资上限校验（含 AP 校验；setup 一次性贷款/自动兜底不受此限）
+    const check = canTakeCrisisLoan(g, kind);
+    if (!check.ok) return; // 上限命中或 AP 耗尽：拒绝（UI 已禁用对应按钮）
     let s = takeLoanCore(g, kind, rng);
     s.netWorth = computeNetWorth(s);
     s.bossStrain = s.softHidden.ownerFatigue;

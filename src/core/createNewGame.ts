@@ -179,6 +179,10 @@ export function createNewGame(cfg: OpeningConfig, rng: RNG): GameState {
     peakNetWorth: 0,
     cumulativeNetProfit: 0,
     eventWeightMods: {},
+    // —— 贷款子系统增量字段（INCREMENTAL_LOANFIX，默认值）——
+    autoBailoutCount: 0,
+    predatoryLoanCount: 0,
+    bailoutRateMultiplier: 1,
   };
 
   // 应用初始五项决策的即时效果（hidden/soft/cash 等；Pct 由结算时 addDecisionModifiers 处理）

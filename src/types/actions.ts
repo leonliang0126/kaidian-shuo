@@ -75,6 +75,16 @@ export interface Loan {
   accruedInterest: number;
   startDate: number;
   overdueDays: number;
+  /** 可选：第几笔高利贷（仅 UI 文案展示用，如"第3笔 81%"），非逻辑必需。 */
+  loanNo?: number;
+  /** 可选：是否为开局一次性 setup 超额贷款（非危机贷）。收店判定不计此类贷款，避免超额开局误判收店。 */
+  isSetup?: boolean;
+}
+
+/** 玩家发起危机贷款前的可借性检查结果。 */
+export interface CrisisLoanCheck {
+  ok: boolean;
+  reason: 'cap' | 'ap' | null;
 }
 
 /** 行动翻译后的可结算效果（纯数据，进入 dayModifiers / hidden / soft / eventWeights）。 */

@@ -4,12 +4,14 @@ import type { GameState } from '../types';
 import type { EndingResult } from '../types/actions';
 import type { EndingDef } from '../types/events';
 import { getEnding } from '../data/endings';
+import { storeValuation } from '../core/branch';
 import {
   CASH_NEGATIVE_STREAK_BANKRUPTCY,
   CHAIN_EMPIRE_STORES,
   CHAIN_EMPIRE_NET_WORTH,
   FINANCIAL_FREEDOM_NET_WORTH,
   PREDATORY_OVERDUE_DEBT_RUN,
+  BANK_FORECLOSURE_DEBT_MULTIPLIER,
 } from '../data/endingTriggers';
 
 function make(
@@ -52,6 +54,26 @@ export function evaluateEndings(state: GameState): EndingResult | null {
     const def = getEnding('debt_trap');
     if (def && !state.endingsUnlocked.includes('debt_trap')) {
       return make(def, 'lose', '高利贷逾期催收', state);
+    }
+  }
+
+  // 0.5) 被银行收店（复用 suspended 文案，不新增结局 id）：
+  //   危机债务 Σ(本金+累计利息，不含开局 setup 一次性贷款) > 主店估值(storeValuation=rent×6) × 1.5
+  //   且 净资产<0 → 直接返回"歇业"文案。
+  //   注：setup 一次性贷款是开局测算好的融资，不算入"债务螺旋"；超额开局（如 designer）因此不会第 1 天误判收店。
+  if (
+    state.stores[0] &&
+    state.loans.reduce(
+      (sum, l) => sum + (l.isSetup ? 0 : l.principal + l.accruedInterest),
+      0,
+    ) >
+      storeValuation(state.stores[0]) * BANK_FORECLOSURE_DEBT_MULTIPLIER &&
+    state.netWorth < 0 &&
+    !state.endingsUnlocked.includes('suspended')
+  ) {
+    const def = getEnding('suspended');
+    if (def) {
+      return make(def, 'lose', '债务超过店铺估值1.5倍且资不抵债，被银行收店', state);
     }
   }
 

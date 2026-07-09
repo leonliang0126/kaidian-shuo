@@ -40,6 +40,26 @@ export const CRISIS_LOAN_BUFFER = 10000;
 /** 提前还本消耗行动点（默认 0：月结 repay 不耗 AP；LoanPanel 直操作也不耗）。 */
 export const PREPAY_COST_AP = 0;
 
+// —— 贷款子系统增量修复（INCREMENTAL_LOANFIX）常量与纯函数 ——
+
+/** 自动银行兜底（cash<0）次数上限：仅前 2 次自动 4% 兜底，之后强制弹危机面板且只许高利贷。 */
+export const AUTO_BAILOUT_MAX = 2;
+
+/** 高利贷每多借一笔的年利率乘子（复合 ×1.5：36% → 54% → 81% → …）。 */
+export const PREDATORY_APR_ESCALATION = 1.5;
+
+/** 危机贷款（玩家手动发起）累计上限占净资比例：debt >= netWorth × 该值 即达上限。 */
+export const CRISIS_LOAN_NETWORTH_CAP_RATIO = 0.8;
+
+/**
+ * 第 (count+1) 笔高利贷的年利率（count = 已借高利贷笔数）。
+ * 公式：LOAN_APR.predatory × PREDATORY_APR_ESCALATION ^ count，结果四舍五入至 4 位小数。
+ * @example predatoryLoanApr(0)=0.36, predatoryLoanApr(1)=0.54, predatoryLoanApr(2)=0.81
+ */
+export function predatoryLoanApr(count: number): number {
+  return Math.round(LOAN_APR.predatory * PREDATORY_APR_ESCALATION ** count * 1e4) / 1e4;
+}
+
 /** 行动点基准上限。 */
 export const ACTION_POINTS_BASE = 3;
 

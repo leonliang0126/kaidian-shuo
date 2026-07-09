@@ -16,6 +16,7 @@ import { isMonthEnd, monthOfDay, clamp } from '../utils/constants';
 import { resetDailyActionState } from './actionSystem';
 import { applyEventShock } from './eventVisibleShock';
 import { takeCrisisLoan } from './loanSystem';
+import { AUTO_BAILOUT_MAX } from '../data/setupCosts';
 import { applySegmentModulation } from './segmentProfiles';
 import { rollBatchIfDue, batchQualityMods } from './supplierStability';
 import { decayHeat, computeRepurchase } from './repurchaseHeat';
@@ -47,7 +48,12 @@ export function runDailyLoop(prev: GameState, rng: RNG): DailyLoopResult {
       ...state.eventHistory,
       { day: state.day, eventId: forcedEv.id, optionId: 'auto_loan', title: forcedEv.title },
     ];
-    state = takeCrisisLoan(state, 'bank', rng);
+    // 自动兜底限次：仅前 AUTO_BAILOUT_MAX 次自动银行 4% 兜底并 +1；
+    // 用尽后不再兜底（cash 保持负），由上层 store（beginDay/proceedAfterSettlement）弹危机面板。
+    if (state.autoBailoutCount < AUTO_BAILOUT_MAX) {
+      state = takeCrisisLoan(state, 'bank', rng);
+      state.autoBailoutCount += 1;
+    }
   }
 
   // 4) 普通随机事件（强制事件已处理则跳过）

@@ -1,11 +1,17 @@
 // 现金流危机面板：数据驱动的 3 类应急借款 + 7 个危机应对行动。
 // 借款/部分行动消耗 1 行动点；AP=0 时全部禁用（不可透支，doc §5.1 / §5.7）。
+// 贷款子系统增量修复（INCREMENTAL_LOANFIX）：
+//   - 自动兜底用尽（autoBailoutCount >= AUTO_BAILOUT_MAX）时禁用 银行/亲友，仅许高利贷；
+//   - 触及 80% 净资上限（isCrisisLoanOverCap）时禁用全部借款按钮并提示；
+//   - 高利贷按钮文案展示当前飙升利率（周转 X%）。
 import { useGameStore } from '../../store/gameStore';
 import { Modal } from '../ui/Modal';
 import { CRISIS_ACTIONS } from '../../data/crisisActionDefs';
 import type { LoanChannel } from '../../types/actions';
 import { fmtMoney } from '../../utils/format';
 import clsx from 'clsx';
+import { AUTO_BAILOUT_MAX, predatoryLoanApr } from '../../data/setupCosts';
+import { isCrisisLoanOverCap } from '../../core/loanSystem';
 
 // 借款类危机行动 → 真实贷款渠道
 const LOAN_ACTIONS: { id: string; channel: LoanChannel; tag: string }[] = [
@@ -25,6 +31,15 @@ export function CrisisModal() {
 
   const ap = game.actionPointsCurrent;
   const noAp = ap <= 0;
+  // 自动兜底已用尽（仅许高利贷）
+  const bailoutExhausted = (game.autoBailoutCount ?? 0) >= AUTO_BAILOUT_MAX;
+  // 触及 80% 净资上限：全部借款禁用
+  const overCap = isCrisisLoanOverCap(game);
+  // 高利贷当前飙升利率文案（如 周转 54%）
+  const predatoryTag = `周转 ${Math.round(predatoryLoanApr(game.predatoryLoanCount) * 100)}%`;
+
+  const loanDisabled = (l: { channel: LoanChannel }): boolean =>
+    noAp || overCap || (l.channel !== 'predatory' && bailoutExhausted);
 
   const loanDef = (id: string) => CRISIS_ACTIONS.find((a) => a.id === id);
   const nonLoanActions = CRISIS_ACTIONS.filter((a) => !LOAN_IDS.has(a.id));
@@ -38,26 +53,39 @@ export function CrisisModal() {
         </p>
       </div>
 
+      {overCap && (
+        <div className="rounded-card bg-risk/15 border border-risk/30 px-4 py-2 mb-3 text-xs text-risk font-semibold">
+          已达借款上限（债务 ≥ 净资 80%），无法再借款——只能选择非贷款危机应对。
+        </div>
+      )}
+      {!overCap && bailoutExhausted && (
+        <div className="rounded-card bg-risk/10 border border-risk/20 px-4 py-2 mb-3 text-xs text-risk/90">
+          银行/亲友续命已用尽，仅可借高利贷（利率逐笔飙升）。
+        </div>
+      )}
+
       {/* 应急借款 */}
       <div className="text-sm font-semibold text-ink mb-2">应急借款</div>
       <div className="space-y-2">
         {LOAN_ACTIONS.map((l) => {
           const def = loanDef(l.id);
+          const disabled = loanDisabled(l);
+          const tag = l.channel === 'predatory' ? predatoryTag : l.tag;
           return (
             <button
               key={l.id}
-              disabled={noAp}
+              disabled={disabled}
               onClick={() => takeCrisisLoan(l.channel)}
               className={clsx(
                 'w-full text-left rounded-card border px-4 py-3 transition-colors',
-                noAp
+                disabled
                   ? 'border-black/5 bg-black/[0.02] opacity-50'
                   : 'border-risk/30 bg-risk/[0.04] active:bg-risk/10',
               )}
             >
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold text-ink">{def?.name}</div>
-                <span className="text-xs text-sub">{l.tag}</span>
+                <span className="text-xs text-sub">{tag}</span>
               </div>
               {def?.effect && <div className="text-xs text-sub mt-1 leading-snug">{def.effect}</div>}
               <div className="text-[11px] text-risk mt-1">消耗 1 行动点（剩 {ap}）</div>
