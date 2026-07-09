@@ -18,6 +18,7 @@ export const CRISIS_ACTION_EFFECTS: Record<string, EffectObject> = {
     hidden: { supplyRisk: 10 },
   },
   layoff: {
+    cash: 2500,
     staffCost: -250,
     conversionRatePct: -3,
     soft: { stability: -3 },

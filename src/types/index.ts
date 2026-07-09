@@ -285,6 +285,8 @@ export interface GameState {
   autoBailoutCount: number; // 自动银行兜底已使用次数（0–2）；仅 cash<0 自动兜底成功 +1
   predatoryLoanCount: number; // 已借高利贷笔数（利率飙升计数器，逻辑真相源）
   bailoutRateMultiplier: number; // 下一笔高利贷相对基准利率乘子 = PREDATORY_APR_ESCALATION ^ predatoryLoanCount
+  /** 累计危机借款次数（含自动兜底 + 手动危机贷）。前 2 次不触发 80% 上限判断，第 3 次起才判断。 */
+  crisisLoanCount: number;
 }
 
 export type { EffectObject, EventDef, EndingDef, EventOption, EventCategory };

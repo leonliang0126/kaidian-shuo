@@ -51,6 +51,9 @@ export const PREDATORY_APR_ESCALATION = 1.5;
 /** 危机贷款（玩家手动发起）累计上限占净资比例：debt >= netWorth × 该值 即达上限。 */
 export const CRISIS_LOAN_NETWORTH_CAP_RATIO = 0.8;
 
+/** 80% 上限的宽限借款次数：前 count 次危机借款不触发上限判断。2 = 自动兜底的 2 次内免判。 */
+export const CRISIS_LOAN_GRACE_COUNT = 2;
+
 /**
  * 第 (count+1) 笔高利贷的年利率（count = 已借高利贷笔数）。
  * 公式：LOAN_APR.predatory × PREDATORY_APR_ESCALATION ^ count，结果四舍五入至 4 位小数。

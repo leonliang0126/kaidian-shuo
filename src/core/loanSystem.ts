@@ -14,6 +14,7 @@ import {
   predatoryLoanApr,
   PREDATORY_APR_ESCALATION,
   CRISIS_LOAN_NETWORTH_CAP_RATIO,
+  CRISIS_LOAN_GRACE_COUNT,
 } from '../data/setupCosts';
 import { clamp } from '../utils/constants';
 
@@ -75,6 +76,7 @@ export function takeCrisisLoan(state: GameState, channel: LoanChannel, _rng: RNG
   s.cash += need;
   s.actionPointsCurrent = Math.max(0, s.actionPointsCurrent - 1);
   syncLoanTotals(s);
+  s.crisisLoanCount = (s.crisisLoanCount ?? 0) + 1;
   s.bossStrain = s.softHidden.ownerFatigue;
   if (isPredatory) {
     // 不变式：bailoutRateMultiplier === PREDATORY_APR_ESCALATION ** predatoryLoanCount
@@ -96,13 +98,14 @@ export function isCrisisLoanOverCap(state: GameState): boolean {
 /**
  * 玩家在危机面板手动发起危机贷款前的可借性检查。
  * - 行动点耗尽（AP≤0）：拒绝（reason='ap'）。
+ * - 宽限期内（crisisLoanCount < CRISIS_LOAN_GRACE_COUNT）：跳过 80% 上限判断。
  * - 触及 80% 净资上限（isCrisisLoanOverCap）：拒绝（reason='cap'），适用所有渠道（含高利贷）。
- * 注：设计上", +2 次自动兜底用尽后强制弹出的危机面板仍允许高利贷，直至触及该上限为止；
- * 因此本函数不对 predatory 渠道做额外封禁，与锁定决策"危机贷净资 80% 上限"口径一致。
  */
 export function canTakeCrisisLoan(state: GameState, _channel: LoanChannel): CrisisLoanCheck {
   if (state.actionPointsCurrent <= 0) return { ok: false, reason: 'ap' };
-  if (isCrisisLoanOverCap(state)) return { ok: false, reason: 'cap' };
+  // 前 CRISIS_LOAN_GRACE_COUNT 次借款不受 80% 上限约束（避免开局 setup 贷款使净资为负时直接封死）
+  const inGrace = (state.crisisLoanCount ?? 0) < CRISIS_LOAN_GRACE_COUNT;
+  if (!inGrace && isCrisisLoanOverCap(state)) return { ok: false, reason: 'cap' };
   return { ok: true, reason: null };
 }
 
