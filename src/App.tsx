@@ -11,6 +11,9 @@ import { EventCard } from './components/EventCard';
 import { EndDayButton } from './components/EndDayButton';
 import { FocusSelector } from './components/FocusSelector';
 import { ActionPointPanel } from './components/ActionPointPanel';
+import { StaffPage } from './components/StaffPage';
+import { HirePage } from './components/HirePage';
+import { Button } from './components/ui/Button';
 import { TutorialModal } from './components/modals/TutorialModal';
 import { OpeningSetup } from './components/OpeningSetup';
 import { EventModal } from './components/modals/EventModal';
@@ -27,6 +30,7 @@ export default function App() {
   const monthModal = useGameStore((s) => s.monthModal);
   const settlementModal = useGameStore((s) => s.settlementModal);
   const lastEnding = useGameStore((s) => s.lastEnding);
+  const openStaffPage = useGameStore((s) => s.openStaffPage);
 
   useEffect(() => {
     init();
@@ -60,6 +64,9 @@ export default function App() {
         <RiskEstimate />
         <WindPanel />
         <DecisionPanel />
+        <Button variant="secondary" fullWidth onClick={openStaffPage}>
+          👥 员工管理
+        </Button>
         <BusinessLog />
       </div>
       <EndDayButton />
@@ -72,6 +79,10 @@ export default function App() {
       {!lastEnding && !crisisOpen && !monthModal && !eventModal && settlementModal && (
         <SettlementModal />
       )}
+
+      {/* 员工系统页面（遮罩层最高） */}
+      <StaffPage />
+      <HirePage />
     </div>
   );
 }

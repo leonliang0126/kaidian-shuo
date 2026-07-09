@@ -67,7 +67,7 @@ export function checkEndings(state: GameState): EndingDef | null {
     {
       id: 'one_person_shop',
       test: () =>
-        state.day > 30 && state.stores.every((s) => s.staffTier === 'owner'),
+        state.day > 30 && state.stores.every((s) => !s.employees?.some((e) => e.isScheduledToday)),
     },
     { id: 'suspended', test: () => state.cash < -50000 },
   ];

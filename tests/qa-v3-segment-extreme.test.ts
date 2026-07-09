@@ -1,12 +1,36 @@
 // QA 独立验证：客群极端敏感度（架构 §5.4）
 // 学校高价→进店−30%；商场装修不足→进店−40% 且 heat 衰减×1.5；写字楼出餐不足→转化降；
 // 社区复购+15%；冷清新商圈季节剧震。
+// 适配员工系统重构 v3：capacity 由排班员工动态计算
 import { describe, it, expect } from 'vitest';
 import { applySegmentModulation } from '../src/core/segmentProfiles';
 import { decayHeat } from '../src/core/repurchaseHeat';
 import { createNewGame } from '../src/core/createNewGame';
 import { createRng } from '../src/core/rng';
 import type { StoreState } from '../src/types';
+import type { Employee } from '../src/types/employee';
+
+function makeEmployees(count: number): Employee[] {
+  const emps: Employee[] = [];
+  for (let i = 0; i < count; i++) {
+    emps.push({
+      id: `emp_test_${i}`,
+      name: `测试员工${i}`,
+      joinDay: 1,
+      attribute: 'old_smooth',
+      isExposed: false,
+      morale: 70,
+      monthlySalary: 5000,
+      daysWorkedThisWeek: i,
+      isScheduledToday: true,
+      weeklyWorkDays: [1],
+      consecutiveWorkDays: i,
+      isTempStaff: false,
+      efficiencyCache: 0,
+    });
+  }
+  return emps;
+}
 
 function storeWith(over: Partial<StoreState> = {}): StoreState {
   const s = createNewGame(
@@ -49,8 +73,12 @@ describe('装修敏感（商场）', () => {
 
 describe('出餐敏感（写字楼）', () => {
   it('承载不足基线(220) → 转化按缺口比例×40 惩罚', () => {
-    expect(mod({} as any, storeWith({ locationType: '写字楼', capacity: 110 })).conversionRatePct).toBe(-20); // gap=0.5 → −20
-    expect(mod({} as any, storeWith({ locationType: '写字楼', capacity: 300 })).conversionRatePct).toBe(0); // 充足
+    // 3 人排班 → 210 < 220 → 缺口 (220-210)/220 ≈ 0.045 → round(0.045×40) = 2
+    const capLow = mod({} as any, storeWith({ locationType: '写字楼', employees: makeEmployees(3) }));
+    expect(capLow.conversionRatePct).toBe(-2);
+    // 4 人排班 → 280 >= 220 → 充足
+    const capHigh = mod({} as any, storeWith({ locationType: '写字楼', employees: makeEmployees(4) }));
+    expect(capHigh.conversionRatePct).toBe(0);
   });
 });
 

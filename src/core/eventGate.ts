@@ -14,7 +14,7 @@ const GATES: Record<string, GateFn> = {
   E021: (s) => s.hiddenLines.employeePressure > 40,
   E022: (s) =>
     s.hiddenLines.employeePressure > 70 ||
-    s.stores[0]?.staffTier === 'owner',
+    !s.stores[0]?.employees?.some((e) => e.isScheduledToday),
   E023: (s) => s.hiddenLines.employeePressure > 50,
   E026: (s) => s.hiddenLines.employeePressure > 80,
   E027: (s) => s.softHidden.ownerFatigue > 50,

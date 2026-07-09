@@ -1,85 +1,32 @@
 sequenceDiagram
-    autonumber
-    actor P as 玩家
-    participant UI as UI 组件
-    participant Store as gameStore(Zustand)
-    participant Loop as core/gameLoop
-    participant Eng as core/eventEngine
-    participant FX as core/effectResolver
-    participant Set as core/settlement
-    participant HL as core/hiddenLines
-    participant Wind as core/wind
-    participant FE as core/futureEffect
-    participant Mon as core/monthlyReport
-    participant Sto as core/storage
+    participant Player as 玩家
+    participant StaffPage as StaffPage UI
+    participant Store as gameStore
+    participant StaffSys as staffSystem
+    participant Settle as settlement
+    participant Result as DailyResult
 
-    P->>UI: 打开游戏 / 刷新
-    UI->>Store: loadGame()
-    Store->>Sto: load('kaidian-shuo:save:v1')
-    alt 无存档 或 未看教程
-        UI->>P: TutorialModal（玩法说明）
-        P->>UI: 我知道了 / 不再显示
-        UI->>Sto: setTutorialSeen()
-        UI->>P: OpeningSetup（店型/商圈/资金/装修）
-        P->>Store: createNewGame(cfg)
-        Store->>Sto: save()
-    end
+    Player->>StaffPage: 点击排班开关
+    StaffPage->>Store: setSchedule(empId, true)
+    Store->>Store: 更新 employee.isScheduledToday
+    Store-->>StaffPage: 更新 UI
 
-    loop 每一天（day 自增）
-        Note over Loop: === 新一天开始 ===
-        Loop->>FE: applyDuePendingEffects(state)
-        FE-->>Loop: state'（到期 futureEffect/unlock 生效）
+    Note over Player,Result: 当日结束结算
 
-        Loop->>Eng: checkForcedEvents(state)
-        alt cash<0 / 账单不足 / 还款>50%毛利
-            Eng-->>Loop: forcedEvent (F001/F002/F003)
-            Loop->>UI: CrisisModal
-            P->>UI: 选续命方案
-            UI->>FX: applyEffects(state, option.effects, rng)
-            FX->>FX: 解析 cash 令牌 + 硬字段 + 软效果(random/futureEffect/unlock)
-            FX-->>Loop: state''
-        else 普通日
-            Loop->>Eng: drawEvent(state, rng)
-            Eng->>Eng: computeBaseProb → roll
-            Eng->>Eng: selectPool(暗线权重) → 候选(trigger gate + cooldown)
-            Eng-->>Loop: event | null
-            opt event 存在
-                Loop->>UI: EventCard / EventModal
-                P->>UI: 选择选项
-                UI->>FX: applyEffects(state, option.effects, rng)
-                FX-->>Loop: state'' + pendingEffects
-            end
-        end
+    Player->>Store: endDay()
+    Store->>StaffSys: applyMoraleDecay(employees, day)
+    StaffSys-->>Store: { employees, events }
 
-        UI->>P: DecisionPanel（五项决策）
-        P->>UI: 调整并确认 decisions
-        UI->>Loop: 携带 decisions
+    Store->>StaffSys: checkResignOrStrike(employees, store)
+    StaffSys-->>Store: strikeResult
 
-        Note over Loop: === 结算 ===
-        Loop->>Set: resolveSettlement(state, store, decisions, mods, rng)
-        Set->>Set: 基准 → 修正 → exposure → orders → revenue → 毛利 → 净利 → cash
-        Set->>Set: 计算保本线 / 安全线 / 承载上限
-        Set-->>Loop: DailyResult
+    Store->>Settle: settleAllStores(state, rng)
+    Settle->>Settle: for each store:
+    Settle->>StaffSys: computeCapacity(employees)
+    StaffSys-->>Settle: 排班人数 × 70
+    Settle->>StaffSys: computeStaffCost(employees)
+    StaffSys-->>Settle: Σ(月薪/30 × 加班倍率)
+    Settle->>Settle: 计算 revenue / profit
+    Settle-->>Store: { stores, totalNetProfit, mainDaily }
 
-        Loop->>HL: updateHiddenLines(state, mods)
-        HL->>HL: 写 hiddenLines + decaySoftHidden
-        Loop->>Wind: generateWind(state)
-        Wind-->>Loop: WindMessage
-        Loop->>Sto: save(state)
-        UI->>P: 渲染 StatusBar/Dashboard/Log/Wind/Funnel/CashCurve
-
-        alt day % 30 == 0（月度结算）
-            Loop->>Mon: runMonthSettlement(state)
-            Mon->>Mon: 汇总本月 / 债务压力 / 房租占比 / 人工占比 / 外卖占比 / 推广效率
-            Mon-->>UI: MonthModal(report + 选项)
-            P->>UI: 进入下月 / 优化 / 提前还贷 / 储备 / 准备分店 / 关店
-            UI->>Loop: 应用月结选项（可能 openBranch）
-        end
-
-        Loop->>Loop: day += 1; 写 businessLog / eventHistory
-    end
-
-    Note over Loop,UI: 隐藏结局（任意时刻）
-    Loop->>Loop: checkEndings(state)
-    Loop-->>UI: EndingModal（连锁帝国/财富自由/失败/止损）
-    P->>UI: 保存结局 / 继续游戏（不强制结束）
+    Store-->>Player: 展示结算结果

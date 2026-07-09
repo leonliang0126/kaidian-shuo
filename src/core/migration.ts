@@ -45,7 +45,6 @@ const DEFAULT_DECISIONS: DecisionState = {
   priceStrategy: 'normal',
   decorationLevel: 'clean',
   promotionTier: 'light',
-  staffTier: 'standard',
 };
 
 /** 把任意一个（可能残缺的）门店对象补齐为完整的 StoreState。 */
@@ -66,11 +65,8 @@ function migrateStore(raw: unknown, day: number): StoreState {
     supplierTier: (st.supplierTier as StoreState['supplierTier']) ?? 'local',
     priceStrategy: (st.priceStrategy as StoreState['priceStrategy']) ?? 'normal',
     promotionTier: (st.promotionTier as StoreState['promotionTier']) ?? 'light',
-    staffTier: (st.staffTier as StoreState['staffTier']) ?? 'standard',
     rating: typeof st.rating === 'number' ? st.rating : 80,
     repurchaseRate: typeof st.repurchaseRate === 'number' ? st.repurchaseRate : 0.3,
-    efficiency: typeof st.efficiency === 'number' ? st.efficiency : 100,
-    capacity: typeof st.capacity === 'number' ? st.capacity : 10,
     deliveryRatio: typeof st.deliveryRatio === 'number' ? st.deliveryRatio : 0.3,
     platformRate: typeof st.platformRate === 'number' ? st.platformRate : 0.18,
     isInCrisis: typeof st.isInCrisis === 'boolean' ? st.isInCrisis : false,
@@ -108,6 +104,7 @@ function migrateStore(raw: unknown, day: number): StoreState {
         : stabilityToBaseQuality(supplierStability),
     batchRenewDay: typeof st.batchRenewDay === 'number' ? st.batchRenewDay : day + BATCH_CYCLE,
     supplierStability,
+    employees: Array.isArray(st.employees) ? (st.employees as StoreState['employees']) : [],
   };
   return store;
 }

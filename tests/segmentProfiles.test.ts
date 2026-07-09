@@ -4,6 +4,7 @@ import { applySegmentModulation } from '../src/core/segmentProfiles';
 import { createRng } from '../src/core/rng';
 import { createNewGame } from '../src/core/createNewGame';
 import type { GameState, StoreState } from '../src/types';
+import type { Employee } from '../src/types/employee';
 
 function fresh(): { state: GameState; store: StoreState } {
   const state = createNewGame(
@@ -11,6 +12,28 @@ function fresh(): { state: GameState; store: StoreState } {
     createRng(3),
   );
   return { state, store: { ...state.stores[0] } };
+}
+
+function makeEmployees(count: number): Employee[] {
+  const emps: Employee[] = [];
+  for (let i = 0; i < count; i++) {
+    emps.push({
+      id: `emp_test_${i}`,
+      name: `测试${i}`,
+      joinDay: 1,
+      attribute: 'old_smooth',
+      isExposed: false,
+      morale: 70,
+      monthlySalary: 5000,
+      daysWorkedThisWeek: 0,
+      isScheduledToday: true,
+      weeklyWorkDays: [],
+      consecutiveWorkDays: 0,
+      isTempStaff: false,
+      efficiencyCache: 0,
+    });
+  }
+  return emps;
 }
 
 describe('价格敏感（学校门口）', () => {
@@ -36,9 +59,9 @@ describe('装修敏感（商场）', () => {
 describe('出餐敏感（写字楼）', () => {
   it('承载不足 → 转化惩罚（缺口比例 × 系数）', () => {
     const { state, store } = fresh();
-    const m = applySegmentModulation(state, { ...store, locationType: '写字楼', capacity: 100 });
-    // 缺口 = (220-100)/220 ≈ 0.545；惩罚 = round(0.545 × 40) = 22
-    expect(m.conversionRatePct).toBe(-22);
+    // 2 人排班 → 140 < 220 → 缺口 (220-140)/220 ≈ 0.364；惩罚 = round(0.364 × 40) = 15
+    const m = applySegmentModulation(state, { ...store, locationType: '写字楼', employees: makeEmployees(2) });
+    expect(m.conversionRatePct).toBe(-15);
   });
 });
 

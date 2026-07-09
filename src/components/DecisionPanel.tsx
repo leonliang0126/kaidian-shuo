@@ -5,7 +5,6 @@ import { Card } from './ui/Card';
 import {
   listOptions,
   getPromotionCost,
-  getStaffDailyCost,
   type DecisionCategory,
 } from '../data/decisionOptions';
 import type { DecisionState } from '../types';
@@ -28,15 +27,6 @@ const CATEGORIES: CategoryDef[] = [
     cat: 'promotionTier',
     hint: (id) => {
       const c = getPromotionCost(id);
-      return c > 0 ? `每日 ¥${fmtInt(c)}` : null;
-    },
-  },
-  {
-    key: 'staffTier',
-    label: '人工',
-    cat: 'staffTier',
-    hint: (id) => {
-      const c = getStaffDailyCost(id);
       return c > 0 ? `每日 ¥${fmtInt(c)}` : null;
     },
   },

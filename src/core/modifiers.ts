@@ -105,13 +105,11 @@ export function addDecisionModifiers(
     'supplierTier',
     'priceStrategy',
     'promotionTier',
-    'staffTier',
   ];
   const ids: string[] = [
     decisions.supplierTier,
     decisions.priceStrategy,
     decisions.promotionTier,
-    decisions.staffTier,
   ];
   categories.forEach((cat, i) => {
     const eff = getDecisionEffects(cat, ids[i]);

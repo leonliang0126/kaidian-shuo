@@ -208,59 +208,5 @@
         }
       }
     }
-  ],
-  "staffTier": [
-    {
-      "id": "owner",
-      "label": "老板自己顶",
-      "dailyCost": 0,
-      "capacity": 90,
-      "effects": {
-        "hidden": {
-          "employeePressure": -3
-        },
-        "ownerFatigue": 15
-      }
-    },
-    {
-      "id": "basic",
-      "label": "基础配置",
-      "dailyCost": 250,
-      "capacity": 140,
-      "effects": {
-        "hidden": {
-          "employeePressure": 5
-        }
-      }
-    },
-    {
-      "id": "standard",
-      "label": "标准配置",
-      "dailyCost": 450,
-      "capacity": 280,
-      "effects": {}
-    },
-    {
-      "id": "peak",
-      "label": "高峰配置",
-      "dailyCost": 750,
-      "capacity": 330,
-      "effects": {
-        "hidden": {
-          "employeePressure": -5
-        }
-      }
-    },
-    {
-      "id": "redundant",
-      "label": "冗余配置",
-      "dailyCost": 1200,
-      "capacity": 450,
-      "effects": {
-        "hidden": {
-          "employeePressure": -10
-        }
-      }
-    }
   ]
 }

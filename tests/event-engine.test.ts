@@ -149,8 +149,8 @@ describe('B.3 checkForcedEvents：F001/F002/F003', () => {
 
   it('债务压力爆表（monthlyRepayment > 月均毛利×0.5）→ F003', () => {
     const s = freshGame();
-    s.stores = s.stores.map((st) => ({ ...st, staffTier: 'owner' })); // 工资为 0，便于隔离
-    s.cash = 20000; // >0 且 >= rent+还款+工资，避免 F001/F002
+    s.stores = s.stores.map((st) => ({ ...st, employees: [] })); // 无员工，工资为 0，便于隔离
+    s.cash = 20000; // >0 且 >= rent+还款，避免 F001/F002（无员工=无工资）
     s.stores[0].monthlyGrossProfit = 10000; // 月均毛利 = 333.33
     s.monthlyRepayment = 500; // > 333.33×0.5=166.67
     const f = checkForcedEvents(s, { atMonthEnd: true });

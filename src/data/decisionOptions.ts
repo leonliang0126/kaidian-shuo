@@ -23,7 +23,6 @@ const CATEGORIES = [
   'priceStrategy',
   'decorationLevel',
   'promotionTier',
-  'staffTier',
 ] as const;
 
 export type DecisionCategory = (typeof CATEGORIES)[number];
@@ -49,14 +48,14 @@ export function getPromotionCost(id: string): number {
   return getOption('promotionTier', id)?.cost ?? 0;
 }
 
-/** 人工档位的承载上限。 */
-export function getStaffCapacity(id: string): number {
-  return getOption('staffTier', id)?.capacity ?? 0;
+/** 人工档位的承载上限（已废弃，保留兼容） */
+export function getStaffCapacity(_id: string): number {
+  return 0;
 }
 
-/** 人工档位的日成本。 */
-export function getStaffDailyCost(id: string): number {
-  return getOption('staffTier', id)?.dailyCost ?? 0;
+/** 人工档位的日成本（已废弃，保留兼容） */
+export function getStaffDailyCost(_id: string): number {
+  return 0;
 }
 
 /** 装修档位的初始成本。 */

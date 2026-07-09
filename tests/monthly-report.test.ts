@@ -83,11 +83,8 @@ describe('B.6 月度报表字段与比例计算', () => {
     expect(state.stores[0].monthlyNetProfit).toBe(0);
   });
 
-  it('月结选项：优化→效率+5%；储备→现金转储备；关店→decent_exit', () => {
-    const s = freshGame();
-    s.stores[0].efficiency = 80; // 初始 100 会被 [0,100] 夹紧，先降到 80 验证 +5%
-    const eff = applyMonthOption(s, 'optimize', () => 0.5);
-    expect(eff.stores[0].efficiency).toBe(Math.round(80 * 1.05)); // 84
+  it('月结选项：储备→现金转储备；关店→decent_exit', () => {
+    // efficiencyPct 改为无操作（员工系统重构后 capacity 由排班员工动态计算）
 
     const s2 = freshGame();
     const cashBefore = s2.cash;

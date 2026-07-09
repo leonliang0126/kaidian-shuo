@@ -5,7 +5,6 @@ import type { RNG } from './rng';
 import { addEffectModifiers, cloneModifiers } from './modifiers';
 import { resolveFutureEffect, resolveUnlock } from './futureEffect';
 import { clamp } from '../utils/constants';
-import { getStaffCapacity } from '../data/decisionOptions';
 
 /** 深拷贝游戏状态（仅克隆会被修改的嵌套结构）。 */
 export function cloneState(s: GameState): GameState {
@@ -13,7 +12,10 @@ export function cloneState(s: GameState): GameState {
     ...s,
     hiddenLines: { ...s.hiddenLines },
     softHidden: { ...s.softHidden },
-    stores: s.stores.map((st) => ({ ...st })),
+    stores: s.stores.map((st) => ({
+      ...st,
+      employees: st.employees ? st.employees.map((e) => ({ ...e, weeklyWorkDays: [...e.weeklyWorkDays] })) : [],
+    })),
     eventHistory: [...s.eventHistory],
     businessLog: [...s.businessLog],
     windMessages: [...s.windMessages],
@@ -192,8 +194,8 @@ export function applyEffects(
 
   // —— 效率（持久）——
   if (typeof eff.efficiencyPct === 'number') {
-    main.efficiency = clamp(main.efficiency * (1 + eff.efficiencyPct / 100), 0, 100);
-    main.capacity = Math.round(getStaffCapacity(main.staffTier) * (main.efficiency / 100));
+    // Note: efficiencyPct 不再影响 capacity（capacity 改为由排班员工动态计算）
+    // 仅保留效率值本身供未来使用
   }
 
   // —— 软暗线顶层的独立字段 ——

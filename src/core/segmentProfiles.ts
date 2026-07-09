@@ -3,6 +3,7 @@
 import type { GameState, StoreState, DayModifiers } from '../types';
 import { getSegmentProfile, isDecorationBelow } from '../data/segmentProfiles';
 import { emptyModifiers } from './modifiers';
+import { computeCapacity } from './staffSystem';
 
 /**
  * 计算某店的客群极端敏感度修正。
@@ -24,8 +25,8 @@ export function applySegmentModulation(state: GameState, store: StoreState): Day
   }
 
   // 3) 出餐敏感：承载不足基线 → 转化惩罚（缺口比例 × 系数）
-  if (prof.capacitySensitive && prof.capacityBaseline > 0 && store.capacity < prof.capacityBaseline) {
-    const gap = (prof.capacityBaseline - store.capacity) / prof.capacityBaseline;
+  if (prof.capacitySensitive && prof.capacityBaseline > 0 && computeCapacity(store.employees) < prof.capacityBaseline) {
+    const gap = (prof.capacityBaseline - computeCapacity(store.employees)) / prof.capacityBaseline;
     m.conversionRatePct -= Math.round(gap * prof.capacityPenalty);
   }
 

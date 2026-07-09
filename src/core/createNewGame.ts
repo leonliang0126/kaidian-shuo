@@ -8,7 +8,6 @@ import type {
   SupplierTier,
   PriceStrategy,
   PromotionTier,
-  StaffTier,
 } from '../types';
 import type { RNG } from './rng';
 import type { Loan } from '../types/actions';
@@ -16,7 +15,7 @@ import { applyEffects } from './effectResolver';
 import { emptyModifiers } from './modifiers';
 import { getStoreProfile } from '../data/storeProfiles';
 import { getLocationProfile } from '../data/locationProfiles';
-import { getDecorationCost, getDecisionEffects, getStaffCapacity, getOption } from '../data/decisionOptions';
+import { getDecorationCost, getDecisionEffects, getOption } from '../data/decisionOptions';
 import { DEFAULT_DELIVERY_RATIO, DEFAULT_PLATFORM_RATE, DEPOSIT_MULTIPLIER } from '../utils/constants';
 import {
   INITIAL_CASH,
@@ -28,6 +27,7 @@ import { HEAT_INIT } from '../data/repurchaseHeat';
 import { stabilityToBaseQuality, BATCH_CYCLE } from '../data/supplierStability';
 import { MONTHLY_INTEREST_DIVISOR } from '../data/setupCosts';
 import { computeNetWorth } from './branch';
+import { generateCandidate, generateEmployee } from './staffSystem';
 
 export interface OpeningConfig {
   /** 旧四档字段，已弃用（v3 统一 10 万）；保留以兼容历史调用。 */
@@ -44,10 +44,8 @@ export interface OpeningConfig {
 const DEFAULT_SUPPLIER: SupplierTier = 'local';
 const DEFAULT_PRICE: PriceStrategy = 'normal';
 const DEFAULT_PROMOTION: PromotionTier = 'light';
-const DEFAULT_STAFF: StaffTier = 'standard';
 const INITIAL_RATING = 80; // 4.0★
 const INITIAL_CREDIT = 70;
-const INITIAL_EFFICIENCY = 100;
 
 /** 创建新游戏状态（统一 10 万起手 + setup 超额一次性自动贷款）。 */
 export function createNewGame(cfg: OpeningConfig, rng: RNG): GameState {
@@ -71,6 +69,17 @@ export function createNewGame(cfg: OpeningConfig, rng: RNG): GameState {
 
   const supplierStability = getOption('supplierTier', DEFAULT_SUPPLIER)?.stability ?? 0.6;
 
+  // 开局生成 1-2 名初始员工
+  const initialEmployees = (() => {
+    const count = 1 + Math.floor(rng() * 2); // 1-2 人
+    const employees = [];
+    for (let i = 0; i < count; i++) {
+      const candidate = generateCandidate(rng, 1, cfg.decorationLevel);
+      employees.push(generateEmployee(candidate, 1, false, rng));
+    }
+    return employees;
+  })();
+
   const mainStore: StoreState = {
     id: 'store_001',
     name: cfg.storeName || '我的小店',
@@ -85,11 +94,8 @@ export function createNewGame(cfg: OpeningConfig, rng: RNG): GameState {
     supplierTier: DEFAULT_SUPPLIER,
     priceStrategy: DEFAULT_PRICE,
     promotionTier: DEFAULT_PROMOTION,
-    staffTier: DEFAULT_STAFF,
     rating: INITIAL_RATING,
     repurchaseRate: sp.repurchaseRate,
-    efficiency: INITIAL_EFFICIENCY,
-    capacity: Math.round(getStaffCapacity(DEFAULT_STAFF) * (INITIAL_EFFICIENCY / 100)),
     deliveryRatio: DEFAULT_DELIVERY_RATIO,
     platformRate: DEFAULT_PLATFORM_RATE,
     isInCrisis: false,
@@ -110,6 +116,7 @@ export function createNewGame(cfg: OpeningConfig, rng: RNG): GameState {
     currentBatchQuality: stabilityToBaseQuality(supplierStability),
     batchRenewDay: 1 + BATCH_CYCLE,
     supplierStability,
+    employees: initialEmployees,
   };
 
   const decisions = {
@@ -117,7 +124,6 @@ export function createNewGame(cfg: OpeningConfig, rng: RNG): GameState {
     priceStrategy: DEFAULT_PRICE,
     decorationLevel: cfg.decorationLevel,
     promotionTier: DEFAULT_PROMOTION,
-    staffTier: DEFAULT_STAFF,
   };
 
   const base: GameState = {
@@ -188,12 +194,11 @@ export function createNewGame(cfg: OpeningConfig, rng: RNG): GameState {
 
   // 应用初始五项决策的即时效果（hidden/soft/cash 等；Pct 由结算时 addDecisionModifiers 处理）
   let state = base;
-  const initDecisions: { cat: 'supplierTier' | 'priceStrategy' | 'decorationLevel' | 'promotionTier' | 'staffTier'; id: string }[] = [
+  const initDecisions: { cat: 'supplierTier' | 'priceStrategy' | 'decorationLevel' | 'promotionTier'; id: string }[] = [
     { cat: 'supplierTier', id: DEFAULT_SUPPLIER },
     { cat: 'priceStrategy', id: DEFAULT_PRICE },
     { cat: 'decorationLevel', id: cfg.decorationLevel },
     { cat: 'promotionTier', id: DEFAULT_PROMOTION },
-    { cat: 'staffTier', id: DEFAULT_STAFF },
   ];
   for (const d of initDecisions) {
     const eff = getDecisionEffects(d.cat, d.id);

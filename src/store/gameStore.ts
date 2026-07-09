@@ -30,7 +30,7 @@ import {
   clearSave,
   clearTutorialSeen,
 } from '../core/storage';
-import { getStaffCapacity, getDecisionEffects, getOption } from '../data/decisionOptions';
+import { getDecisionEffects, getOption } from '../data/decisionOptions';
 import { stabilityToBaseQuality, BATCH_CYCLE } from '../data/supplierStability';
 import { isMonthEnd, monthOfDay, clamp } from '../utils/constants';
 import {
@@ -46,6 +46,22 @@ import { applySegmentModulation } from '../core/segmentProfiles';
 import { rollBatchIfDue, batchQualityMods } from '../core/supplierStability';
 import { decayHeat, computeRepurchase } from '../core/repurchaseHeat';
 import { evaluateEndings } from '../core/endingEngine';
+import type { Candidate } from '../types/employee';
+import {
+  generateCandidates,
+  generateEmployee,
+  fireEmployee as fireEmployeeCore,
+  setEmployeeSchedule,
+  applyMoraleDecay,
+  checkResignOrStrike,
+  tryExposeAttributes,
+  resetWeeklyWorkDays,
+  isWeekStart,
+  applyAllRest,
+  applySalaryRaise,
+  getMaxEmployees,
+} from '../core/staffSystem';
+import { REFRESH_CANDIDATES_AP_COST, ALL_REST_MORALE_BONUS, SALARY_RAISE_MORALE_PER_500 } from '../data/staffConstants';
 
 type Phase = 'tutorial' | 'opening' | 'playing';
 
@@ -59,6 +75,10 @@ interface GameStore {
   settlementModal: DailyResult | null;
   monthModal: MonthlyReport | null;
   lastEnding: EndingResult | null;
+  // —— 员工系统 UI 状态 ——
+  candidates: Candidate[];
+  staffPageOpen: boolean;
+  hirePageOpen: boolean;
 
   // —— actions ——
   init: () => void;
@@ -75,6 +95,17 @@ interface GameStore {
   closeSettlement: () => void;
   chooseMonthOption: (optionId: string) => void;
   resetGame: () => void;
+  // —— 员工系统 actions ——
+  openStaffPage: () => void;
+  closeStaffPage: () => void;
+  openHirePage: () => void;
+  closeHirePage: () => void;
+  refreshCandidates: () => void;
+  hireEmployee: (candidateId: string) => void;
+  setSchedule: (employeeId: string, scheduled: boolean) => void;
+  fireEmployee: (employeeId: string) => void;
+  adjustSalary: (employeeId: string, amount: number) => void;
+  allRestDay: () => void;
 }
 
 // 模块级 RNG（可被开局 seed 重置）
@@ -184,6 +215,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   settlementModal: null,
   monthModal: null,
   lastEnding: null,
+  candidates: [],
+  staffPageOpen: false,
+  hirePageOpen: false,
 
   init: () => {
     const save = loadGame();
@@ -258,12 +292,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     let s = cloneState(g);
     const decisions = { ...s.decisions, [key]: value } as DecisionState;
     s.decisions = decisions;
-    // 同步所有门店的对应档位 + 重算承载
+    // 同步所有门店的对应档位
     s.stores = s.stores.map((st) => {
       const next = { ...st, [key]: value } as typeof st;
-      if (key === 'staffTier') {
-        next.capacity = Math.round(getStaffCapacity(value as string) * (st.efficiency / 100));
-      }
       if (key === 'supplierTier') {
         const stability = getOption('supplierTier', value as string)?.stability ?? st.supplierStability;
         next.supplierStability = stability;
@@ -273,7 +304,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return next;
     });
     // 应用该决策项的即时效果（hidden/soft/cash 等；Pct 由结算处理）
-    const cat = key as 'supplierTier' | 'priceStrategy' | 'decorationLevel' | 'promotionTier' | 'staffTier';
+    const cat = key as 'supplierTier' | 'priceStrategy' | 'decorationLevel' | 'promotionTier';
     const eff = getDecisionEffects(cat, value as string);
     s = applyEffects(s, eff, rng, { accumulateMods: false });
     s.bossStrain = s.softHidden.ownerFatigue;
@@ -370,12 +401,61 @@ export const useGameStore = create<GameStore>((set, get) => ({
       lastSettlement: mainDaily,
     };
 
-    // 6) 老板顶班每日疲劳累加（owner 每日再 +15）
-    if (s.stores[0]?.staffTier === 'owner') {
+    // 6) 员工每日逻辑：士气衰减、属性暴露、离职/罢工检测
+    const staffEvents: string[] = [];
+    s.stores = s.stores.map((store) => {
+      let employees = store.employees;
+
+      // 士气衰减/恢复
+      const moraleResult = applyMoraleDecay(employees, s.day);
+      employees = moraleResult.employees;
+      for (const ev of moraleResult.events) {
+        staffEvents.push(ev.description);
+      }
+
+      // 属性暴露检查
+      employees = employees.map((e) => {
+        const result = tryExposeAttributes(e, s.day);
+        if (result.exposed) {
+          staffEvents.push(`${e.name} 的属性已揭示！`);
+        }
+        return result.employee;
+      });
+
+      // 离职/罢工检查
+      const strikeResult = checkResignOrStrike(employees, store);
+      if (strikeResult.type === 'resign') {
+        const resignIds = new Set(strikeResult.resigning.map((e) => e.id));
+        employees = employees.filter((e) => !resignIds.has(e.id));
+        staffEvents.push(strikeResult.description);
+      } else if (strikeResult.type === 'strike') {
+        // 罢工：所有员工取消今日排班
+        employees = employees.map((e) => ({ ...e, isScheduledToday: false }));
+        staffEvents.push(strikeResult.description);
+      }
+
+      // 周重置
+      if (isWeekStart(s.day)) {
+        employees = resetWeeklyWorkDays(employees);
+      }
+
+      return { ...store, employees };
+    });
+
+    // 6b) 老板顶班模式兜底（极端情况：全员离职时触发）
+    const mainStore = s.stores[0];
+    const hasScheduled = mainStore?.employees?.some((e) => e.isScheduledToday);
+    if (!hasScheduled && mainStore) {
+      // 无人排班 → 老板被迫顶班
       s.softHidden = {
         ...s.softHidden,
         ownerFatigue: clamp(s.softHidden.ownerFatigue + 15, 0, 100),
       };
+    }
+
+    // 如果有员工事件，写入经营日志
+    if (staffEvents.length > 0) {
+      // 暂时用 note 记录
     }
 
     // 7) 偶发暗线重罚（现金 + 评级 + 日志）
@@ -467,7 +547,144 @@ export const useGameStore = create<GameStore>((set, get) => ({
       settlementModal: null,
       monthModal: null,
       lastEnding: null,
+      candidates: [],
+      staffPageOpen: false,
+      hirePageOpen: false,
     });
+  },
+
+  // ====== 员工系统 actions ======
+
+  openStaffPage: () => {
+    set({ staffPageOpen: true, hirePageOpen: false });
+  },
+
+  closeStaffPage: () => {
+    set({ staffPageOpen: false });
+  },
+
+  openHirePage: () => {
+    const g = get().game;
+    if (!g) return;
+    // 首次打开免费生成候选人
+    const store = g.stores[0];
+    if (store) {
+      const candidates = generateCandidates(rng, g.day, store.decorationLevel);
+      set({ hirePageOpen: true, staffPageOpen: false, candidates });
+    }
+  },
+
+  closeHirePage: () => {
+    set({ hirePageOpen: false, candidates: [] });
+  },
+
+  refreshCandidates: () => {
+    const g = get().game;
+    if (!g) return;
+    let s = cloneState(g);
+    // 消耗 AP
+    if (s.actionPointsCurrent < REFRESH_CANDIDATES_AP_COST) return;
+    s.actionPointsCurrent -= REFRESH_CANDIDATES_AP_COST;
+    s.bossStrain = s.softHidden.ownerFatigue;
+    const store = s.stores[0];
+    if (store) {
+      const candidates = generateCandidates(rng, s.day, store.decorationLevel);
+      set(commit(s, { candidates }));
+    }
+  },
+
+  hireEmployee: (candidateId) => {
+    const g = get().game;
+    const allCandidates = get().candidates;
+    if (!g || allCandidates.length === 0) return;
+    const candidate = allCandidates.find((c) => c.id === candidateId);
+    if (!candidate) return;
+
+    let s = cloneState(g);
+    // 检查行动点
+    if (s.actionPointsCurrent < 1) return;
+    s.actionPointsCurrent -= 1;
+
+    // 检查员工上限
+    const store = s.stores[0];
+    if (!store) return;
+    const maxEmp = getMaxEmployees(store.decorationLevel);
+    if (store.employees.length >= maxEmp) return; // 已达上限
+
+    // 生成员工并加入
+    const emp = generateEmployee(candidate, s.day, false, rng);
+    const newStore = { ...store, employees: [...store.employees, emp] };
+    const newStores = [...s.stores];
+    newStores[0] = newStore;
+    s.stores = newStores;
+    s.bossStrain = s.softHidden.ownerFatigue;
+
+    // 从候选人列表中移除已聘用的
+    const remaining = allCandidates.filter((c) => c.id !== candidateId);
+    set(commit(s, { candidates: remaining }));
+  },
+
+  setSchedule: (employeeId, scheduled) => {
+    const g = get().game;
+    if (!g) return;
+    const s = cloneState(g);
+    const store = s.stores[0];
+    if (!store) return;
+
+    const empIndex = store.employees.findIndex((e) => e.id === employeeId);
+    if (empIndex < 0) return;
+
+    const result = setEmployeeSchedule(store.employees[empIndex], scheduled, s.day);
+    const newEmployees = [...store.employees];
+    newEmployees[empIndex] = result.employee;
+    const newStore = { ...store, employees: newEmployees };
+    const newStores = [...s.stores];
+    newStores[0] = newStore;
+    s.stores = newStores;
+    set(commit(s));
+  },
+
+  fireEmployee: (employeeId) => {
+    const g = get().game;
+    if (!g) return;
+    const result = fireEmployeeCore(employeeId, g);
+    set(commit(result.state));
+  },
+
+  adjustSalary: (employeeId, amount) => {
+    const g = get().game;
+    if (!g) return;
+    let s = cloneState(g);
+    const store = s.stores[0];
+    if (!store) return;
+
+    const empIndex = store.employees.findIndex((e) => e.id === employeeId);
+    if (empIndex < 0) return;
+
+    const emp = applySalaryRaise(store.employees[empIndex], amount, SALARY_RAISE_MORALE_PER_500);
+    const newEmployees = [...store.employees];
+    newEmployees[empIndex] = emp;
+    const newStore = { ...store, employees: newEmployees };
+    const newStores = [...s.stores];
+    newStores[0] = newStore;
+    s.stores = newStores;
+    s.cash -= amount;
+    set(commit(s));
+  },
+
+  allRestDay: () => {
+    const g = get().game;
+    if (!g) return;
+    let s = cloneState(g);
+    const store = s.stores[0];
+    if (!store) return;
+
+    const newEmployees = applyAllRest(store.employees, ALL_REST_MORALE_BONUS);
+    const newStore = { ...store, employees: newEmployees };
+    const newStores = [...s.stores];
+    newStores[0] = newStore;
+    s.stores = newStores;
+    set(commit(s));
   },
 }));
 

@@ -3,14 +3,7 @@ import type { EventCategory, EventDef, GameState } from '../types';
 import type { RNG } from './rng';
 import { EVENTS, getEvent } from '../data/events';
 import { evaluateGate } from './eventGate';
-import {
-  clamp,
-  isLast3DaysOfMonth,
-  isWeekend,
-  maxHiddenLine,
-  SMALL_EVENT_EVERY,
-} from '../utils/constants';
-import { getStaffDailyCost } from '../data/decisionOptions';
+import { clamp, isLast3DaysOfMonth, isWeekend, maxHiddenLine, SMALL_EVENT_EVERY } from '../utils/constants';
 import { EVENT_WEIGHT_TO_CATEGORY } from '../data/eventWeightMap';
 
 const CATEGORIES: EventCategory[] = [
@@ -204,10 +197,9 @@ export function checkForcedEvents(
   if (ctx.atMonthEnd) {
     const main = state.stores[0];
     const rent = main?.rent ?? 0;
-    const staffMonthly = state.stores.reduce(
-      (sum, s) => sum + getStaffDailyCost(s.staffTier) * 30,
-      0,
-    );
+    // 用员工实际月薪总和的 1/30 估算日成本（不含加班）
+    const staffDaily = main?.employees?.reduce((sum, e) => sum + Math.floor(e.monthlySalary / 30), 0) ?? 0;
+    const staffMonthly = staffDaily * 30;
     // F002 月底房租不足：cash < 房租 + 还款 + 工资
     if (state.cash < rent + state.monthlyRepayment + staffMonthly) {
       return getEvent('F002') ?? null;

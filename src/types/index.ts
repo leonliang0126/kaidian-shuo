@@ -1,6 +1,7 @@
 // 《开店说》全局类型定义（单一事实来源）
 import type { EffectObject, EventDef, EndingDef, EventOption, EventCategory } from './events';
 import type { Loan } from './actions';
+import type { Employee } from './employee';
 
 export type StoreType =
   | '奶茶饮品'
@@ -25,7 +26,6 @@ export type DecorationLevel =
   | 'viral'
   | 'designer';
 export type PromotionTier = 'none' | 'light' | 'normal' | 'heavy' | 'gamble';
-export type StaffTier = 'owner' | 'basic' | 'standard' | 'peak' | 'redundant';
 
 export type CashflowStatus = '健康' | '紧张' | '危险';
 export type WindLevel = 'calm' | 'watch' | 'warn' | 'danger';
@@ -67,11 +67,8 @@ export interface StoreState {
   supplierTier: SupplierTier;
   priceStrategy: PriceStrategy;
   promotionTier: PromotionTier;
-  staffTier: StaffTier;
   rating: number; // 0-100 内部分（UI 显示 = rating/20，clamp 0-5）
   repurchaseRate: number; // 0-1（每日由 computeRepurchase 覆盖）
-  efficiency: number; // 0-100 经营效率（efficiencyPct 持久修改）
-  capacity: number; // 当前人工承载 = staffTier.capacity × efficiency/100
   deliveryRatio: number; // 外卖占比 0-1（默认 0.30）
   platformRate: number; // 平台抽成率（默认 0.18，platformCostPct 当日乘子）
   isInCrisis: boolean;
@@ -92,6 +89,7 @@ export interface StoreState {
   currentBatchQuality: number; // 当前供应商批次品质 0–100
   batchRenewDay: number; // 下一批次重抽 day（~7 天）
   supplierStability: number; // 当前供应商 stability 缓存（0–1）
+  employees: Employee[]; // 该店面的员工列表（v3 员工系统重构）
 }
 
 // —— 五项每日决策（与主店当前策略一致）——
@@ -100,7 +98,6 @@ export interface DecisionState {
   priceStrategy: PriceStrategy;
   decorationLevel: DecorationLevel;
   promotionTier: PromotionTier;
-  staffTier: StaffTier;
 }
 
 // —— 每日修正累加器（modifiers.ts）——

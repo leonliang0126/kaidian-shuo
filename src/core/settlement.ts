@@ -10,10 +10,11 @@ import type { RNG } from './rng';
 import { BASE_EXPOSURE, clamp } from '../utils/constants';
 import { getStoreProfile } from '../data/storeProfiles';
 import { getLocationProfile } from '../data/locationProfiles';
-import { getPromotionCost, getStaffDailyCost } from '../data/decisionOptions';
+import { getPromotionCost } from '../data/decisionOptions';
 import { buildDailyModifiers, addPenaltyModifiers } from './modifiers';
 import { deriveDailyPenalties, ramp } from './hiddenPenalties';
 import { headquartersDailyCost } from './branch';
+import { computeStaffCost, computeCapacity } from './staffSystem';
 
 /**
  * 结算单店当日经营。返回 DailyResult 与结算后现金。
@@ -56,7 +57,7 @@ export function resolveSettlement(
   const grossMargin = clamp(sp.grossMargin + mods.marginPct / 100, 0.05, 0.95);
 
   // 人力压力统一块（老板疲劳 + 员工压力，§2.3）：转化率下降、承载下降
-  let effectiveCap = store.capacity;
+  let effectiveCap = computeCapacity(store.employees);
   const empPen = ramp(state.hiddenLines.employeePressure, 40); // 0..1
   if (state.softHidden.ownerFatigue > 70) {
     conversionRate = clamp(conversionRate - 0.03, 0, 0.95);
@@ -92,7 +93,7 @@ export function resolveSettlement(
   const grossProfit = revenue * grossMargin;
   const promoCost = getPromotionCost(decisions.promotionTier) + mods.promoCostAdd;
   const staffCost =
-    (getStaffDailyCost(decisions.staffTier) + mods.staffCostAdd) *
+    (computeStaffCost(store.employees) + mods.staffCostAdd) *
     (1 + mods.staffCostPct / 100);
   const fixedCostDaily =
     store.rent / 30 + headquartersDailyCost(state.storeCount) + mods.miscCostAdd;
@@ -165,7 +166,6 @@ export function settleAllStores(
       supplierTier: store.supplierTier,
       priceStrategy: store.priceStrategy,
       promotionTier: store.promotionTier,
-      staffTier: store.staffTier,
       decorationLevel: store.decorationLevel, // 仅作记录，已移出每日决策（§4）
     };
     // 合并暗线派生惩罚（§2.2）：在结算时叠加进当日修正

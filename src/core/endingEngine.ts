@@ -111,7 +111,7 @@ export function evaluateEndings(state: GameState): EndingResult | null {
     },
     {
       id: 'one_person_shop',
-      test: () => state.day > 30 && state.stores.every((s) => s.staffTier === 'owner'),
+      test: () => state.day > 30 && state.stores.every((s) => !s.employees?.some((e) => e.isScheduledToday)),
     },
   ];
   for (const f of fails) {

@@ -1,33 +1,44 @@
 classDiagram
-    %% ===== 状态模型 =====
-    class GameState {
-        +number day
-        +number month
-        +number cash
-        +number debt
-        +number monthlyRepayment
-        +number credit
-        +number netWorth
-        +number storeCount
-        +number brandRating
-        +StoreState[] stores
-        +HiddenLines hiddenLines
-        +SoftHidden softHidden
-        +EventLogEntry[] eventHistory
-        +BusinessLogEntry[] businessLog
-        +WindMessage[] windMessages
-        +PendingEffect[] pendingEffects
-        +Record~string,number~ activeCooldowns
-        +string[] unlockedRoutes
-        +string[] endingsUnlocked
-        +number accountsPayable
-        +number reserve
-        +number lastLargeEventDay
-        +DailyResult lastSettlement
-        +number seed
-        +boolean tutorialSeen
-        +boolean gameOver
-        +string activeEnding
+    class EmployeeAttribute {
+        <<enumeration>>
+        super_worker
+        old_smooth
+        slacker
+        rookie
+        all_rounder
+        troublemaker
+        social_butterfly
+        guanxi_hire
+    }
+
+    class Employee {
+        +string id
+        +string name
+        +number joinDay
+        +EmployeeAttribute attribute
+        +boolean isExposed
+        +number morale
+        +number monthlySalary
+        +number daysWorkedThisWeek
+        +boolean isScheduledToday
+        +number[] weeklyWorkDays
+        +number consecutiveWorkDays
+        +boolean isTempStaff
+        +number efficiencyCache
+        +getCurrentEfficiency() number
+        +getDailySalary() number
+        +isOvertimeToday() boolean
+    }
+
+    class EmployeeAttributeConfig {
+        +EmployeeAttribute type
+        +string label
+        +string emoji
+        +number[] efficiencyRange
+        +number baseMoraleDecay
+        +string specialMechanic
+        +string[] descriptionHints
+        +number efficiencyVolatility
     }
 
     class StoreState {
@@ -38,14 +49,13 @@ classDiagram
         +number rent
         +number deposit
         +DecorationLevel decorationLevel
+        +number decorationEntryBonus
+        +number decorationAovBonus
         +SupplierTier supplierTier
         +PriceStrategy priceStrategy
         +PromotionTier promotionTier
-        +StaffTier staffTier
         +number rating
         +number repurchaseRate
-        +number efficiency
-        +number capacity
         +number deliveryRatio
         +number platformRate
         +boolean isInCrisis
@@ -54,28 +64,18 @@ classDiagram
         +number monthlyRevenue
         +number monthlyGrossProfit
         +number monthlyNetProfit
+        +number monthlyPromoCost
+        +number monthlyDeliveryRevenue
+        +number monthlyStaffCost
         +number lastMonthNetProfit
         +number monthlyNetProfitPositiveStreak
-    }
-
-    class HiddenLines {
-        +number landlordAttention
-        +number employeePressure
-        +number customerTrust
-        +number priceControversy
-        +number promoHype
-        +number supplyRisk
-        +number platformDependence
-        +number hygieneRisk
-    }
-
-    class SoftHidden {
-        +number ownerFatigue
-        +number wasteRisk
-        +number qualityVariance
-        +number landlordPatience
-        +number accountingErrorRisk
-        +number stability
+        +number repurchaseRateStartOfMonth
+        +number ratingStartOfMonth
+        +number heat
+        +number currentBatchQuality
+        +number batchRenewDay
+        +number supplierStability
+        +Employee[] employees  NEW
     }
 
     class DecisionState {
@@ -83,201 +83,22 @@ classDiagram
         +PriceStrategy priceStrategy
         +DecorationLevel decorationLevel
         +PromotionTier promotionTier
-        +StaffTier staffTier
     }
 
-    class DailyResult {
-        +number day
-        +string eventId
-        +DecisionState decisions
-        +number exposure
-        +number dineInExposure
-        +number deliveryExposure
-        +number entryRate
-        +number conversionRate
-        +number repurchaseRate
-        +number orders
-        +number avgOrderValue
-        +number revenue
-        +number grossMarginRate
-        +number grossProfit
-        +number promoCost
-        +number staffCost
-        +number fixedCostDaily
-        +number platformCost
-        +number netProfit
-        +number cashAfter
-        +number breakEvenRevenue
-        +number safeRevenue
-        +boolean capacityOverload
+    class StaffSystem {
+        +generateCandidate(rng, day, decorationLevel) Candidate
+        +generateEmployee(candidate, day) Employee
+        +computeDailyEfficiency(employee, store, hiddenLines) number
+        +applyMoraleDecay(employees, today) Employee[]
+        +checkOvertime(employee) boolean
+        +checkResignOrStrike(employees, store) ResignOrStrikeResult
+        +tryExposeAttributes(employee, day) Employee
+        +computeStaffCost(employees) number
+        +computeCapacity(employees) number
+        +fireEmployee(employee, state) FireResult
+        +generateEmployeeName(rng) string
     }
 
-    class WindMessage {
-        +number day
-        +string level
-        +string[] lines
-    }
-
-    class MonthlyReport {
-        +number month
-        +number revenue
-        +number grossProfit
-        +number netProfit
-        +number cash
-        +number debt
-        +string debtPressure
-        +number rentRatio
-        +number staffRatio
-        +number promoEfficiency
-        +number deliveryRatio
-        +number repurchaseChange
-        +number ratingChange
-        +WindMessage wind
-        +MonthOption[] options
-    }
-
-    class PendingEffect {
-        +number applyAtDay
-        +string source
-        +EffectObject effects
-        +string label
-    }
-
-    %% ===== 事件模型 =====
-    class EffectObject {
-        +number|string cash
-        +number revenuePct
-        +number ordersPct
-        +number marginPct
-        +number avgOrderValuePct
-        +number conversionRatePct
-        +number entryRatePct
-        +number repurchaseRatePct
-        +number exposurePct
-        +number dineInExposurePct
-        +number deliveryExposurePct
-        +number deliveryOrdersPct
-        +number rating
-        +number staffCost
-        +number staffCostPct
-        +number promoCost
-        +number rentPct
-        +number platformCostPct
-        +number efficiencyPct
-        +number accountsPayable
-        +number ownerFatigue
-        +number credit
-        +HiddenLines hidden
-        +SoftHidden soft
-        +string random
-        +string futureEffect
-        +string unlock
-        +number durationDays
-        +number stability
-        +string ending
-        +string cooldown
-    }
-
-    class EventOption {
-        +string id
-        +string label
-        +string visibleEffect
-        +EffectObject effects
-    }
-
-    class EventDef {
-        +string id
-        +string title
-        +EventCategory category
-        +EventLevel level
-        +string trigger
-        +number cooldownDays
-        +EventOption[] options
-        +string wind
-    }
-
-    class EndingDef {
-        +string id
-        +string title
-        +string type
-        +string[] conditions
-        +string netWorthFormula
-        +string text
-        +string[] buttons
-    }
-
-    %% ===== 基准参数 =====
-    class StoreProfile {
-        +StoreType storeType
-        +number entryRate
-        +number conversionRate
-        +number repurchaseRate
-        +number avgOrderValue
-        +number grossMargin
-        +number exposureFactor
-    }
-
-    class LocationProfile {
-        +LocationType locationType
-        +number baseMonthlyRent
-        +number trafficCoef
-        +string volatility
-    }
-
-    class DayModifiers {
-        +number exposurePct
-        +number dineInExposurePct
-        +number deliveryExposurePct
-        +number entryRatePct
-        +number conversionRatePct
-        +number repurchaseRatePct
-        +number avgOrderValuePct
-        +number marginPct
-        +number revenuePct
-        +number ordersPct
-        +number deliveryOrdersPct
-        +number staffCostAdd
-        +number staffCostPct
-        +number promoCostAdd
-        +number rentPct
-        +number platformCostPct
-        +number efficiencyPct
-        +number ratingAdd
-        +number creditAdd
-        +number cashAdd
-        +number accountsPayableAdd
-        +number ownerFatigueAdd
-        +HiddenLines hidden
-        +SoftHidden soft
-        +number durationDays
-        +string futureEffect
-        +string unlock
-        +string cooldown
-        +string ending
-        +string random
-    }
-
-    %% ===== 关系 =====
-    GameState "1" *-- "1..*" StoreState : stores
-    GameState "1" *-- "1" HiddenLines
-    GameState "1" *-- "1" SoftHidden
-    GameState "1" *-- "0..*" PendingEffect
-    GameState "1" *-- "0..*" WindMessage
-    StoreState "1" *-- "1" DecisionState : 当前决策
-    DailyResult "1" *-- "1" DecisionState
-    EventDef "1" *-- "1..*" EventOption
-    EventOption "1" *-- "1" EffectObject
-    PendingEffect "1" *-- "1" EffectObject
-    EffectObject ..> HiddenLines : 修改
-    EffectObject ..> SoftHidden : 修改
-    DayModifiers ..> EffectObject : 累加来源
-    StoreProfile ..> StoreState : 初始化基准
-    LocationProfile ..> StoreState : 初始化基准
-
-    %% ===== Core 模块（函数，非类，用 note 标注） =====
-    note for GameState "core/ 纯函数层（无 React 依赖）：
-    runDailyLoop, resolveSettlement,
-    applyEffects, generateWind,
-    checkForcedEvents, drawEvent,
-    runMonthSettlement, openBranch,
-    checkEndings, pushPendingEffect"
+    StoreState "1" *-- "0..*" Employee : contains
+    Employee --> EmployeeAttribute : has type
+    EmployeeAttributeConfig --> EmployeeAttribute : configures
