@@ -60,3 +60,9 @@ export const SALARY_RAISE_MORALE_PER_500 = 5;
 
 /** 低士气阈值（≤ 此值触发警告） */
 export const LOW_MORALE_THRESHOLD = 20;
+
+/** 进入 warning 后需连续排班出勤满此天数，且士气仍 ≤ LOW_MORALE_THRESHOLD，才必然离职。 */
+export const WARN_GRACE_DAYS = 6;
+
+/** 老板顶班承载加成（= 1 个员工位 BASE_CAPACITY_PER_STAFF），仅作用于主店（index 0）。 */
+export const OWNER_CAPACITY_BONUS = 70;

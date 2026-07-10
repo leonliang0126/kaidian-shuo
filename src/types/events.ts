@@ -53,6 +53,8 @@ export interface EventOption {
   id: string;
   label: string;
   visibleEffect?: string;
+  /** 画面叙事版文案（含 {name}/{店名} 占位符），渲染时优先于 visibleEffect 显示。 */
+  story?: string;
   effects: EffectObject;
 }
 

@@ -1,0 +1,33 @@
+sequenceDiagram
+    participant S as gameStore.endDay
+    participant SM as staffSystem
+    participant SE as settlement
+    participant UI as EventCard/EventModal
+    participant IP as interpolateStory
+
+    %% —— 块 A：离职状态机每日流程 ——
+    Note over S,SM: 块 A · 每日员工逻辑
+    S->>SM: applyMoraleDecay(employees)
+    SM-->>S: 返回更新后员工 + StaffEvent
+    Note right of SM: morale 跨过 ≤20 → status='warning', warningWorkDays=0\nmorale 回升 >20 → 复位 stable
+    S->>SM: advanceWarningAndResign(employees)
+    Note right of SM: warning 员工 isScheduledToday → +1 否则清零\nwarningWorkDays>=6 && morale<=20 → 进 resigning
+    SM-->>S: resigning 列表
+    S->>SM: checkResignOrStrike(employees)
+    Note right of SM: 仅保留 troublemaker 罢工（不卡 6 天）
+    S->>S: 过滤 resigning / 罢工取消排班
+
+    %% —— 块 B：老板顶班结算流程 ——
+    Note over S,SE: 块 B · 顶班承载
+    S->>S: 兜底：无人排班 → ownerCoverToday=true (保留 ownerFatigue+15)
+    S->>SE: resolveSettlement(state, store, ..., ownerCoverToday)
+    Note right of SE: effectiveCap = computeCapacity(employees)\n + (ownerCoverToday ? 70 : 0)
+    SE-->>S: DailyResult（effectiveCap 含顶班加成）
+
+    %% —— 块 C：story 渲染流程 ——
+    Note over S,UI: 块 C · story 挂载
+    S->>S: chooseEventOption → eventHistory 存 {story: opt.story}\nresolvedEvent 携带完整 option（含 story）
+    UI->>UI: text = option.story ?? option.visibleEffect
+    UI->>IP: interpolateStory(text, {name, storeName})
+    Note right of IP: {name}→员工名(或"店员")；{店名}→店名\n无残留花括号
+    IP-->>UI: 显示叙事文案

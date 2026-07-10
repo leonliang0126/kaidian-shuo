@@ -181,6 +181,8 @@ export interface EventLogEntry {
   optionId: string;
   title: string;
   visibleEffect?: string;
+  /** 选项叙事文案（含占位符模板），渲染时再做 {name}/{店名} 插值。 */
+  story?: string;
 }
 
 // —— 店里风向 ——
@@ -295,6 +297,8 @@ export interface GameState {
   crisisLoanBlockedToday: boolean;
   /** 员工事件通知（离职/罢工/士气警告等），每次 endDay 生成，打开员工页后清空。 */
   staffNotifications: string[];
+  /** 当天是否有老板顶班（主动 owner_shift 或无人排班兜底触发），每日 beginDay/resetDailyActionState 重置为 false。仅作用于主店（index 0）。 */
+  ownerCoverToday: boolean;
 }
 
 export type { EffectObject, EventDef, EndingDef, EventOption, EventCategory };

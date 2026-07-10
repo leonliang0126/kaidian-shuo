@@ -173,8 +173,7 @@
     },
     "cooldownDays": 0,
     "visibleEffects": {
-      "staffCost": "-small",
-      "capacity": "+small_today"
+      "staffCost": "-small"
     },
     "hiddenEffects": {
       "BOSS_STRAIN": 12,

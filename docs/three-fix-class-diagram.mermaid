@@ -1,0 +1,55 @@
+classDiagram
+    %% —— 块 A：离职状态机新增字段 ——
+    class Employee {
+        +string id
+        +string name
+        +number morale
+        +boolean isScheduledToday
+        +number consecutiveWorkDays
+        +'stable'|'warning' status
+        +number warningWorkDays
+    }
+    class StaffEvent {
+        +'resign'|'strike'|'morale_warning'|'attribute_exposed'|'overtime_warning' type
+        +string employeeId
+        +string employeeName
+        +string description
+    }
+
+    %% —— 块 B：顶班状态位 ——
+    class GameState {
+        +boolean ownerCoverToday
+        +StoreState[] stores
+        +SoftHidden softHidden
+    }
+    class StoreState {
+        +string name
+        +Employee[] employees
+    }
+
+    %% —— 块 C：story 字段 + 插值工具 ——
+    class EventOption {
+        +string id
+        +string label
+        +string visibleEffect
+        +string story
+        +EffectObject effects
+    }
+    class EventLogEntry {
+        +number day
+        +string eventId
+        +string optionId
+        +string title
+        +string visibleEffect
+        +string story
+    }
+    class interpolateStory {
+        +interpolateStory(tpl, ctx) string
+    }
+
+    %% —— 关系 ——
+    GameState "1" *-- "many" StoreState : stores
+    StoreState "1" *-- "many" Employee : employees
+    EventLogEntry ..> interpolateStory : 渲染前插值
+    EventOption ..> interpolateStory : 渲染前插值
+    Employee ..> StaffEvent : 产生(applyMoraleDecay/advanceWarningAndResign)

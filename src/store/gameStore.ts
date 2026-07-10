@@ -55,6 +55,7 @@ import {
   fireEmployee as fireEmployeeCore,
   setEmployeeSchedule,
   applyMoraleDecay,
+  advanceWarningAndResign,
   checkResignOrStrike,
   tryExposeAttributes,
   resetWeeklyWorkDays,
@@ -72,8 +73,20 @@ interface GameStore {
   phase: Phase;
   game: GameState | null;
   // —— UI 弹窗/临时状态 ——
-  eventModal: EventDef | null;
-  resolvedEvent: { event: EventDef; option: EventOption } | null;
+  eventModal: (EventDef & {
+    /** 员工类事件关联的雇员 id（供 story 中 {name} 插值）；无关联则为 null。 */
+    relatedEmployeeId?: string | null;
+    /** 员工类事件关联的雇员姓名（供 story 中 {name} 插值）；无关联则为 null。 */
+    relatedEmployeeName?: string | null;
+  }) | null;
+  resolvedEvent: {
+    event: EventDef;
+    option: EventOption;
+    /** 员工类事件关联的雇员 id（供 story 中 {name} 插值）；无关联则为 null。 */
+    relatedEmployeeId?: string | null;
+    /** 员工类事件关联的雇员姓名（供 story 中 {name} 插值）；无关联则为 null。 */
+    relatedEmployeeName?: string | null;
+  } | null;
   crisisOpen: boolean;
   /** 顶部/底部短暂提示（借款/危机行动结果），约 2.5s 自动消失后由 Toast 组件调用 clearToast 清除。 */
   toast: { type: 'success' | 'fail' | 'info'; msg: string } | null;
@@ -126,6 +139,16 @@ function commit(state: GameState, extra: Partial<GameStore> = {}): Partial<GameS
   return { game: state, ...extra };
 }
 
+/** 取主店第一名员工作为员工类事件的关联对象（供 story 中 {name} 插值）。 */
+function staffRelated(state: GameState): {
+  relatedEmployeeId?: string | null;
+  relatedEmployeeName?: string | null;
+} {
+  const staff = state.stores[0]?.employees ?? [];
+  if (staff.length === 0) return { relatedEmployeeId: null, relatedEmployeeName: null };
+  return { relatedEmployeeId: staff[0].id, relatedEmployeeName: staff[0].name };
+}
+
 /** 开启新的一天（不推进 day）：重置行动点/冷却、检查危机、抽事件。 */
 function beginDay(state: GameState): Partial<GameStore> {
   let s = cloneState(state);
@@ -149,12 +172,16 @@ function beginDay(state: GameState): Partial<GameStore> {
       s = applyEventShock(s, ev);
       s.eventHistory = [
         ...s.eventHistory,
-        { day: s.day, eventId: ev.id, optionId: opt.id, title: ev.title, visibleEffect: opt.visibleEffect },
+        { day: s.day, eventId: ev.id, optionId: opt.id, title: ev.title, visibleEffect: opt.visibleEffect, story: opt.story },
       ];
       return commit(s, { resolvedEvent: { event: ev, option: opt }, eventModal: null, crisisOpen: false });
     }
     // 中/大事件需玩家选择
-    return commit(s, { eventModal: ev, resolvedEvent: null, crisisOpen: false });
+    const modalEv =
+      ev.category === 'staff'
+        ? { ...ev, ...staffRelated(s) }
+        : ev;
+    return commit(s, { eventModal: modalEv, resolvedEvent: null, crisisOpen: false });
   }
 
   return commit(s, { eventModal: null, resolvedEvent: null, crisisOpen: false });
@@ -287,12 +314,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
     s = applyEventShock(s, ev);
     s.eventHistory = [
       ...s.eventHistory,
-      { day: s.day, eventId: ev.id, optionId: opt.id, title: ev.title, visibleEffect: opt.visibleEffect },
+      { day: s.day, eventId: ev.id, optionId: opt.id, title: ev.title, visibleEffect: opt.visibleEffect, story: opt.story },
     ];
     if (ev.level === 'large' || ev.level === 'fate') s.lastLargeEventDay = s.day;
     s.netWorth = computeNetWorth(s);
     s.brandRating = s.stores[0]?.rating ?? s.brandRating;
-    set(commit(s, { eventModal: null, resolvedEvent: { event: ev, option: opt } }));
+    // 员工类事件：附带一名关联员工，供 story 中 {name} 插值（无特定员工则回退「店员」）
+    let relatedEmployeeId: string | null = null;
+    let relatedEmployeeName: string | null = null;
+    if (ev.category === 'staff') {
+      const staff = s.stores[0]?.employees ?? [];
+      if (staff.length > 0) {
+        relatedEmployeeId = staff[0].id;
+        relatedEmployeeName = staff[0].name;
+      }
+    }
+    set(commit(s, { eventModal: null, resolvedEvent: { event: ev, option: opt, relatedEmployeeId, relatedEmployeeName } }));
   },
 
   setDecision: (key, value) => {
@@ -498,6 +535,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
       exposurePct: s.dayModifiers.exposurePct + dailyWeatherFluctuation(rng),
     };
 
+    // 4b) 老板顶班兜底：主店无人排班 → 老板被迫顶班。须在结算前置位，承载加成才当日生效。
+    {
+      const coverStore = s.stores[0];
+      const hasScheduled = coverStore?.employees?.some((e) => e.isScheduledToday);
+      if (!hasScheduled && coverStore) {
+        s.ownerCoverToday = true;
+        s.softHidden = {
+          ...s.softHidden,
+          ownerFatigue: clamp(s.softHidden.ownerFatigue + 15, 0, 100),
+        };
+      }
+    }
+
     // 5) 结算全门店
     const settle = settleAllStores(s, rng);
     const mainDaily: DailyResult = {
@@ -543,13 +593,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return result.employee;
       });
 
-      // 离职/罢工检查
+      // 离职过渡状态机：warning 员工连续出勤满 WARN_GRACE_DAYS 且士气仍低 → 必然离职
+      const warnResult = advanceWarningAndResign(employees);
+      employees = warnResult.employees;
+      for (const r of warnResult.resigning) {
+        staffEvents.push(`${r.name} 撑了又撑，最后还是递了辞呈。`);
+      }
+
+      // 属性暴露检查
+      employees = employees.map((e) => {
+        const result = tryExposeAttributes(e, s.day);
+        if (result.exposed) {
+          staffEvents.push(`${e.name} 的属性已揭示！`);
+        }
+        return result.employee;
+      });
+
+      // 罢工检测（仅刺头；离职已由上一步 warning 状态机接管，不再即时离职）
       const strikeResult = checkResignOrStrike(employees, store);
-      if (strikeResult.type === 'resign') {
-        const resignIds = new Set(strikeResult.resigning.map((e) => e.id));
-        employees = employees.filter((e) => !resignIds.has(e.id));
-        staffEvents.push(strikeResult.description);
-      } else if (strikeResult.type === 'strike') {
+      if (strikeResult.type === 'strike') {
         // 罢工：所有员工取消今日排班
         employees = employees.map((e) => ({ ...e, isScheduledToday: false }));
         staffEvents.push(strikeResult.description);
@@ -563,16 +625,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       return { ...store, employees };
     });
 
-    // 6b) 老板顶班模式兜底（极端情况：全员离职时触发）
-    const mainStore = s.stores[0];
-    const hasScheduled = mainStore?.employees?.some((e) => e.isScheduledToday);
-    if (!hasScheduled && mainStore) {
-      // 无人排班 → 老板被迫顶班
-      s.softHidden = {
-        ...s.softHidden,
-        ownerFatigue: clamp(s.softHidden.ownerFatigue + 15, 0, 100),
-      };
-    }
+    // 6b) 老板顶班模式兜底已在步骤 4b（结算前）处理（无人排班 → 置 ownerCoverToday + 老板透支+15）。
 
     // 如果有员工事件，保存到通知（供 StaffPage 展示）
     s.staffNotifications = staffEvents;

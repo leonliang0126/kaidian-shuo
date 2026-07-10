@@ -14,8 +14,9 @@ import {
   MORALE_DECAY_OVERTIME,
   MORALE_RECOVERY_REST,
   MORALE_DECAY_CONTINUOUS,
-  RESIGN_MORALE_THRESHOLD,
   STRIKE_MORALE_THRESHOLD,
+  WARN_GRACE_DAYS,
+  LOW_MORALE_THRESHOLD,
   BASE_MONTHLY_SALARY,
   SALARY_VARIANCE,
   CANDIDATE_COUNT_MIN,
@@ -84,6 +85,8 @@ export function generateEmployee(candidate: Candidate, day: number, isTemp = fal
     consecutiveWorkDays: 0,
     isTempStaff: isTemp,
     efficiencyCache: 0,
+    status: 'stable',
+    warningWorkDays: 0,
   };
 }
 
@@ -131,7 +134,7 @@ export function getDailySalary(employee: Employee): number {
   return Math.floor(employee.monthlySalary / 30);
 }
 
-/** 检查员工今日是否超时加班（本周已排满 MAX_WORK_DAYS_PER_WEEK 天且今日排班） */
+/** 检查员工今日是否超时加班（本周已上班满 MAX_WORK_DAYS_PER_WEEK 天且今日排班 → 第 6 天起算加班 ×1.5） */
 export function checkOvertime(employee: Employee): boolean {
   return employee.isScheduledToday && employee.daysWorkedThisWeek >= MAX_WORK_DAYS_PER_WEEK;
 }
@@ -166,6 +169,8 @@ export function applyMoraleDecay(
   const events: StaffEvent[] = [];
   const updated = employees.map((emp) => {
     let newMorale = emp.morale;
+    let status: 'stable' | 'warning' = emp.status ?? 'stable';
+    let warningWorkDays = emp.warningWorkDays ?? 0;
 
     // 今日排班 → 士气自然消耗
     if (emp.isScheduledToday) {
@@ -179,7 +184,7 @@ export function applyMoraleDecay(
           type: 'overtime_warning',
           employeeId: emp.id,
           employeeName: emp.name,
-          description: `${emp.name} 本周已连续上班超过 ${MAX_WORK_DAYS_PER_WEEK} 天，今日工资 ×${OVERTIME_SALARY_MULTIPLIER}，士气 -${Math.abs(MORALE_DECAY_OVERTIME)}。`,
+          description: `${emp.name} 本周已上班满 ${MAX_WORK_DAYS_PER_WEEK} 天，今日（第 ${MAX_WORK_DAYS_PER_WEEK + 1} 天）按加班计 ×${OVERTIME_SALARY_MULTIPLIER}，士气 -${Math.abs(MORALE_DECAY_OVERTIME)}。`,
         });
       }
     } else {
@@ -197,14 +202,24 @@ export function applyMoraleDecay(
       newMorale -= 2;
     }
 
-    // 士气警告
-    if (newMorale <= 20 && emp.morale > 20) {
+    // 士气警告（= 进入 warning 状态）：士气跨过 ≤ LOW_MORALE_THRESHOLD 且原 > 阈值
+    if (newMorale <= LOW_MORALE_THRESHOLD && emp.morale > LOW_MORALE_THRESHOLD) {
+      if (status !== 'warning') {
+        status = 'warning';
+        warningWorkDays = 0; // 进入 warning 重置计数器（进 warning 当天若排班即计第 1 天）
+      }
       events.push({
         type: 'morale_warning',
         employeeId: emp.id,
         employeeName: emp.name,
         description: `${emp.name} 士气已降至 ${Math.max(0, Math.round(newMorale))}，濒临离职！建议安排休息或涨工资。`,
       });
+    }
+
+    // 士气回升越过阈值 → 退出 warning（撤回辞呈）
+    if (status === 'warning' && newMorale > LOW_MORALE_THRESHOLD) {
+      status = 'stable';
+      warningWorkDays = 0;
     }
 
     newMorale = clamp(Math.round(newMorale), 0, 100);
@@ -221,6 +236,8 @@ export function applyMoraleDecay(
       ...emp,
       morale: newMorale,
       consecutiveWorkDays: newConsecutive,
+      status,
+      warningWorkDays,
       efficiencyCache: 0, // 重置效率缓存
     };
   });
@@ -230,29 +247,39 @@ export function applyMoraleDecay(
 
 // ====== 离职/罢工检测 ======
 
-/** 检测是否有员工要主动离职或罢工 */
+/**
+ * 离职过渡状态机：对处于 warning 的员工推进"连续排班出勤"计数；
+ * 满 WARN_GRACE_DAYS 且此刻士气仍 ≤ LOW_MORALE_THRESHOLD → 必然离职。
+ * 中途未排班（跳过排班/休息/请假）→ 计数清零（连续中断）。
+ *
+ * 注：原本 `morale < RESIGN_MORALE_THRESHOLD` 的"次日立即离职"分支已由本函数接管，
+ * 这里不再做即时离职，所有离职都必须经过 warning 计数窗口。
+ */
+export function advanceWarningAndResign(
+  employees: Employee[],
+): { employees: Employee[]; resigning: Employee[] } {
+  const resigning: Employee[] = [];
+  const updated = employees
+    .map((emp): Employee | null => {
+      if (emp.status !== 'warning') return emp; // 仅 warning 员工参与计数
+      // 连续出勤计数：当日排班 +1，否则清零（连续中断）；warningWorkDays 缺省按 0
+      const nextCount = emp.isScheduledToday ? (emp.warningWorkDays ?? 0) + 1 : 0;
+      // 离职称职条件：计数达标 且 此刻士气仍低 → 必然离职
+      if (nextCount >= WARN_GRACE_DAYS && emp.morale <= LOW_MORALE_THRESHOLD) {
+        resigning.push(emp);
+        return null; // 标记移除
+      }
+      return { ...emp, warningWorkDays: nextCount };
+    })
+    .filter((e): e is Employee => e !== null);
+  return { employees: updated, resigning };
+}
+
+/** 检测是否有员工要罢工（离职由 advanceWarningAndResign 的 warning 状态机接管） */
 export function checkResignOrStrike(
   employees: Employee[],
   _store?: StoreState,
-): { type: 'none' | 'resign' | 'strike'; resigning: Employee[]; description: string } {
-  const resigning: Employee[] = [];
-
-  // 检查离职
-  for (const emp of employees) {
-    if (emp.morale < RESIGN_MORALE_THRESHOLD) {
-      resigning.push(emp);
-    }
-  }
-
-  if (resigning.length > 0) {
-    const names = resigning.map((e) => e.name).join('、');
-    return {
-      type: 'resign',
-      resigning,
-      description: `${names} 因士气过低（< ${RESIGN_MORALE_THRESHOLD}）选择离职！`,
-    };
-  }
-
+): { type: 'none' | 'strike'; resigning: Employee[]; description: string } {
   // 检查罢工：是否有刺头且士气低
   const troublemakers = employees.filter(
     (e) => e.attribute === 'troublemaker' && e.morale < STRIKE_MORALE_THRESHOLD,
@@ -286,11 +313,26 @@ export function tryExposeAttributes(
 
 // ====== 排班相关 ======
 
-/** 设置员工排班状态（含加班警告检测） */
+/**
+ * 设置员工今日排班状态（仅切换"今日是否上班"意图，不累加任何天数计数器）。
+ *
+ * 关键修正（bugfix）：之前此处在按下"上班/休息"按钮时当场把
+ * daysWorkedThisWeek / consecutiveWorkDays / weeklyWorkDays 各 +1，而"一天结束"
+ * 的结算（endDay → applyMoraleDecay）又会再 +1，导致：
+ *   1) 按一下按钮当天就被记成"已上班一天"；
+ *   2) 中途反复切换（上班→休息→上班）计数器被多次累加，出现"当天连续上班十几天"；
+ *   3) daysWorkedThisWeek 虚高 → 加班阈值提前触发（第 5 天就算加班）。
+ * 现改为：本函数只切换 isScheduledToday（排班意图），所有天数计数器统一在
+ * 结算时由 endDay 推进，保证每个真实工作日只 +1 一次。
+ *
+ * 加班预览（isOvertime）基于 daysWorkedThisWeek（本周已上班天数），
+ * 与结算时的 checkOvertime 语义保持一致：本周上班满 MAX_WORK_DAYS_PER_WEEK 天后，
+ * 当日（第 6 天起）按加班计 ×1.5。周日结束由 resetWeeklyWorkDays 清零，跨周重置。
+ */
 export function setEmployeeSchedule(
   employee: Employee,
   scheduled: boolean,
-  day: number,
+  _day: number,
 ): { employee: Employee; isOvertime: boolean } {
   if (scheduled === employee.isScheduledToday) {
     return { employee, isOvertime: false };
@@ -299,26 +341,21 @@ export function setEmployeeSchedule(
   const isOvertime = scheduled && employee.daysWorkedThisWeek >= MAX_WORK_DAYS_PER_WEEK;
 
   if (scheduled) {
-    // 排班
+    // 仅切换今日排班意图；天数计数器由结算统一推进（见 endDay / applyMoraleDecay）
     return {
       employee: {
         ...employee,
         isScheduledToday: true,
-        weeklyWorkDays: [...employee.weeklyWorkDays, day],
-        daysWorkedThisWeek: employee.daysWorkedThisWeek + 1,
-        consecutiveWorkDays: employee.consecutiveWorkDays + 1,
       },
       isOvertime,
     };
   }
 
-  // 取消排班
+  // 取消排班（休息）：仅切换意图；连续上班天数由结算时统一处理（isScheduledToday=false → 结算清零）
   return {
     employee: {
       ...employee,
       isScheduledToday: false,
-      // 注意：不减少 daysWorkedThisWeek 和 weeklyWorkDays，因为当日已记录
-      consecutiveWorkDays: 0,
     },
     isOvertime: false,
   };
@@ -417,27 +454,33 @@ export function resetWeeklyWorkDays(employees: Employee[]): Employee[] {
   }));
 }
 
-/** 全员放假：所有员工不排班，士气全体恢复 */
+/** 全员放假：所有员工不排班，士气全体恢复；同时退出 warning（撤回辞呈）。 */
 export function applyAllRest(employees: Employee[], moraleBonus: number): Employee[] {
   return employees.map((e) => ({
     ...e,
     isScheduledToday: false,
     morale: clamp(e.morale + moraleBonus, 0, 100),
     consecutiveWorkDays: 0,
+    status: 'stable' as const,
+    warningWorkDays: 0,
   }));
 }
 
-/** 涨工资恢复士气 */
+/** 涨工资恢复士气；若加薪后士气 > LOW_MORALE_THRESHOLD 则退出 warning。 */
 export function applySalaryRaise(
   employee: Employee,
   amount: number,
   moralePerAmount: number,
 ): Employee {
   const moraleGain = Math.floor(amount / 500) * moralePerAmount;
+  const newMorale = clamp(employee.morale + moraleGain, 0, 100);
+  const exitedWarning = employee.status === 'warning' && newMorale > LOW_MORALE_THRESHOLD;
   return {
     ...employee,
     monthlySalary: employee.monthlySalary + amount,
-    morale: clamp(employee.morale + moraleGain, 0, 100),
+    morale: newMorale,
+    status: exitedWarning ? ('stable' as const) : employee.status,
+    warningWorkDays: exitedWarning ? 0 : employee.warningWorkDays,
   };
 }
 
@@ -458,7 +501,11 @@ export function getScheduledCount(employees: Employee[]): number {
   return employees.filter((e) => e.isScheduledToday).length;
 }
 
-/** 老板顶班模式下计算承载 */
+/**
+ * @deprecated 死代码：函数已定义但全代码未被调用。老板顶班的承载加成统一用
+ * `OWNER_CAPACITY_BONUS` 常量（=70，等于 1 个员工位），由 settlement.ts 在结算时叠加，
+ * 不再走本函数。保留仅作历史参考。
+ */
 export function computeOwnerCapacity(): number {
   return 90;
 }

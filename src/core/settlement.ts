@@ -16,6 +16,7 @@ import { buildDailyModifiers, addPenaltyModifiers } from './modifiers';
 import { deriveDailyPenalties, ramp } from './hiddenPenalties';
 import { headquartersDailyCost } from './branch';
 import { computeStaffCost, computeCapacity } from './staffSystem';
+import { OWNER_CAPACITY_BONUS } from '../data/staffConstants';
 
 /**
  * 结算单店当日经营。返回 DailyResult 与结算后现金。
@@ -27,6 +28,7 @@ export function resolveSettlement(
   decisions: DecisionState,
   mods: DayModifiers,
   _rng: RNG,
+  ownerCoverToday: boolean = false,
 ): { daily: DailyResult; cashAfter: number } {
   const loc = getLocationProfile(store.locationType);
   const sp = getStoreProfile(store.storeType);
@@ -60,7 +62,8 @@ export function resolveSettlement(
   const grossMargin = clamp(sp.grossMargin + mods.marginPct / 100, 0.05, 0.95);
 
   // 人力压力统一块（老板疲劳 + 员工压力，§2.3）：转化率下降、承载下降
-  let effectiveCap = computeCapacity(store.employees);
+  // 老板顶班加成：仅主店（index 0）生效，= 1 个员工位（OWNER_CAPACITY_BONUS）
+  let effectiveCap = computeCapacity(store.employees) + (ownerCoverToday ? OWNER_CAPACITY_BONUS : 0);
   const empPen = ramp(state.hiddenLines.employeePressure, 40); // 0..1
   if (state.softHidden.ownerFatigue > 70) {
     conversionRate = clamp(conversionRate - 0.03, 0, 0.95);
@@ -164,7 +167,7 @@ export function settleAllStores(
   let totalNetProfit = 0;
   let anyOverload = false;
   const dailies: DailyResult[] = [];
-  const stores = state.stores.map((store) => {
+  const stores = state.stores.map((store, index) => {
     const storeDecisions: DecisionState = {
       supplierTier: store.supplierTier,
       priceStrategy: store.priceStrategy,
@@ -175,7 +178,15 @@ export function settleAllStores(
     const mods = buildDailyModifiers(state, storeDecisions);
     const derived = deriveDailyPenalties(state.hiddenLines, { rent: store.rent });
     const mergedMods = addPenaltyModifiers(mods, derived);
-    const { daily } = resolveSettlement(state, store, storeDecisions, mergedMods, rng);
+    // 老板顶班加成仅作用于主店（index 0）
+    const { daily } = resolveSettlement(
+      state,
+      store,
+      storeDecisions,
+      mergedMods,
+      rng,
+      index === 0 ? state.ownerCoverToday : false,
+    );
     dailies.push(daily);
     totalNetProfit += daily.netProfit;
     if (daily.capacityOverload) anyOverload = true;

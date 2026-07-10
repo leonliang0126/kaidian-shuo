@@ -68,6 +68,7 @@ export function runDailyLoop(prev: GameState, rng: RNG): DailyLoopResult {
           optionId: opt.id,
           title: todayEvent.title,
           visibleEffect: opt.visibleEffect,
+          story: opt.story,
         },
       ];
       if (todayEvent.level === 'large' || todayEvent.level === 'fate') {
@@ -98,7 +99,17 @@ export function runDailyLoop(prev: GameState, rng: RNG): DailyLoopResult {
     exposurePct: state.dayModifiers.exposurePct + dailyWeatherFluctuation(rng),
   };
 
-  // 9) 结算全门店
+  // 9) 老板顶班兜底（须在结算前置位，承载加成才当日生效）：主店无人排班 → 老板被迫顶班
+  const hasScheduledStaff = state.stores[0]?.employees?.some((e) => e.isScheduledToday);
+  if (!hasScheduledStaff && state.stores[0]) {
+    state.ownerCoverToday = true;
+    state.softHidden = {
+      ...state.softHidden,
+      ownerFatigue: clamp(state.softHidden.ownerFatigue + 15, 0, 100),
+    };
+  }
+
+  // 10) 结算全门店
   const settle = settleAllStores(state, rng);
   const mainDaily = {
     ...settle.mainDaily,
@@ -110,17 +121,6 @@ export function runDailyLoop(prev: GameState, rng: RNG): DailyLoopResult {
     cash: state.cash + settle.totalNetProfit,
     lastSettlement: mainDaily,
   };
-
-  // 10) 员工每日逻辑（士气/离职/罢工等）
-  // 由 gameStore.endDay 中的员工逻辑处理，此处仅保留老板顶班兜底
-  const hasScheduledStaff = state.stores[0]?.employees?.some((e) => e.isScheduledToday);
-  if (!hasScheduledStaff && state.stores[0]) {
-    // 无人排班 → 老板被迫顶班
-    state.softHidden = {
-      ...state.softHidden,
-      ownerFatigue: clamp(state.softHidden.ownerFatigue + 15, 0, 100),
-    };
-  }
 
   // 11) 偶发暗线重罚
   const hits = applyHiddenLineDailyHits(state, rng);

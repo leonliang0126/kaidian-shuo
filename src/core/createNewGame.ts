@@ -200,6 +200,7 @@ export function createNewGame(cfg: OpeningConfig, rng: RNG): GameState {
     friendLoanSuccessCount: 0,
     crisisLoanBlockedToday: false,
     staffNotifications: [],
+    ownerCoverToday: false,
   };
 
   // 应用初始五项决策的即时效果（hidden/soft/cash 等；Pct 由结算时 addDecisionModifiers 处理）

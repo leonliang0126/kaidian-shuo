@@ -27,6 +27,16 @@ export interface Employee {
   consecutiveWorkDays: number;          // 连续工作天数（用于长期不放假检测）
   isTempStaff: boolean;                 // 是否为事件临时员工
   efficiencyCache: number;              // 今日效率系数（由属性+士气+特殊机制计算后缓存）
+  /**
+   * 离职过渡状态：'stable' 稳定；'warning' 濒临离职（士气 ≤ LOW_MORALE_THRESHOLD 进入）。
+   * 运行时由 generateEmployee / migration / createNewGame 始终置位，缺省按 'stable' 处理（旧档/测试夹具兜底）。
+   */
+  status?: 'stable' | 'warning';
+  /**
+   * 进入 warning 后"连续排班出勤日"计数器；满 WARN_GRACE_DAYS 且士气仍 ≤ LOW_MORALE_THRESHOLD → 必然离职；中途未排班清零。
+   * 缺省按 0 处理。
+   */
+  warningWorkDays?: number;
 }
 
 /** 招聘候选人 */

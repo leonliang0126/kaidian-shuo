@@ -105,7 +105,14 @@ function migrateStore(raw: unknown, day: number): StoreState {
         : stabilityToBaseQuality(supplierStability),
     batchRenewDay: typeof st.batchRenewDay === 'number' ? st.batchRenewDay : day + BATCH_CYCLE,
     supplierStability,
-    employees: Array.isArray(st.employees) ? (st.employees as StoreState['employees']) : [],
+    employees: (Array.isArray(st.employees) ? st.employees : []).map((rawEmp) => {
+      const e = (rawEmp ?? {}) as Record<string, unknown>;
+      return {
+        ...e,
+        status: (e.status === 'warning' ? 'warning' : 'stable') as 'stable' | 'warning',
+        warningWorkDays: typeof e.warningWorkDays === 'number' ? e.warningWorkDays : 0,
+      } as StoreState['employees'][number];
+    }) as StoreState['employees'],
   };
   return store;
 }
@@ -211,6 +218,8 @@ export function migrateGameState(raw: unknown): GameState {
     crisisLoanBlockedToday:
       typeof src.crisisLoanBlockedToday === 'boolean' ? src.crisisLoanBlockedToday : false,
     staffNotifications: Array.isArray(src.staffNotifications) ? (src.staffNotifications as string[]) : [],
+    // —— 本次增量字段（缺即补默认，旧档不报错）——
+    ownerCoverToday: typeof src.ownerCoverToday === 'boolean' ? src.ownerCoverToday : false,
   };
 
   // 用真实公式修正净资产（若旧档没有则按 cash 兜底），并同步峰值净资。

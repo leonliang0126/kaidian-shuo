@@ -147,6 +147,11 @@ export function takeAction(
   }
   s.selectedActionsToday = [...s.selectedActionsToday, actionId];
 
+  // 老板亲自顶班：置 ownerCoverToday（保留原 BOSS_STRAIN/STAFF 等效果）
+  if (actionId === 'owner_shift') {
+    s.ownerCoverToday = true;
+  }
+
   // bossStrain 别名同步（= softHidden.ownerFatigue）
   s.bossStrain = s.softHidden.ownerFatigue;
 
@@ -189,6 +194,7 @@ export function takeCrisisAction(
 /** 新一天开始：重置行动点上限（老板透支高则 −1），清空今日行动，tick 冷却。 */
 export function resetDailyActionState(state: GameState): GameState {
   const s = cloneState(state);
+  s.ownerCoverToday = false; // 每个新 day 起步清零（老板顶班状态位）
   const maxAp =
     s.softHidden.ownerFatigue > BOSS_STRAIN_AP_PENALTY ? ACTION_POINTS_BASE - 1 : ACTION_POINTS_BASE;
   s.actionPointsMax = maxAp;

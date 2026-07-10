@@ -17,7 +17,8 @@
           "hidden": {
             "platformDependence": 2
           }
-        }
+        },
+        "story": "雨一落，堂食客瞬间蒸发，骑手在 `{店名}` 门口排成贪吃蛇。"
       }
     ],
     "wind": "今天堂食少了点，外卖倒是更热闹。"
@@ -40,7 +41,8 @@
           "hidden": {
             "employeePressure": 5
           }
-        }
+        },
+        "story": "店堂空得能打羽毛球，外卖单炸成烟花，后厨的人喘口气都算工伤。"
       },
       {
         "id": "delivery",
@@ -52,7 +54,8 @@
             "platformDependence": 8,
             "employeePressure": 5
           }
-        }
+        },
+        "story": "你把招牌翻成'外卖专用'，单子来了，差评的小箭头也举着手报名。"
       },
       {
         "id": "close_early",
@@ -63,7 +66,8 @@
           "hidden": {
             "employeePressure": -5
           }
-        }
+        },
+        "story": "你拉下卷帘门，全员长舒一口气——今天少赚，但人都在，算赢。"
       }
     ],
     "wind": "雨天带来了外卖，也带来了配送延迟和差评的味道。"
@@ -85,7 +89,8 @@
             "employeePressure": 5
           }
         },
-        "visibleEffect": "饮品销量上升，但出餐压力增加。"
+        "visibleEffect": "饮品销量上升，但出餐压力增加。",
+        "story": "冰杯摞成小山，出餐口热成桑拿房，每杯冰饮都在替你数钱。"
       },
       {
         "id": "normal",
@@ -93,7 +98,8 @@
         "effects": {
           "revenuePct": 8
         },
-        "visibleEffect": "自然受益，小幅增长。"
+        "visibleEffect": "自然受益，小幅增长。",
+        "story": "天热人懒，顺路进来一口凉的，账本上悄悄多了个小零头。"
       },
       {
         "id": "raise_price",
@@ -105,7 +111,8 @@
             "priceControversy": 8
           }
         },
-        "visibleEffect": "客单价上升，但价格争议增加。"
+        "visibleEffect": "客单价上升，但价格争议增加。",
+        "story": "你暗搓搓抬价，有人皱眉，也有人嘴上骂着'抢钱'手却扫码了。"
       }
     ],
     "wind": "天气帮你带来了客人，但客人不会顺便帮你出餐。"
@@ -127,7 +134,8 @@
             "customerTrust": 3
           }
         },
-        "visibleEffect": "热食销量上涨。"
+        "visibleEffect": "热食销量上涨。",
+        "story": "冷风里捧碗热汤的客，袖子缩着，钱包倒敞得挺大方。"
       },
       {
         "id": "discount",
@@ -136,13 +144,15 @@
           "ordersPct": 15,
           "marginPct": -5
         },
-        "visibleEffect": "订单增加但毛利下降。"
+        "visibleEffect": "订单增加但毛利下降。",
+        "story": "满减一挂，单子密了，你盯毛利率，它当场表演原地瘦身。"
       },
       {
         "id": "none",
         "label": "不调整",
         "effects": {},
-        "visibleEffect": "影响较小。"
+        "visibleEffect": "影响较小。",
+        "story": "你啥也没动，店照旧打烊，平凡到连天气都懒得记住你。"
       }
     ],
     "wind": "冷天让热食更好卖，前提是你真有东西热。"
@@ -165,7 +175,8 @@
             "platformDependence": 3
           }
         },
-        "visibleEffect": "成本上升，评分更稳。"
+        "visibleEffect": "成本上升，评分更稳。",
+        "story": "你给餐盒加层棉袄，`{店名}` 顾客拆开直呼'还是走心'，你暗爽。"
       },
       {
         "id": "dine_discount",
@@ -174,7 +185,8 @@
           "conversionRatePct": 8,
           "marginPct": -3
         },
-        "visibleEffect": "堂食成交回升，毛利下降。"
+        "visibleEffect": "堂食成交回升，毛利下降。",
+        "story": "堂食一打折，空位坐满，每单利润薄得像纸——风一吹就飘走。"
       },
       {
         "id": "endure",
@@ -185,7 +197,8 @@
             "employeePressure": 5
           }
         },
-        "visibleEffect": "不花钱，但差评风险上升。"
+        "visibleEffect": "不花钱，但差评风险上升。",
+        "story": "你硬扛没动，包装在雨里泡成了粥，差评也快泡出味儿了。"
       }
     ],
     "wind": "天气不是大问题，连续几天的小问题才是。"
@@ -208,7 +221,8 @@
             "customerTrust": 3
           }
         },
-        "visibleEffect": "当天无流水，员工压力下降。"
+        "visibleEffect": "当天无流水，员工压力下降。",
+        "story": "你挂出'今日休息'，员工睡了整觉，门外树被风刮得对你比中指。"
       },
       {
         "id": "half_day",
@@ -216,7 +230,8 @@
         "effects": {
           "revenuePct": -50
         },
-        "visibleEffect": "收入减半，风险较低。"
+        "visibleEffect": "收入减半，风险较低。",
+        "story": "你只开半天，风把招牌晃成拨浪鼓，好在没闹出大新闻。"
       },
       {
         "id": "normal",
@@ -227,7 +242,8 @@
             "hygieneRisk": 8
           }
         },
-        "visibleEffect": "仍有收入，但设备和卫生风险上升。"
+        "visibleEffect": "仍有收入，但设备和卫生风险上升。",
+        "story": "你硬开着门，雨往里灌，`{店名}` 地面积水照出一张张生无可恋的脸。"
       }
     ],
     "wind": "你可以硬开，但天气不会因为你努力就讲道理。"
@@ -249,7 +265,8 @@
             "employeePressure": 8
           }
         },
-        "visibleEffect": "晚间流水上涨，员工压力增加。"
+        "visibleEffect": "晚间流水上涨，员工压力增加。",
+        "story": "深夜灯还亮，加班白领涌进来，店员揉着快废的手继续搬砖。"
       },
       {
         "id": "dinner_combo",
@@ -260,13 +277,15 @@
             "customerTrust": 3
           }
         },
-        "visibleEffect": "客单价上升，顾客信任小升。"
+        "visibleEffect": "客单价上升，顾客信任小升。",
+        "story": "你上晚餐套餐，加班族吃口热的，眼神里写满'幸好有 `{店名}`'。"
       },
       {
         "id": "none",
         "label": "不调整",
         "effects": {},
-        "visibleEffect": "错过机会。"
+        "visibleEffect": "错过机会。",
+        "story": "人潮从门口过了，你伸个懒腰——错过一班，下趟再说。"
       }
     ],
     "wind": "附近人确实更多了，只是他们看起来都不太快乐。"
@@ -288,7 +307,8 @@
             "platformDependence": 10
           }
         },
-        "visibleEffect": "部分恢复曝光，但平台依赖上升。"
+        "visibleEffect": "部分恢复曝光，但平台依赖上升。",
+        "story": "堂食空了，你把命押给骑手，手机一响你脖子比狗还灵。"
       },
       {
         "id": "community",
@@ -297,7 +317,8 @@
           "revenuePct": -10,
           "repurchaseRatePct": 5
         },
-        "visibleEffect": "短期流水下降，长期复购改善。"
+        "visibleEffect": "短期流水下降，长期复购改善。",
+        "story": "你跟隔壁大爷大妈混脸熟，头几天冷清得能听见钱包叹气。"
       },
       {
         "id": "cheap_lunch",
@@ -306,7 +327,8 @@
           "conversionRatePct": 8,
           "marginPct": -5
         },
-        "visibleEffect": "成交率上升，毛利下降。"
+        "visibleEffect": "成交率上升，毛利下降。",
+        "story": "你砍利润做便宜午餐，人来了，可赚的还不够你跑一趟腿。"
       },
       {
         "id": "none",
@@ -314,7 +336,8 @@
         "effects": {
           "futureEffect": "未来30天午餐曝光 -25%"
         },
-        "visibleEffect": "未来午餐客流明显下降。"
+        "visibleEffect": "未来午餐客流明显下降。",
+        "story": "你啥也没干，店里一天比一天安静，安静得能听见倒闭的脚步。"
       }
     ],
     "wind": "不是你突然变差了，是你的客人搬走了。"
@@ -336,7 +359,8 @@
             "supplyRisk": -3
           }
         },
-        "visibleEffect": "流水下降但损耗减少。"
+        "visibleEffect": "流水下降但损耗减少。",
+        "story": "你少进货，货架空了点，后厨剩菜终于不心疼地进垃圾桶了。"
       },
       {
         "id": "delivery",
@@ -347,7 +371,8 @@
             "platformDependence": 5
           }
         },
-        "visibleEffect": "曝光回升，平台依赖上升。"
+        "visibleEffect": "曝光回升，平台依赖上升。",
+        "story": "学生走了，你转身讨好手机里的人，外卖单把空白勉强糊上。"
       },
       {
         "id": "holiday_combo",
@@ -356,7 +381,8 @@
           "conversionRatePct": 5,
           "marginPct": -3
         },
-        "visibleEffect": "成交率小幅回升。"
+        "visibleEffect": "成交率小幅回升。",
+        "story": "你上假期套餐，零星家长带娃来，`{店名}` 喘了口不算粗的气。"
       }
     ],
     "wind": "学生走了，价格敏感客也跟着一起消失了。"
@@ -379,7 +405,8 @@
             "employeePressure": -3
           }
         },
-        "visibleEffect": "能接住人流，但人工成本上升。"
+        "visibleEffect": "能接住人流，但人工成本上升。",
+        "story": "你临时叫帮手，人潮涌进来没人慌，工资条却悄悄胖了一圈。"
       },
       {
         "id": "combo",
@@ -388,7 +415,8 @@
           "ordersPct": 15,
           "marginPct": -4
         },
-        "visibleEffect": "订单增加，毛利下降。"
+        "visibleEffect": "订单增加，毛利下降。",
+        "story": "套餐一推单子密，你数单偷笑，转头看利润薄了又想叹气。"
       },
       {
         "id": "natural",
@@ -399,7 +427,8 @@
             "employeePressure": 8
           }
         },
-        "visibleEffect": "流水上升，员工压力增加。"
+        "visibleEffect": "流水上升，员工压力增加。",
+        "story": "人流自己涌进来，店员脚不沾地，喝口水都成了年度奢侈。"
       }
     ],
     "wind": "人流来了，后厨也开始冒烟了。"
@@ -421,7 +450,8 @@
             "platformDependence": 8
           }
         },
-        "visibleEffect": "堂食减少，外卖依赖上升。"
+        "visibleEffect": "堂食减少，外卖依赖上升。",
+        "story": "路挖开了，门口人绝迹，你只能盼骑手还认得 `{店名}` 这门。"
       },
       {
         "id": "private",
@@ -432,7 +462,8 @@
             "customerTrust": 5
           }
         },
-        "visibleEffect": "复购和信任上升。"
+        "visibleEffect": "复购和信任上升。",
+        "story": "你拉个老客群，群里一声'今天吃点啥'，比烧钱广告灵十倍。"
       },
       {
         "id": "endure",
@@ -441,7 +472,8 @@
           "entryRatePct": -15,
           "durationDays": 7
         },
-        "visibleEffect": "未来7天进店率下降。"
+        "visibleEffect": "未来7天进店率下降。",
+        "story": "你硬忍没动，尘土一扬，路人绕着你走了一整周，像躲瘟神。"
       }
     ],
     "wind": "路被挖开后，顾客终于有了不来的正当理由。"
@@ -464,7 +496,8 @@
             "landlordAttention": 10
           }
         },
-        "visibleEffect": "曝光大涨，房东关注也上涨。"
+        "visibleEffect": "曝光大涨，房东关注也上涨。",
+        "story": "人潮顺着地铁涌来，你刚乐开花，房东的影子就飘到 `{店名}` 门口。"
       },
       {
         "id": "quality",
@@ -475,7 +508,8 @@
             "customerTrust": 8
           }
         },
-        "visibleEffect": "稳健承接新增客流。"
+        "visibleEffect": "稳健承接新增客流。",
+        "story": "新客来了你没飘，每碗面都稳住，回头的人慢慢把 `{店名}` 当食堂。"
       },
       {
         "id": "raise_price",
@@ -487,7 +521,8 @@
             "landlordAttention": 5
           }
         },
-        "visibleEffect": "客单价上涨，价格争议增加。"
+        "visibleEffect": "客单价上涨，价格争议增加。",
+        "story": "你盘算涨价，有人照付，也有人嘟囔'`{店名}` 怕不是飘了'。"
       }
     ],
     "wind": "好消息是人多了。坏消息是房东也知道了。"
@@ -509,7 +544,8 @@
             "customerTrust": 5
           }
         },
-        "visibleEffect": "复购率和顾客信任上升。"
+        "visibleEffect": "复购率和顾客信任上升。",
+        "story": "新住户办了卡，像在附近认了门亲，隔三差五回 `{店名}` 蹭饭。"
       },
       {
         "id": "flyer",
@@ -518,7 +554,8 @@
           "exposurePct": 15,
           "promoCost": 300
         },
-        "visibleEffect": "曝光增加，需要推广成本。"
+        "visibleEffect": "曝光增加，需要推广成本。",
+        "story": "你印一摞传单，有人接有人扔，钱换回几张新面孔，血赚。"
       },
       {
         "id": "none",
@@ -526,7 +563,8 @@
         "effects": {
           "exposurePct": 5
         },
-        "visibleEffect": "自然客流小幅上升。"
+        "visibleEffect": "自然客流小幅上升。",
+        "story": "你啥没做，新搬来的自己溜达进门，顺手把 `{店名}` 成全了。"
       }
     ],
     "wind": "新住户开始找附近能长期吃的店了。"
@@ -548,7 +586,8 @@
             "employeePressure": 12
           }
         },
-        "visibleEffect": "夜间流水上涨，员工压力增加。"
+        "visibleEffect": "夜间流水上涨，员工压力增加。",
+        "story": "夜市火了你熬通宵，店员黑眼圈数钱，钱是烫的手是凉的。"
       },
       {
         "id": "night_product",
@@ -559,13 +598,15 @@
             "supplyRisk": 5
           }
         },
-        "visibleEffect": "客单价小升，供应链更复杂。"
+        "visibleEffect": "客单价小升，供应链更复杂。",
+        "story": "你加了夜宵，后厨多一摊事，账单里多了几笔零碎破账。"
       },
       {
         "id": "none",
         "label": "不参与",
         "effects": {},
-        "visibleEffect": "错过短期热度。"
+        "visibleEffect": "错过短期热度。",
+        "story": "隔壁热闹到凌晨，你准时拉门，错过烟火气，也错过腰疼。"
       }
     ],
     "wind": "夜里的人流很香，员工的脸色也很黑。"
@@ -586,7 +627,8 @@
             "landlordAttention": 8
           }
         },
-        "visibleEffect": "房东关注上升。"
+        "visibleEffect": "房东关注上升。",
+        "story": "房东又'顺路'晃到 `{店名}`，眼神扫收银台比顾客还敬业。"
       }
     ],
     "wind": "房东最近出现得有点频繁，他不像是来消费的。"
@@ -608,7 +650,8 @@
             "landlordAttention": -10
           }
         },
-        "visibleEffect": "固定成本上升，房东关注下降。"
+        "visibleEffect": "固定成本上升，房东关注下降。",
+        "story": "你咬牙签字，房租又涨一截，房东拍拍你肩——那巴掌拍掉的，是你这个月的利润。"
       },
       {
         "id": "negotiate",
@@ -616,7 +659,8 @@
         "effects": {
           "random": "50%涨幅降至8%；30%无效；20% landlordAttention +15"
         },
-        "visibleEffect": "可能压价，也可能激怒房东。"
+        "visibleEffect": "可能压价，也可能激怒房东。",
+        "story": "你跟他掰扯半天，要么少涨点，要么看他脸黑得能炒菜。"
       },
       {
         "id": "move_prepare",
@@ -628,7 +672,8 @@
           },
           "unlock": "move_route"
         },
-        "visibleEffect": "现金压力上升，解锁搬店路线。"
+        "visibleEffect": "现金压力上升，解锁搬店路线。",
+        "story": "你悄悄看新址，押金像割肉，但'逃离 `{店名}`'的念头第一次冒头。"
       },
       {
         "id": "pretend_poor",
@@ -639,7 +684,8 @@
           },
           "landlordPatience": -10
         },
-        "visibleEffect": "本月不变，但房东耐心下降。"
+        "visibleEffect": "本月不变，但房东耐心下降。",
+        "story": "你装穷卖惨，房东半信半疑走了，下月看他脸色像看债主。"
       }
     ],
     "wind": "你赚的钱终于引来了最稳定的竞争者：房东。"
@@ -659,7 +705,8 @@
           "cash": "-1_month_rent",
           "cooldown": "rent_increase_60_days"
         },
-        "visibleEffect": "现金减少，未来60天涨租冷却。"
+        "visibleEffect": "现金减少，未来60天涨租冷却。",
+        "story": "你交笔押金，像买了张免涨租保险，心里踏实了整整六十天。"
       },
       {
         "id": "reject",
@@ -669,7 +716,8 @@
             "landlordAttention": 8
           }
         },
-        "visibleEffect": "暂不花钱，房东关注上升。"
+        "visibleEffect": "暂不花钱，房东关注上升。",
+        "story": "你摆手说再想想，房东笑笑不说话，眼里算盘拨得噼啪响。"
       },
       {
         "id": "short_term",
@@ -677,7 +725,8 @@
         "effects": {
           "random": "成功则现金压力较低；失败 landlordAttention +5"
         },
-        "visibleEffect": "降低承诺，但有谈判风险。"
+        "visibleEffect": "降低承诺，但有谈判风险。",
+        "story": "你想签短点少绑自己，谈成省心，谈崩房东把你盯成重点户。"
       }
     ],
     "wind": "锁住租金需要钱，不锁住租金需要运气。"
@@ -696,7 +745,8 @@
         "effects": {
           "cash": "+half_month_rent"
         },
-        "visibleEffect": "现金压力缓解。"
+        "visibleEffect": "现金压力缓解。",
+        "story": "房东免你半月租，你松口气，`{店名}` 这半月的现金流终于能喘。"
       },
       {
         "id": "promote",
@@ -707,7 +757,8 @@
             "promoHype": 5
           }
         },
-        "visibleEffect": "曝光上升，虚火略升。"
+        "visibleEffect": "曝光上升，虚火略升。",
+        "story": "你把省下的租砸进推广，`{店名}` 热闹了，水花里掺了点虚胖。"
       },
       {
         "id": "pay_supplier",
@@ -718,7 +769,8 @@
             "customerTrust": 2
           }
         },
-        "visibleEffect": "供应链隐患下降。"
+        "visibleEffect": "供应链隐患下降。",
+        "story": "你拿免租的钱还供货款，供应商的脸色终于从冰窖里暖了回来。"
       }
     ],
     "wind": "房东突然善良，通常不是童话，是市场冷了。"
@@ -738,7 +790,8 @@
           "cash": -8000,
           "entryRatePct": 5
         },
-        "visibleEffect": "花钱提高形象。"
+        "visibleEffect": "花钱提高形象。",
+        "story": "你按要求折腾一遍，`{店名}` 门面亮了，钱包也跟着瘪了一圈。"
       },
       {
         "id": "simple",
@@ -749,7 +802,8 @@
             "hygieneRisk": 3
           }
         },
-        "visibleEffect": "少花钱，但隐患增加。"
+        "visibleEffect": "少花钱，但隐患增加。",
+        "story": "你糊弄一下，钱省了，墙角那隐患像颗定时小雷，随时蹦。"
       },
       {
         "id": "delay",
@@ -759,7 +813,8 @@
             "landlordAttention": 8
           }
         },
-        "visibleEffect": "短期不花钱，房东关注上升。"
+        "visibleEffect": "短期不花钱，房东关注上升。",
+        "story": "你拖着不装，物业皱眉，房东对 `{店名}` 的关注度又升了一格。"
       }
     ],
     "wind": "你以为装修完了，物业觉得没有。"
@@ -778,7 +833,8 @@
         "effects": {
           "futureEffect": "不确定事件权重上升"
         },
-        "visibleEffect": "暂不花钱，但未来不确定性提高。"
+        "visibleEffect": "暂不花钱，但未来不确定性提高。",
+        "story": "你按兵不动，`{店名}` 还是你的，只是头顶多了片说不清的乌云。"
       },
       {
         "id": "long_contract",
@@ -787,7 +843,8 @@
           "cash": "-deposit",
           "stability": 10
         },
-        "visibleEffect": "现金减少，稳定性提高。"
+        "visibleEffect": "现金减少，稳定性提高。",
+        "story": "你掏押金锁长期约，钱出去了，悬在 `{店名}` 头上的石头落地了。"
       },
       {
         "id": "move_prepare",
@@ -796,7 +853,8 @@
           "cash": -3000,
           "unlock": "new_location_scouting"
         },
-        "visibleEffect": "解锁新选址观察。"
+        "visibleEffect": "解锁新选址观察。",
+        "story": "你四处看铺，脚比脑子先动，'逃离 `{店名}`'计划悄悄启动。"
       }
     ],
     "wind": "店还在，地基开始不属于你了。"
@@ -819,7 +877,8 @@
             "employeePressure": 5
           }
         },
-        "visibleEffect": "省人工，但老板透支上升。"
+        "visibleEffect": "省人工，但老板透支上升。",
+        "story": "你系围裙替 `{name}` 顶岗，省了工钱，腰却酸得直不起来。"
       },
       {
         "id": "temp",
@@ -827,7 +886,8 @@
         "effects": {
           "staffCost": 400
         },
-        "visibleEffect": "成本上升，服务稳定。"
+        "visibleEffect": "成本上升，服务稳定。",
+        "story": "你叫临时工替 `{name}`，工资多开一笔，好歹没人手缺口的慌。"
       },
       {
         "id": "limit_order",
@@ -835,7 +895,8 @@
         "effects": {
           "revenuePct": -10
         },
-        "visibleEffect": "流水下降，评分稳定。"
+        "visibleEffect": "流水下降，评分稳定。",
+        "story": "你压接单量给 `{name}` 减负，生意淡点，出餐稳了评分没掉。"
       }
     ],
     "wind": "人手少的时候，每一单都像在测试人性。"
@@ -857,7 +918,8 @@
             "employeePressure": -10
           }
         },
-        "visibleEffect": "人工成本上升，员工压力下降。"
+        "visibleEffect": "人工成本上升，员工压力下降。",
+        "story": "你给 `{name}` 涨薪，他留下来了，工资单厚了，团队弦松了点。"
       },
       {
         "id": "hire",
@@ -867,7 +929,8 @@
           "efficiencyPct": -15,
           "futureEffect": "培训事件权重上升"
         },
-        "visibleEffect": "短期效率下降。"
+        "visibleEffect": "短期效率下降。",
+        "story": "你放 `{name}` 走了，空位招新人，前几周乱得像 `{店名}` 重开张。"
       },
       {
         "id": "owner",
@@ -876,7 +939,8 @@
           "ownerFatigue": 20,
           "rating": -2
         },
-        "visibleEffect": "老板透支，服务风险上升。"
+        "visibleEffect": "老板透支，服务风险上升。",
+        "story": "你替 `{name}` 亲自顶上，累够呛，手一抖差评风险也跟着来。"
       }
     ],
     "wind": "你省下的人工，正在以另一种形式回来收账。"
@@ -898,7 +962,8 @@
             "employeePressure": -12
           }
         },
-        "visibleEffect": "人工成本上升，员工压力下降。"
+        "visibleEffect": "人工成本上升，员工压力下降。",
+        "story": "你点头给 `{name}` 加薪，他眼睛亮了，绷着的劲儿松了下来。"
       },
       {
         "id": "promise",
@@ -909,7 +974,8 @@
           },
           "futureEffect": "离职权重上升"
         },
-        "visibleEffect": "短期不花钱，未来更危险。"
+        "visibleEffect": "短期不花钱，未来更危险。",
+        "story": "你给 `{name}` 画饼，他笑着应了，可那笑里藏着计时器在走。"
       },
       {
         "id": "hire_new",
@@ -921,7 +987,8 @@
           },
           "delayedEffect": "长期 employeePressure -5"
         },
-        "visibleEffect": "短期混乱，长期分担压力。"
+        "visibleEffect": "短期混乱，长期分担压力。",
+        "story": "你招新人给 `{name}` 搭把手，头几天乱，久了才喘过气。"
       }
     ],
     "wind": "员工也会算账，只是他们的账本里没有你的梦想。"
@@ -943,7 +1010,8 @@
             "employeePressure": -3
           }
         },
-        "visibleEffect": "顾客信任上升，员工压力下降。"
+        "visibleEffect": "顾客信任上升，员工压力下降。",
+        "story": "你当众夸 `{name}`，他耳根红了，接下来干活都带 BGM。"
       },
       {
         "id": "bonus",
@@ -955,13 +1023,15 @@
             "employeePressure": -8
           }
         },
-        "visibleEffect": "花小钱稳团队。"
+        "visibleEffect": "花小钱稳团队。",
+        "story": "你给 `{name}` 塞了个红包，他乐得差点把托盘举过头顶，今晚出餐带 BGM。"
       },
       {
         "id": "ignore",
         "label": "当没看见",
         "effects": {},
-        "visibleEffect": "无明显变化。"
+        "visibleEffect": "无明显变化。",
+        "story": "夸奖飘过去你没接，`{name}` 耸耸肩，日子照旧过。"
       }
     ],
     "wind": "今天店员把服务做得很好，顾客真的会记得。"
@@ -984,7 +1054,8 @@
             "employeePressure": -8
           }
         },
-        "visibleEffect": "出餐效率提升，员工压力下降。"
+        "visibleEffect": "出餐效率提升，员工压力下降。",
+        "story": "`{name}` 终于不卡壳了，出餐口顺畅了，连空气都松快了点。"
       }
     ],
     "wind": "新人终于不像一台刚开机的收银机了。"
@@ -1006,7 +1077,8 @@
             "employeePressure": -25
           }
         },
-        "visibleEffect": "当天无流水，员工压力大降。"
+        "visibleEffect": "当天无流水，员工压力大降。",
+        "story": "你给 `{name}` 拉闸休一天，店空荡荡，他睡醒眼神都清亮了。"
       },
       {
         "id": "bonus",
@@ -1017,7 +1089,8 @@
             "employeePressure": -20
           }
         },
-        "visibleEffect": "现金减少，团队稳定。"
+        "visibleEffect": "现金减少，团队稳定。",
+        "story": "你给 `{name}` 发笔奖金，钱出去了，怨气跟着散了大半。"
       },
       {
         "id": "force",
@@ -1028,7 +1101,8 @@
           },
           "futureEffect": "罢工/离职权重上升"
         },
-        "visibleEffect": "短期营业，未来更危险。"
+        "visibleEffect": "短期营业，未来更危险。",
+        "story": "你压 `{name}` 火气硬开，表面平静，雷管又悄悄多了一根。"
       },
       {
         "id": "short_hours",
@@ -1039,7 +1113,8 @@
             "employeePressure": -10
           }
         },
-        "visibleEffect": "流水下降，压力缓解。"
+        "visibleEffect": "流水下降，压力缓解。",
+        "story": "你砍时长给 `{name}` 减负，钱少赚，可他脸不再那么黑。"
       }
     ],
     "wind": "店还开着，但里面的人已经不太想配合你演了。"
@@ -1059,7 +1134,8 @@
           "revenuePct": -20,
           "ownerFatigue": -15
         },
-        "visibleEffect": "流水下降，老板恢复。"
+        "visibleEffect": "流水下降，老板恢复。",
+        "story": "你给 `{name}` 放半天，账上少笔，脑子终于不转那么快了。"
       },
       {
         "id": "continue",
@@ -1068,7 +1144,8 @@
           "rating": -2,
           "futureEffect": "决策失误权重上升"
         },
-        "visibleEffect": "继续开，但服务风险上升。"
+        "visibleEffect": "继续开，但服务风险上升。",
+        "story": "你让 `{name}` 接着硬扛，手比脑慢半拍，出错苗头悄悄冒头。"
       },
       {
         "id": "temp",
@@ -1077,7 +1154,8 @@
           "cash": -500,
           "ownerFatigue": -8
         },
-        "visibleEffect": "花钱换恢复。"
+        "visibleEffect": "花钱换恢复。",
+        "story": "你请临时工替 `{name}`，花点钱，总算能喘口气直直腰。"
       }
     ],
     "wind": "你不是铁人，你只是暂时还没倒下。"
@@ -1100,13 +1178,15 @@
             "employeePressure": -10
           }
         },
-        "visibleEffect": "人工成本上升，效率提升。"
+        "visibleEffect": "人工成本上升，效率提升。",
+        "story": "你签下 `{name}` 这员熟手，工钱高了，他一上手节奏明显顺了。"
       },
       {
         "id": "reject",
         "label": "嫌贵不用",
         "effects": {},
-        "visibleEffect": "无变化。"
+        "visibleEffect": "无变化。",
+        "story": "你嫌 `{name}` 贵摆手拒绝，店里还是那几个脚不沾地的人。"
       },
       {
         "id": "trial",
@@ -1115,7 +1195,8 @@
           "cash": -800,
           "random": "50% 转正成功"
         },
-        "visibleEffect": "低成本试用，有不确定性。"
+        "visibleEffect": "低成本试用，有不确定性。",
+        "story": "你让 `{name}` 试三天，钱花得少，成不成看这七十二小时。"
       }
     ],
     "wind": "熟手贵，但新手出错也不便宜。"
@@ -1134,7 +1215,8 @@
         "effects": {
           "marginPct": -3
         },
-        "visibleEffect": "毛利下降，顾客无感。"
+        "visibleEffect": "毛利下降，顾客无感。",
+        "story": "你默默吞涨价，顾客毫无察觉，只有毛利率偷偷瘦了一圈。"
       },
       {
         "id": "raise_price",
@@ -1145,7 +1227,8 @@
             "priceControversy": 5
           }
         },
-        "visibleEffect": "客单小升，价格争议上升。"
+        "visibleEffect": "客单小升，价格争议上升。",
+        "story": "你轻抬价，有人嘟囔'又贵了'，手却边骂边扫码付款。"
       },
       {
         "id": "cheap",
@@ -1157,7 +1240,8 @@
             "customerTrust": -3
           }
         },
-        "visibleEffect": "毛利稳定，但供应和信任受损。"
+        "visibleEffect": "毛利稳定，但供应和信任受损。",
+        "story": "你换便宜料，账面平了，老客的舌头却先起了疑心。"
       }
     ],
     "wind": "原料涨得不多，但利润本来就没厚到哪里去。"
@@ -1179,7 +1263,8 @@
             "supplyRisk": -3
           }
         },
-        "visibleEffect": "毛利下降，供应较稳。"
+        "visibleEffect": "毛利下降，供应较稳。",
+        "story": "你认了这波涨价，利润薄了，供货的线总算没断。"
       },
       {
         "id": "switch",
@@ -1191,7 +1276,8 @@
           },
           "qualityVariance": 10
         },
-        "visibleEffect": "成本下降，质量波动上升。"
+        "visibleEffect": "成本下降，质量波动上升。",
+        "story": "你换家供货，价下来了，品质却开始坐过山车。"
       },
       {
         "id": "credit_terms",
@@ -1199,7 +1285,8 @@
         "effects": {
           "random": "信用好则现金压力下降；失败 supplyRisk +8"
         },
-        "visibleEffect": "可能缓解现金流，也可能谈崩。"
+        "visibleEffect": "可能缓解现金流，也可能谈崩。",
+        "story": "你跟供家谈账期，谈成喘口气，谈崩他脸色比价还难看。"
       }
     ],
     "wind": "供应商也发现你离不开他了。多美妙的商业关系。"
@@ -1222,7 +1309,8 @@
             "supplyRisk": -5
           }
         },
-        "visibleEffect": "短期现金改善，未来应付账款增加。"
+        "visibleEffect": "短期现金改善，未来应付账款增加。",
+        "story": "你接账期，眼下现金松了，可应付账款在后头排长队。"
       },
       {
         "id": "cash_pay",
@@ -1230,7 +1318,8 @@
         "effects": {
           "credit": 2
         },
-        "visibleEffect": "信用稳定。"
+        "visibleEffect": "信用稳定。",
+        "story": "你坚持现结，钱照出，跟供家的信任稳得像老相识。"
       },
       {
         "id": "stock_more",
@@ -1242,7 +1331,8 @@
           },
           "wasteRisk": 8
         },
-        "visibleEffect": "断货风险下降，损耗风险上升。"
+        "visibleEffect": "断货风险下降，损耗风险上升。",
+        "story": "你多囤货，不怕断档了，临期损耗却开始咬你的肉。"
       }
     ],
     "wind": "账期能救现金流，也能帮你把坑挖得更整齐。"
@@ -1264,7 +1354,8 @@
             "customerTrust": -5
           }
         },
-        "visibleEffect": "流水下降，顾客信任下降。"
+        "visibleEffect": "流水下降，顾客信任下降。",
+        "story": "你摘下招牌菜，老客扑空，眼神里那点信任淡了些。"
       },
       {
         "id": "substitute",
@@ -1275,7 +1366,8 @@
             "customerTrust": -8
           }
         },
-        "visibleEffect": "继续卖，但评分和信任受损。"
+        "visibleEffect": "继续卖，但评分和信任受损。",
+        "story": "你换替代料硬撑，味道差口气，评分口碑悄悄往下溜。"
       },
       {
         "id": "buy_expensive",
@@ -1283,7 +1375,8 @@
         "effects": {
           "cash": -4000
         },
-        "visibleEffect": "现金减少，品质稳定。"
+        "visibleEffect": "现金减少，品质稳定。",
+        "story": "你咬牙高价抢货，钱包瘪了，招牌味总算保住了。"
       }
     ],
     "wind": "顾客终于想买你的招牌款，供应商却选择了失踪。"
@@ -1306,13 +1399,15 @@
             "customerTrust": -5
           }
         },
-        "visibleEffect": "毛利提高，卫生和信任风险上升。"
+        "visibleEffect": "毛利提高，卫生和信任风险上升。",
+        "story": "你用临期货，利润厚了，卫生的雷和顾客疑心也跟着来了。"
       },
       {
         "id": "reject",
         "label": "拒绝",
         "effects": {},
-        "visibleEffect": "无变化。"
+        "visibleEffect": "无变化。",
+        "story": "你摆手退回，钱没多赚，但睡得踏实，货架干干净净。"
       },
       {
         "id": "small_test",
@@ -1323,7 +1418,8 @@
             "hygieneRisk": 5
           }
         },
-        "visibleEffect": "小幅提升毛利，略增风险。"
+        "visibleEffect": "小幅提升毛利，略增风险。",
+        "story": "你先试一批，赚不多风险也浅，像伸脚探了探水温。"
       }
     ],
     "wind": "便宜货最诱人的地方，是它不会提前告诉你代价。"
@@ -1346,7 +1442,8 @@
             "customerTrust": 5
           }
         },
-        "visibleEffect": "客单价上升，毛利略降，信任上升。"
+        "visibleEffect": "客单价上升，毛利略降，信任上升。",
+        "story": "你拿好料上新，客单高了，老客尝了直点头，赚得薄了点。"
       },
       {
         "id": "limited",
@@ -1358,13 +1455,15 @@
             "supplyRisk": 3
           }
         },
-        "visibleEffect": "传播性上升，供应复杂度上升。"
+        "visibleEffect": "传播性上升，供应复杂度上升。",
+        "story": "你做限量款，朋友圈开始晒，后厨活儿跟着乱了套。"
       },
       {
         "id": "skip",
         "label": "不采购",
         "effects": {},
-        "visibleEffect": "无变化。"
+        "visibleEffect": "无变化。",
+        "story": "你没接这波好料，货架照旧，错过一次往上走的机会。"
       }
     ],
     "wind": "好原料能提高上限，也能提高你对现金流的误解。"
@@ -1383,7 +1482,8 @@
         "effects": {
           "marginPct": -5
         },
-        "visibleEffect": "毛利下降，供应稳定。"
+        "visibleEffect": "毛利下降，供应稳定。",
+        "story": "你转头找本地货，价高点，好歹锅没停，客人没白等。"
       },
       {
         "id": "missing_menu",
@@ -1394,7 +1494,8 @@
             "customerTrust": -5
           }
         },
-        "visibleEffect": "流水和信任下降。"
+        "visibleEffect": "流水和信任下降。",
+        "story": "你划掉几道菜，来的客扑空摇头，下次未必还回 `{店名}`。"
       },
       {
         "id": "late_open",
@@ -1405,7 +1506,8 @@
             "customerTrust": -2
           }
         },
-        "visibleEffect": "流水下降。"
+        "visibleEffect": "流水下降。",
+        "story": "你晚开门，早起客去了别家，`{店名}` 上午生意凉了半截。"
       }
     ],
     "wind": "供应链慢一天，顾客不会陪你理解供应链。"
@@ -1427,13 +1529,15 @@
             "supplyRisk": -15
           }
         },
-        "visibleEffect": "毛利略降，供应风险大降。"
+        "visibleEffect": "毛利略降，供应风险大降。",
+        "story": "你签长约，价让点，断供的噩梦总算不做。"
       },
       {
         "id": "normal",
         "label": "保持现状",
         "effects": {},
-        "visibleEffect": "稳定。"
+        "visibleEffect": "稳定。",
+        "story": "你没动，供货照旧稳当，像老收音机不出杂音。"
       },
       {
         "id": "bargain",
@@ -1444,7 +1548,8 @@
             "supplyRisk": 5
           }
         },
-        "visibleEffect": "毛利上升，关系变差。"
+        "visibleEffect": "毛利上升，关系变差。",
+        "story": "你砍砍价，利润厚了，供家电话那头的笑也淡了。"
       }
     ],
     "wind": "稳定通常不便宜，不稳定更贵。"
@@ -1466,7 +1571,8 @@
             "employeePressure": 8
           }
         },
-        "visibleEffect": "曝光上升，员工压力增加。"
+        "visibleEffect": "曝光上升，员工压力增加。",
+        "story": "视频带人来你接住了，店员脚不沾地，笑里带着累。"
       },
       {
         "id": "limited",
@@ -1477,7 +1583,8 @@
             "customerTrust": 5
           }
         },
-        "visibleEffect": "流水上升，口碑较稳。"
+        "visibleEffect": "流水上升，口碑较稳。",
+        "story": "你限量卖，反吊胃口，来的人满意走，口碑没翻车。"
       },
       {
         "id": "boost",
@@ -1489,7 +1596,8 @@
             "employeePressure": 12
           }
         },
-        "visibleEffect": "曝光大涨，虚火和压力上升。"
+        "visibleEffect": "曝光大涨，虚火和压力上升。",
+        "story": "你接着猛投，数据漂亮了，可 `{店名}` 虚火和人都快撑不住。"
       }
     ],
     "wind": "视频带来了人，也带来了期待。"
@@ -1512,7 +1620,8 @@
             "employeePressure": 5
           }
         },
-        "visibleEffect": "花钱接住流量。"
+        "visibleEffect": "花钱接住流量。",
+        "story": "你砸钱加人，爆单接住了，工资单厚了，热度没白来。"
       },
       {
         "id": "limited",
@@ -1523,7 +1632,8 @@
             "customerTrust": 8
           }
         },
-        "visibleEffect": "流水上涨较稳，信任提升。"
+        "visibleEffect": "流水上涨较稳，信任提升。",
+        "story": "你限量护口碑，人来了满意走，对 `{店名}` 的好感在攒。"
       },
       {
         "id": "more_promo",
@@ -1535,7 +1645,8 @@
           },
           "futureEffect": "暴雷权重上升"
         },
-        "visibleEffect": "短期收入大涨，暴雷风险上升。"
+        "visibleEffect": "短期收入大涨，暴雷风险上升。",
+        "story": "你乘胜猛推，钱哗哗进，可脚下的泡沫，一戳就破。"
       },
       {
         "id": "stop_promo",
@@ -1546,7 +1657,8 @@
             "promoHype": -8
           }
         },
-        "visibleEffect": "降温处理。"
+        "visibleEffect": "降温处理。",
+        "story": "你主动降温，热度退点，`{店名}` 终于不像在走钢丝。"
       }
     ],
     "wind": "爆火不是奖励，是压力测试。"
@@ -1569,7 +1681,8 @@
             "priceControversy": -5
           }
         },
-        "visibleEffect": "成交回升，毛利下降。"
+        "visibleEffect": "成交回升，毛利下降。",
+        "story": "你降价又解释，单子回来利润薄了，争议总算消停。"
       },
       {
         "id": "quality",
@@ -1580,7 +1693,8 @@
             "priceControversy": 3
           }
         },
-        "visibleEffect": "信任上升，但争议仍在。"
+        "visibleEffect": "信任上升，但争议仍在。",
+        "story": "你晒品质，信的人多了，嫌贵的还在评论区较劲。"
       },
       {
         "id": "ignore",
@@ -1591,7 +1705,8 @@
             "priceControversy": 10
           }
         },
-        "visibleEffect": "成交下降，争议加剧。"
+        "visibleEffect": "成交下降，争议加剧。",
+        "story": "你装没看见，争议越吵越凶，路人被劝退几步。"
       }
     ],
     "wind": "顾客开始讨论你贵不贵，这比你自己觉得值不值重要。"
@@ -1613,7 +1728,8 @@
             "promoHype": -8
           }
         },
-        "visibleEffect": "推广成本下降，虚火下降。"
+        "visibleEffect": "推广成本下降，虚火下降。",
+        "story": "你停投放复盘，钱省了，那层虚热闹也散了。"
       },
       {
         "id": "change_material",
@@ -1622,7 +1738,8 @@
           "cash": -1000,
           "random": "50% exposure +15%"
         },
-        "visibleEffect": "花钱尝试优化。"
+        "visibleEffect": "花钱尝试优化。",
+        "story": "你换素材，钱花出去，成不成像往池子再扔一石子。"
       },
       {
         "id": "pay_more",
@@ -1634,7 +1751,8 @@
           },
           "random": "可能无效"
         },
-        "visibleEffect": "继续烧钱，结果不稳定。"
+        "visibleEffect": "继续烧钱，结果不稳定。",
+        "story": "你加码硬投，钱烧得狠，回报像赌大小，时灵时不灵。"
       }
     ],
     "wind": "不是所有曝光都叫流量，有些只是把钱撒得比较有仪式感。"
@@ -1653,7 +1771,8 @@
         "effects": {
           "random": "可能小火，也可能争议"
         },
-        "visibleEffect": "不花钱，结果不可控。"
+        "visibleEffect": "不花钱，结果不可控。",
+        "story": "你答应免费探店，不花钱，可他镜头往哪转你完全猜不到。"
       },
       {
         "id": "paid",
@@ -1665,13 +1784,15 @@
             "promoHype": 10
           }
         },
-        "visibleEffect": "曝光提高，虚火上升。"
+        "visibleEffect": "曝光提高，虚火上升。",
+        "story": "你付合作费，曝光上去了，`{店名}` 水花里掺了点虚胖。"
       },
       {
         "id": "reject",
         "label": "拒绝",
         "effects": {},
-        "visibleEffect": "无风险，错过曝光。"
+        "visibleEffect": "无风险，错过曝光。",
+        "story": "你婉拒了，省钱没惹事，那波流量擦肩而过。"
       }
     ],
     "wind": "有人愿意拍你了，问题是他会怎么拍。"
@@ -1691,7 +1812,8 @@
           "entryRatePct": 8,
           "repurchaseRatePct": -3
         },
-        "visibleEffect": "进店率上升，复购略降。"
+        "visibleEffect": "进店率上升，复购略降。",
+        "story": "你弄拍照动线，人来更勤，真来吃的反倒没那么黏 `{店名}`。"
       },
       {
         "id": "efficiency",
@@ -1702,7 +1824,8 @@
             "employeePressure": -5
           }
         },
-        "visibleEffect": "花钱降低压力。"
+        "visibleEffect": "花钱降低压力。",
+        "story": "你花钱理顺出餐，店员不堵了，焦躁的火也小了。"
       },
       {
         "id": "ignore",
@@ -1713,7 +1836,8 @@
             "customerTrust": -3
           }
         },
-        "visibleEffect": "店里更乱，信任下降。"
+        "visibleEffect": "店里更乱，信任下降。",
+        "story": "你没管，拍照的堵了道，排烦的客摇头走，`{店名}` 信任掉了点。"
       }
     ],
     "wind": "拍照的人多了，真正想吃的人可能排烦了。"
@@ -1736,7 +1860,8 @@
             "employeePressure": 15
           }
         },
-        "visibleEffect": "订单暴涨，利润变薄，压力上升。"
+        "visibleEffect": "订单暴涨，利润变薄，压力上升。",
+        "story": "你接满团购，单子像雪片，利润薄如纸，后厨快冒烟。"
       },
       {
         "id": "limited",
@@ -1747,7 +1872,8 @@
             "customerTrust": 5
           }
         },
-        "visibleEffect": "稳健增长。"
+        "visibleEffect": "稳健增长。",
+        "story": "你限量，单子稳涨，不慌不忙，口碑没翻车。"
       },
       {
         "id": "threshold",
@@ -1756,7 +1882,8 @@
           "ordersPct": 8,
           "marginPct": -3
         },
-        "visibleEffect": "订单小增，利润较稳。"
+        "visibleEffect": "订单小增，利润较稳。",
+        "story": "你抬高门槛，单子少些，利润保住了，像加了过滤网。"
       }
     ],
     "wind": "团购订单像水，利润像漏勺。"
@@ -1778,7 +1905,8 @@
             "customerTrust": 8
           }
         },
-        "visibleEffect": "花钱修复信任。"
+        "visibleEffect": "花钱修复信任。",
+        "story": "你花钱把产品做扎实，来的人尝了，落差慢慢被填平。"
       },
       {
         "id": "lower_promo",
@@ -1789,7 +1917,8 @@
             "priceControversy": -5
           }
         },
-        "visibleEffect": "虚火和争议下降。"
+        "visibleEffect": "虚火和争议下降。",
+        "story": "你收宣传势头，吹得没那么狠，争议跟着消了音。"
       },
       {
         "id": "continue_packaging",
@@ -1801,7 +1930,8 @@
           },
           "futureEffect": "暴雷权重上升"
         },
-        "visibleEffect": "短期曝光上升，长期风险更大。"
+        "visibleEffect": "短期曝光上升，长期风险更大。",
+        "story": "你继续猛包装，眼前热闹，泡沫越大将来摔得越响。"
       }
     ],
     "wind": "宣传可以把人带来，不能替你把东西变好。"
@@ -1823,7 +1953,8 @@
             "employeePressure": 8
           }
         },
-        "visibleEffect": "外卖订单上升，员工压力增加。"
+        "visibleEffect": "外卖订单上升，员工压力增加。",
+        "story": "平台推你一波，外卖单涌进，`{店名}` 后厨手速被迫拉满。"
       },
       {
         "id": "control",
@@ -1832,7 +1963,8 @@
           "deliveryOrdersPct": 10,
           "rating": 2
         },
-        "visibleEffect": "增长较稳，评分更稳。"
+        "visibleEffect": "增长较稳，评分更稳。",
+        "story": "你控接单量，涨得稳评分也稳，没被单子拖垮。"
       },
       {
         "id": "discount",
@@ -1844,7 +1976,8 @@
             "platformDependence": 8
           }
         },
-        "visibleEffect": "订单大增，毛利下降。"
+        "visibleEffect": "订单大增，毛利下降。",
+        "story": "你挂满减，单子炸了，利润却像被平台分走一勺。"
       }
     ],
     "wind": "平台给你流量的时候，也在看你能不能被它养成依赖。"
@@ -1867,7 +2000,8 @@
             "platformDependence": 10
           }
         },
-        "visibleEffect": "订单增加，利润变薄。"
+        "visibleEffect": "订单增加，利润变薄。",
+        "story": "你点参加，单子密了，每单赚的薄得像被风吹过的纸。"
       },
       {
         "id": "small",
@@ -1876,7 +2010,8 @@
           "ordersPct": 15,
           "marginPct": -4
         },
-        "visibleEffect": "温和增长。"
+        "visibleEffect": "温和增长。",
+        "story": "你小力度蹭下，订单温温涨，利润没怎么伤着。"
       },
       {
         "id": "reject",
@@ -1884,7 +2019,8 @@
         "effects": {
           "deliveryExposurePct": -5
         },
-        "visibleEffect": "平台曝光小降。"
+        "visibleEffect": "平台曝光小降。",
+        "story": "你摆手拒了，平台流量少一截，像被轻轻挪开聚光。"
       }
     ],
     "wind": "满减让订单变多，也让利润变薄。神奇，且残忍。"
@@ -1903,7 +2039,8 @@
         "effects": {
           "ordersPct": -8
         },
-        "visibleEffect": "订单略降，评分稳定。"
+        "visibleEffect": "订单略降，评分稳定。",
+        "story": "你拉长出餐预估，单子少点好评却稳了，没人因迟到骂 `{店名}`。"
       },
       {
         "id": "keep",
@@ -1912,7 +2049,8 @@
           "rating": -4,
           "futureEffect": "差评权重上升"
         },
-        "visibleEffect": "订单稳定，评分下降。"
+        "visibleEffect": "订单稳定，评分下降。",
+        "story": "你硬接单，骑手迟迟不来，差评像约好了一样排队到 `{店名}`。"
       },
       {
         "id": "pause_delivery",
@@ -1923,7 +2061,8 @@
             "platformDependence": -5
           }
         },
-        "visibleEffect": "流水下降，平台依赖下降。"
+        "visibleEffect": "流水下降，平台依赖下降。",
+        "story": "你关外卖，生意淡了，被平台牵着的绳却松了些。"
       }
     ],
     "wind": "不是你做得慢，但差评会先找到你。"
@@ -1946,7 +2085,8 @@
             "customerTrust": 3
           }
         },
-        "visibleEffect": "花钱修复评分。"
+        "visibleEffect": "花钱修复评分。",
+        "story": "你赔钱道歉，掉下去的星慢慢爬回半颗，`{店名}` 评分回点血。"
       },
       {
         "id": "package",
@@ -1958,7 +2098,8 @@
             "platformDependence": -3
           }
         },
-        "visibleEffect": "成本上升，评分回稳。"
+        "visibleEffect": "成本上升，评分回稳。",
+        "story": "你换稳妥包装，钱花了差评少了，`{店名}` 排名回点血。"
       },
       {
         "id": "ignore",
@@ -1967,7 +2108,8 @@
           "rating": -3,
           "deliveryExposurePct": -15
         },
-        "visibleEffect": "外卖曝光下降。"
+        "visibleEffect": "外卖曝光下降。",
+        "story": "你没管差评，排名往下溜，`{店名}` 外卖单子也变稀。"
       }
     ],
     "wind": "平台排名下去的时候，订单不会敲门告别。"
@@ -1986,7 +2128,8 @@
         "effects": {
           "platformCostPct": 5
         },
-        "visibleEffect": "订单稳定，平台成本上升。"
+        "visibleEffect": "订单稳定，平台成本上升。",
+        "story": "你照用不误，单子稳，平台抽的那笔又悄悄涨了些。"
       },
       {
         "id": "private",
@@ -1998,7 +2141,8 @@
             "platformDependence": -8
           }
         },
-        "visibleEffect": "短期花钱，长期降低依赖。"
+        "visibleEffect": "短期花钱，长期降低依赖。",
+        "story": "你拉老客群，眼下花钱，往后对平台腰杆能直一点。"
       },
       {
         "id": "reduce",
@@ -2007,7 +2151,8 @@
           "revenuePct": -10,
           "marginPct": 3
         },
-        "visibleEffect": "流水下降，毛利改善。"
+        "visibleEffect": "流水下降，毛利改善。",
+        "story": "你压外卖比例，总账少了，每单赚的反而厚实了。"
       }
     ],
     "wind": "你越依赖平台，平台调整规则时你越像乘客。"
@@ -2026,7 +2171,8 @@
         "effects": {
           "marginPct": -3
         },
-        "visibleEffect": "毛利下降。"
+        "visibleEffect": "毛利下降。",
+        "story": "包装涨价你自个扛了，利润薄一层，顾客毫无察觉。"
       },
       {
         "id": "cheap_packaging",
@@ -2037,7 +2183,8 @@
             "hygieneRisk": 3
           }
         },
-        "visibleEffect": "评分和卫生风险受影响。"
+        "visibleEffect": "评分和卫生风险受影响。",
+        "story": "你换便宜盒子，价低了到手皱巴巴，`{店名}` 评分也跟着抖。"
       },
       {
         "id": "raise_delivery_price",
@@ -2048,7 +2195,8 @@
             "priceControversy": 5
           }
         },
-        "visibleEffect": "成交略降，价格争议上升。"
+        "visibleEffect": "成交略降，价格争议上升。",
+        "story": "你抬外卖价，单子少两笔，吐槽'`{店名}` 又贵了'的人多了。"
       }
     ],
     "wind": "外卖不是把堂食装进袋子那么简单，袋子也要钱。"
@@ -2069,7 +2217,8 @@
           "conversionRatePct": 5,
           "marginPct": -3
         },
-        "visibleEffect": "花钱稳成交。"
+        "visibleEffect": "花钱稳成交。",
+        "story": "隔壁锣鼓一响，`{店名}` 赶紧做活动，钱花出去客人没全跑。"
       },
       {
         "id": "loyalty",
@@ -2080,7 +2229,8 @@
             "customerTrust": 5
           }
         },
-        "visibleEffect": "复购和信任上升。"
+        "visibleEffect": "复购和信任上升。",
+        "story": "你回头哄老客，常来的那几位更黏了，像认了门亲。"
       },
       {
         "id": "observe",
@@ -2088,7 +2238,8 @@
         "effects": {
           "entryRatePct": -8
         },
-        "visibleEffect": "短期进店下降。"
+        "visibleEffect": "短期进店下降。",
+        "story": "你先观望，客人被隔壁勾走些，门口冷清了那么几天。"
       }
     ],
     "wind": "隔壁也开始做梦了，现在你们可以一起算账。"
@@ -2111,7 +2262,8 @@
             "priceControversy": -3
           }
         },
-        "visibleEffect": "订单上升，毛利下降。"
+        "visibleEffect": "订单上升，毛利下降。",
+        "story": "你跟着砍到9.9，`{店名}` 单子回来了，利润薄得能透光。"
       },
       {
         "id": "ignore",
@@ -2122,7 +2274,8 @@
             "customerTrust": 3
           }
         },
-        "visibleEffect": "短期成交下降，品质信任小升。"
+        "visibleEffect": "短期成交下降，品质信任小升。",
+        "story": "你没降价，单子少了，留下的客信的是 `{店名}` 东西本身。"
       },
       {
         "id": "combo",
@@ -2131,7 +2284,8 @@
           "ordersPct": 8,
           "marginPct": -4
         },
-        "visibleEffect": "温和应对。"
+        "visibleEffect": "温和应对。",
+        "story": "你没硬拼价，搞套餐，`{店名}` 单子温温涨姿态也好看。"
       }
     ],
     "wind": "低价战最公平，大家一起少赚钱。"
@@ -2153,7 +2307,8 @@
             "customerTrust": 8
           }
         },
-        "visibleEffect": "信任和进店上升。"
+        "visibleEffect": "信任和进店上升。",
+        "story": "你亮干净后厨，怕出事的人转身进了 `{店名}` 的门。"
       },
       {
         "id": "no_hype",
@@ -2163,7 +2318,8 @@
             "customerTrust": 3
           }
         },
-        "visibleEffect": "稳健处理。"
+        "visibleEffect": "稳健处理。",
+        "story": "你没踩同行，默默做好卫生，稳稳接住犹豫的客。"
       },
       {
         "id": "secret_promo",
@@ -2175,7 +2331,8 @@
           },
           "random": "可能反噬"
         },
-        "visibleEffect": "曝光上升，但有反噬风险。"
+        "visibleEffect": "曝光上升，但有反噬风险。",
+        "story": "你偷偷投流蹭热度，人来了，可万一被扒 `{店名}` 反噬够呛。"
       }
     ],
     "wind": "别人的事故给了你机会，也提醒你别成为下一个。"
@@ -2197,7 +2354,8 @@
             "customerTrust": 3
           }
         },
-        "visibleEffect": "进店率和信任上升。"
+        "visibleEffect": "进店率和信任上升。",
+        "story": "对面卷帘门落下，散的客有些试探着走进 `{店名}`。"
       },
       {
         "id": "hire_staff",
@@ -2206,7 +2364,8 @@
           "cash": -2000,
           "efficiencyPct": 8
         },
-        "visibleEffect": "现金减少，效率提升。"
+        "visibleEffect": "现金减少，效率提升。",
+        "story": "你挖对面的人，花了钱，他一上手 `{店名}` 节奏利索不少。"
       },
       {
         "id": "none",
@@ -2214,7 +2373,8 @@
         "effects": {
           "entryRatePct": 5
         },
-        "visibleEffect": "自然客流小幅上升。"
+        "visibleEffect": "自然客流小幅上升。",
+        "story": "你没动作，对门客自己溜达过来，顺手成全了 `{店名}`。"
       }
     ],
     "wind": "竞争对手走了，但它的失败原因可能还在这个商圈里。"
@@ -2236,7 +2396,8 @@
             "customerTrust": 8
           }
         },
-        "visibleEffect": "短期流水略降，长期信任上升。"
+        "visibleEffect": "短期流水略降，长期信任上升。",
+        "story": "你避开正面刚，做 `{店名}` 自己的味道，眼前淡点回头客更铁。"
       },
       {
         "id": "discount",
@@ -2245,7 +2406,8 @@
           "ordersPct": 10,
           "marginPct": -10
         },
-        "visibleEffect": "订单增加，利润大降。"
+        "visibleEffect": "订单增加，利润大降。",
+        "story": "你硬跟连锁拼促销，`{店名}` 单子来了，利润被压得只剩骨头。"
       },
       {
         "id": "old_customers",
@@ -2254,7 +2416,8 @@
           "entryRatePct": -5,
           "repurchaseRatePct": 8
         },
-        "visibleEffect": "新客少些，复购更稳。"
+        "visibleEffect": "新客少些，复购更稳。",
+        "story": "你抱紧老客，新面孔少了，`{店名}` 复购稳得像压舱石。"
       },
       {
         "id": "move_prepare",
@@ -2263,7 +2426,8 @@
           "cash": -3000,
           "unlock": "location_scouting"
         },
-        "visibleEffect": "花钱观察新选址。"
+        "visibleEffect": "花钱观察新选址。",
+        "story": "你开始看别处铺面，钱花在探路，'逃离巨头'念头动了。"
       }
     ],
     "wind": "连锁品牌不是一定赢，但它亏得起的时间通常比你长。"
@@ -2285,7 +2449,8 @@
             "hygieneRisk": -5
           }
         },
-        "visibleEffect": "花钱消除隐患。"
+        "visibleEffect": "花钱消除隐患。",
+        "story": "你连夜修好冰箱，钱花了，`{店名}` 那柜货总算保住。"
       },
       {
         "id": "temporary",
@@ -2297,7 +2462,8 @@
           },
           "futureEffect": "损耗风险上升"
         },
-        "visibleEffect": "少花钱，风险增加。"
+        "visibleEffect": "少花钱，风险增加。",
+        "story": "你拿冰块凑合顶着，省了钱，隐患却像冰一样慢慢化。"
       },
       {
         "id": "pause_items",
@@ -2308,7 +2474,8 @@
             "customerTrust": -3
           }
         },
-        "visibleEffect": "流水下降，顾客信任略降。"
+        "visibleEffect": "流水下降，顾客信任略降。",
+        "story": "你下架冷柜品，想吃的客扑空撇嘴，去了别家。"
       }
     ],
     "wind": "设备坏的时候，最先坏掉的是你对成本的幻想。"
@@ -2328,7 +2495,8 @@
           "revenuePct": -8,
           "accountingErrorRisk": 5
         },
-        "visibleEffect": "流水略降，账目误差风险上升。"
+        "visibleEffect": "流水略降，账目误差风险上升。",
+        "story": "你拿纸笔手动记账，慢了点，月底对账怕要挠破头。"
       },
       {
         "id": "repair_close",
@@ -2337,7 +2505,8 @@
           "revenuePct": -30,
           "cash": -1000
         },
-        "visibleEffect": "流水下降，花钱修复。"
+        "visibleEffect": "流水下降，花钱修复。",
+        "story": "你拉闸修机器，一天没开张，修好时钱包心情都瘪了。"
       },
       {
         "id": "cash_only",
@@ -2348,7 +2517,8 @@
             "customerTrust": -2
           }
         },
-        "visibleEffect": "成交下降，信任略降。"
+        "visibleEffect": "成交下降，信任略降。",
+        "story": "你只收现金，掏手机付不了的人转身去了隔壁。"
       }
     ],
     "wind": "顾客可以理解故障，但不会因此多等太久。"
@@ -2371,7 +2541,8 @@
             "hygieneRisk": -10
           }
         },
-        "visibleEffect": "当天无流水，风险下降。"
+        "visibleEffect": "当天无流水，风险下降。",
+        "story": "你停业修漏水，一天没进账，`{店名}` 积水隐患总算清了。"
       },
       {
         "id": "simple",
@@ -2382,7 +2553,8 @@
             "hygieneRisk": 6
           }
         },
-        "visibleEffect": "少花钱，但隐患仍在。"
+        "visibleEffect": "少花钱，但隐患仍在。",
+        "story": "你拿桶接水，省了钱，那摊水还在 `{店名}` 墙角盯着你。"
       },
       {
         "id": "continue",
@@ -2393,7 +2565,8 @@
             "hygieneRisk": 18
           }
         },
-        "visibleEffect": "继续卖，但卫生和评分风险大增。"
+        "visibleEffect": "继续卖，但卫生和评分风险大增。",
+        "story": "你踩着水接着在 `{店名}` 卖，客没少，卫生分评分悄悄往下掉。"
       }
     ],
     "wind": "水往低处流，风险往省钱的地方流。"
@@ -2415,7 +2588,8 @@
             "hygieneRisk": -20
           }
         },
-        "visibleEffect": "花钱降低卫生风险。"
+        "visibleEffect": "花钱降低卫生风险。",
+        "story": "你连夜整改，钱花了，`{店名}` 卫生风险单终于变绿。"
       },
       {
         "id": "temporary",
@@ -2424,7 +2598,8 @@
           "cash": -800,
           "random": "50%通过；失败停业"
         },
-        "visibleEffect": "便宜但风险很高。"
+        "visibleEffect": "便宜但风险很高。",
+        "story": "你糊弄应付，省钱了，检查员一较真 `{店名}` 全盘皆输。"
       },
       {
         "id": "self_check",
@@ -2436,7 +2611,8 @@
             "customerTrust": 3
           }
         },
-        "visibleEffect": "当天无流水，风险大幅下降。"
+        "visibleEffect": "当天无流水，风险大幅下降。",
+        "story": "你关门自查，一天没进账，`{店名}` 卫生的底终于托住。"
       }
     ],
     "wind": "卫生问题平时不说话，检查时会替你大声发言。"
@@ -2459,7 +2635,8 @@
             "hygieneRisk": -20
           }
         },
-        "visibleEffect": "花钱止损，评分仍下降。"
+        "visibleEffect": "花钱止损，评分仍下降。",
+        "story": "你赔钱整改，钱出去了，`{店名}` 掉下去的星还没爬全。"
       },
       {
         "id": "deny",
@@ -2471,7 +2648,8 @@
           },
           "futureEffect": "合规停业权重上升"
         },
-        "visibleEffect": "短期省钱，长期危险。"
+        "visibleEffect": "短期省钱，长期危险。",
+        "story": "你矢口否认，省眼前钱，可 `{店名}` 信任裂缝悄悄蔓延。"
       },
       {
         "id": "close_check",
@@ -2484,7 +2662,8 @@
             "hygieneRisk": -30
           }
         },
-        "visibleEffect": "当天无流水，信任和风险修复。"
+        "visibleEffect": "当天无流水，信任和风险修复。",
+        "story": "你关门彻查，一天没赚，`{店名}` 信任和卫生都重新立住。"
       }
     ],
     "wind": "有些投诉不是扣分，是倒计时。"
@@ -2506,7 +2685,8 @@
           "monthlyRepayment": 2500,
           "credit": -3
         },
-        "visibleEffect": "现金增加，债务和月还款上升。"
+        "visibleEffect": "现金增加，债务和月还款上升。",
+        "story": "银行打笔钱进来，你喘过气，每月的债却跟着扎了根。"
       },
       {
         "id": "family",
@@ -2519,7 +2699,8 @@
             "customerTrust": 0
           }
         },
-        "visibleEffect": "立刻续命，但人情压力增加。"
+        "visibleEffect": "立刻续命，但人情压力增加。",
+        "story": "亲戚救了急，钱到账了，那声'以后还'像细线勒着心。"
       },
       {
         "id": "micro_loan",
@@ -2530,7 +2711,8 @@
           "monthlyRepayment": 3500,
           "credit": -8
         },
-        "visibleEffect": "到账快，利息高。"
+        "visibleEffect": "到账快，利息高。",
+        "story": "钱秒到账，你刚想欢呼，利息已拎着水桶从你兜里往外舀。"
       },
       {
         "id": "delay_rent",
@@ -2541,7 +2723,8 @@
             "landlordAttention": 20
           }
         },
-        "visibleEffect": "短期活命，房东风险大增。"
+        "visibleEffect": "短期活命，房东风险大增。",
+        "story": "你先欠着房租，`{店名}` 还能开，房东看你的眼神已不对了。"
       },
       {
         "id": "delay_supplier",
@@ -2552,7 +2735,8 @@
             "supplyRisk": 20
           }
         },
-        "visibleEffect": "短期活命，供应链风险大增。"
+        "visibleEffect": "短期活命，供应链风险大增。",
+        "story": "你压供货款，货还在，供家那边的关系开始发凉。"
       },
       {
         "id": "layoff",
@@ -2564,7 +2748,8 @@
             "employeePressure": 12
           }
         },
-        "visibleEffect": "成本下降，效率和员工状态受损。"
+        "visibleEffect": "成本下降，效率和员工状态受损。",
+        "story": "你裁人省开销，账面轻了，留下伙计的眼神也凉了。"
       },
       {
         "id": "sell_equipment",
@@ -2573,7 +2758,8 @@
           "cash": 10000,
           "efficiencyPct": -15
         },
-        "visibleEffect": "现金增加，经营上限下降。"
+        "visibleEffect": "现金增加，经营上限下降。",
+        "story": "你卖设备换钱，口袋鼓了，`{店名}` 的顶峰也卖掉半截。"
       },
       {
         "id": "close_shop",
@@ -2581,7 +2767,8 @@
         "effects": {
           "ending": "decent_exit"
         },
-        "visibleEffect": "进入止损结局。"
+        "visibleEffect": "进入止损结局。",
+        "story": "你拔插头，`{店名}` 卷帘门落下，这场梦你选得体面地醒。"
       }
     ],
     "wind": "你不是不赚钱，你是没钱付今天该付的钱。"
@@ -2602,7 +2789,8 @@
           "debt": 30000,
           "monthlyRepayment": 2500
         },
-        "visibleEffect": "用债务补账单。"
+        "visibleEffect": "用债务补账单。",
+        "story": "你借钱填房租，账单平了，债像雪球滚进下月。"
       },
       {
         "id": "negotiate_landlord",
@@ -2613,7 +2801,8 @@
             "landlordAttention": 10
           }
         },
-        "visibleEffect": "可能缓租，也可能惹怒房东。"
+        "visibleEffect": "可能缓租，也可能惹怒房东。",
+        "story": "你跟房东好说歹说，成了缓口气，崩了脸比账单还难看。"
       },
       {
         "id": "default_rent",
@@ -2625,7 +2814,8 @@
           },
           "futureEffect": "房东收铺权重上升"
         },
-        "visibleEffect": "房东风险大幅上升。"
+        "visibleEffect": "房东风险大幅上升。",
+        "story": "你硬欠房租，房东耐心见底，收 `{店名}` 的阴影逼近。"
       },
       {
         "id": "close_shop",
@@ -2633,7 +2823,8 @@
         "effects": {
           "ending": "decent_exit"
         },
-        "visibleEffect": "进入止损结局。"
+        "visibleEffect": "进入止损结局。",
+        "story": "你拉卷帘门，`{店名}` 房租焦虑到此为止，经营画了句点。"
       }
     ],
     "wind": "月底账单不会因为你努力营业就自动消失。"
@@ -2652,7 +2843,8 @@
         "effects": {
           "ending": "decent_exit"
         },
-        "visibleEffect": "体面撤退。"
+        "visibleEffect": "体面撤退。",
+        "story": "你按停止键，债还着走，至少人从 `{店名}` 正门走出去。"
       },
       {
         "id": "cut_cost",
@@ -2665,7 +2857,8 @@
             "supplyRisk": 8
           }
         },
-        "visibleEffect": "成本下降，隐患上升。"
+        "visibleEffect": "成本下降，隐患上升。",
+        "story": "你砍了又砍，开销瘦了，人和货的隐患悄悄胖回来。"
       },
       {
         "id": "more_loan",
@@ -2677,7 +2870,8 @@
           "credit": -10,
           "futureEffect": "债务结局权重上升"
         },
-        "visibleEffect": "短期续命，长期更重。"
+        "visibleEffect": "短期续命，长期更重。",
+        "story": "你又借一笔填旧坑，眼前活了，背上的石头更沉了。"
       },
       {
         "id": "gamble_promo",
@@ -2689,7 +2883,8 @@
             "promoHype": 25
           }
         },
-        "visibleEffect": "高风险高波动。"
+        "visibleEffect": "高风险高波动。",
+        "story": "你押最后的钱进推广，成了翻盘，崩了是 `{店名}` 最后一搏。"
       }
     ],
     "wind": "你已经不是在经营店铺，而是在用明天补昨天。"

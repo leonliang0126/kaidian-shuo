@@ -72,7 +72,7 @@ export const VISIBLE_KEY_TO_MOD: Record<string, keyof DayModifiers | null> = {
   promoCost: 'promoCostAdd',
   staffCost: 'staffCostAdd',
   efficiency: 'marginPct',
-  capacity: 'ordersPct',
+  capacity: null, // owner_shift 原误映射为 ordersPct(+3%)；现改由 ownerCoverToday 接管承载加成，不再映射
   waste: 'marginPct',
   serviceStability: 'conversionRatePct',
   ratingStability: 'ratingAdd',

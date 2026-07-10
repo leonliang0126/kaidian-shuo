@@ -26,6 +26,10 @@ import {
   getScheduledCount,
   computeOwnerCapacity,
 } from '../src/core/staffSystem';
+import {
+  OVERTIME_SALARY_MULTIPLIER,
+  MAX_WORK_DAYS_PER_WEEK,
+} from '../src/data/staffConstants';
 import type { Employee } from '../src/types/employee';
 import type { GameState, StoreState } from '../src/types';
 import { createNewGame } from '../src/core/createNewGame';
@@ -314,13 +318,13 @@ describe('成本与承载计算', () => {
     expect(checkOvertime(emp)).toBe(false);
   });
 
-  it('checkOvertime 排班但 days<5 → false', () => {
-    const emp = makeEmployee({ isScheduledToday: true, daysWorkedThisWeek: 3 });
+  it('checkOvertime 排班但连续上班<5 → false', () => {
+    const emp = makeEmployee({ isScheduledToday: true, consecutiveWorkDays: 3 });
     expect(checkOvertime(emp)).toBe(false);
   });
 
-  it('checkOvertime 排班且 days>=5 → true', () => {
-    const emp = makeEmployee({ isScheduledToday: true, daysWorkedThisWeek: 5 });
+  it('checkOvertime 排班且本周上班满 5 天 → true', () => {
+    const emp = makeEmployee({ isScheduledToday: true, daysWorkedThisWeek: 5, consecutiveWorkDays: 0 });
     expect(checkOvertime(emp)).toBe(true);
   });
 
@@ -335,7 +339,7 @@ describe('成本与承载计算', () => {
     expect(computeStaffCost([emp])).toBe(daily);
   });
 
-  it('computeStaffCost 加班员工工资 ×1.5', () => {
+  it('computeStaffCost 本周上班满 5 天员工按加班 ×1.5', () => {
     const emp = makeEmployee({
       monthlySalary: 6000,
       isScheduledToday: true,
@@ -491,21 +495,22 @@ describe('checkResignOrStrike', () => {
     expect(result.type).toBe('none');
   });
 
-  it('士气 < RESIGN_MORALE_THRESHOLD (15) → 离职', () => {
+  it('士气 < RESIGN_MORALE_THRESHOLD (15) → 不再即时离职（改由 warning 状态机接管）', () => {
     const emp = makeEmployee({ id: 'e1', morale: 10 });
     const result = checkResignOrStrike([emp]);
-    expect(result.type).toBe('resign');
-    expect(result.resigning.length).toBe(1);
-    expect(result.resigning[0].id).toBe('e1');
+    // 即时离职分支已移除：低士气但非刺头的员工不会在 checkResignOrStrike 内离职
+    expect(result.type).toBe('none');
+    expect(result.resigning.length).toBe(0);
   });
 
-  it('多个低士气员工同时离职', () => {
+  it('多个低士气员工不再即时离职（由 warning 状态机统一判定）', () => {
     const emp1 = makeEmployee({ id: 'e1', morale: 5 });
     const emp2 = makeEmployee({ id: 'e2', morale: 8 });
     const emp3 = makeEmployee({ id: 'e3', morale: 50 }); // 正常
     const result = checkResignOrStrike([emp1, emp2, emp3]);
-    expect(result.type).toBe('resign');
-    expect(result.resigning.length).toBe(2);
+    // 旧版"多员工同时即时离职"已移除，checkResignOrStrike 只处理罢工
+    expect(result.type).toBe('none');
+    expect(result.resigning.length).toBe(0);
   });
 
   it('刺头士气低 → 触发罢工（type=strike）', () => {
@@ -528,16 +533,16 @@ describe('checkResignOrStrike', () => {
     expect(result.type).toBe('none');
   });
 
-  it('离职优先级高于罢工（检查顺序：先离职后罢工）', () => {
-    const emp = makeEmployee({ id: 'e1', morale: 5 }); // 离职
+  it('刺头低士气 + 普通低士气 → 仅罢工（离职改由 warning 状态机判定）', () => {
+    const emp = makeEmployee({ id: 'e1', morale: 5 }); // 普通低士气（不再即时离职）
     const troublemaker = makeEmployee({
       id: 't1',
       attribute: 'troublemaker',
       morale: 10, // 罢工条件
     });
     const result = checkResignOrStrike([emp, troublemaker]);
-    // 有离职 → type 为 resign
-    expect(result.type).toBe('resign');
+    // 即时离职分支已移除，checkResignOrStrike 在存在刺头低士气时只返回 strike
+    expect(result.type).toBe('strike');
   });
 });
 
@@ -577,16 +582,16 @@ describe('tryExposeAttributes', () => {
 // 7. 排班
 // ==============================================================================
 describe('setEmployeeSchedule', () => {
-  it('设置为排班 → isScheduledToday=true, 天数+1', () => {
-    const emp = makeEmployee({ isScheduledToday: false, daysWorkedThisWeek: 3 });
+  it('设置为排班 → 仅切换 isScheduledToday，不累加天数', () => {
+    const emp = makeEmployee({ isScheduledToday: false, daysWorkedThisWeek: 3, consecutiveWorkDays: 2 });
     const result = setEmployeeSchedule(emp, true, 10);
     expect(result.employee.isScheduledToday).toBe(true);
-    expect(result.employee.daysWorkedThisWeek).toBe(4);
-    expect(result.employee.weeklyWorkDays).toContain(10);
-    expect(result.employee.consecutiveWorkDays).toBe(1);
+    expect(result.employee.daysWorkedThisWeek).toBe(3);   // 不变
+    expect(result.employee.weeklyWorkDays).toEqual([]);   // 不再当场写入
+    expect(result.employee.consecutiveWorkDays).toBe(2);  // 不变
   });
 
-  it('取消排班 → isScheduledToday=false, consecutiveWorkDays=0', () => {
+  it('取消排班 → isScheduledToday=false，连续天数不当场清零（由结算统一处理）', () => {
     const emp = makeEmployee({
       isScheduledToday: true,
       daysWorkedThisWeek: 4,
@@ -596,7 +601,8 @@ describe('setEmployeeSchedule', () => {
     const result = setEmployeeSchedule(emp, false, 10);
     expect(result.employee.isScheduledToday).toBe(false);
     expect(result.employee.daysWorkedThisWeek).toBe(4); // 不减少
-    expect(result.employee.consecutiveWorkDays).toBe(0);
+    expect(result.employee.consecutiveWorkDays).toBe(3); // 不当场清零（结算时对 false 才清零）
+    expect(result.employee.weeklyWorkDays).toEqual([8, 9]); // 不变
   });
 
   it('相同状态 → 不改变', () => {
@@ -606,13 +612,41 @@ describe('setEmployeeSchedule', () => {
     expect(result.employee).toBe(emp); // 同一个引用
   });
 
-  it('排班且超过 MAX_WORK_DAYS_PER_WEEK → isOvertime=true', () => {
+  it('排班且本周上班满 MAX_WORK_DAYS_PER_WEEK → isOvertime=true', () => {
     const emp = makeEmployee({
       isScheduledToday: false,
-      daysWorkedThisWeek: 5, // >= MAX_WORK_DAYS_PER_WEEK
+      daysWorkedThisWeek: 5, // >= MAX_WORK_DAYS_PER_WEEK（本周已上班 5 天）
+      consecutiveWorkDays: 0,
     });
     const result = setEmployeeSchedule(emp, true, 10);
     expect(result.isOvertime).toBe(true);
+  });
+
+  it('回归：切换按钮不虚增天数，且第6个工作日起算加班（含中途反复切换）', () => {
+    let emp = makeEmployee({ isScheduledToday: false, daysWorkedThisWeek: 0, consecutiveWorkDays: 0 });
+    for (let d = 1; d <= 6; d++) {
+      // 当天玩家反复切换：上班→休息→上班（验证 bug 修复：切换按钮只改变排班意图）
+      emp = setEmployeeSchedule(emp, true, d).employee;
+      emp = setEmployeeSchedule(emp, false, d).employee; // 休息
+      emp = setEmployeeSchedule(emp, true, d).employee;  // 再上班
+      // 切换按钮只改变 isScheduledToday：本周/连续天数计数器不应被按钮累加（仅结算时推进）
+      expect(emp.isScheduledToday).toBe(true);
+      expect(emp.daysWorkedThisWeek).toBe(d - 1);   // 结算前本周已上班 d-1 天（未虚增）
+      expect(emp.consecutiveWorkDays).toBe(d - 1);  // 结算前连续 d-1 天（未虚增）
+      // 用"结算前本周已上班天数"判加班：前 5 天 daysWorkedThisWeek=0~4 → 正常；第 6 天 =5 → 加班
+      const daily = getDailySalary(emp);
+      const cost = computeStaffCost([emp]);
+      if (d <= 5) {
+        expect(cost).toBe(daily); // 前 5 天正常工资
+      } else {
+        expect(cost).toBe(Math.round(daily * 1.5)); // 第 6 天起加班 ×1.5
+      }
+      // 模拟 endDay 结算：每个真实工作日仅 +1（先推进本周天数，再推进连续天数）
+      emp = { ...emp, daysWorkedThisWeek: emp.daysWorkedThisWeek + 1 };
+      emp = applyMoraleDecay([emp], d).employees[0];
+      expect(emp.daysWorkedThisWeek).toBe(d);     // 本周天数随结算 +1，无虚增
+      expect(emp.consecutiveWorkDays).toBe(d);    // 连续天数随结算 +1，无虚增
+    }
   });
 });
 
@@ -867,5 +901,45 @@ describe('rookie 效率成长（已修复）', () => {
     const eff = computeDailyEfficiency(emp, 30); // currentDay=30
     // 修复后：0.5 + (30-1)*0.02 = 0.5 + 29*0.02 = 1.08 → clamp 1.0
     expect(eff).toBeGreaterThanOrEqual(0.9); // 接近 1.0，远高于旧值 0.52
+  });
+});
+
+// ==============================================================================
+// 16. 回归：加班判定按周循环（跨周重置 Bug 修复验证）
+// ==============================================================================
+describe('回归：加班判定按周循环（跨周重置）', () => {
+  const OT_MULTIPLIER = OVERTIME_SALARY_MULTIPLIER; // 1.5
+  const MAX_WEEK = MAX_WORK_DAYS_PER_WEEK;          // 5
+
+  it('本周满 5 天后第 6 天加班；跨周重置清零重计；新周第 6 天复发；consecutiveWorkDays 不被重置', () => {
+    // ---- 第 1 周：本周已上班满 5 天，今日仍排班 → 第 6 天应判加班 ----
+    let emp = makeEmployee({
+      isScheduledToday: true,
+      daysWorkedThisWeek: MAX_WEEK,     // 本周已上班 5 天
+      consecutiveWorkDays: MAX_WEEK,    // 长期不休息计数器一并累计（不影响加班判定）
+      morale: 70,
+    });
+    expect(checkOvertime(emp)).toBe(true);
+    const daily = getDailySalary(emp); // 5000/30 = 166
+    expect(computeStaffCost([emp])).toBe(Math.round(daily * OT_MULTIPLIER)); // 166*1.5 = 249
+
+    // ---- 模拟周重置（周日结束）：resetWeeklyWorkDays 只清 daysWorkedThisWeek ----
+    const [resetEmp] = resetWeeklyWorkDays([{ ...emp }]);
+    expect(resetEmp.daysWorkedThisWeek).toBe(0);          // 本周计数清零
+    expect(resetEmp.consecutiveWorkDays).toBe(MAX_WEEK);  // 长期计数器保留（职责分离验证）
+    // 新周第 1 天：仍排班但本周天数为 0 → 不再是加班（正常日薪）
+    const newWeekDay1 = { ...resetEmp, isScheduledToday: true };
+    expect(checkOvertime(newWeekDay1)).toBe(false);
+    expect(computeStaffCost([newWeekDay1])).toBe(daily);  // 正常工资，不再 ×1.5
+
+    // ---- 新周继续工作到第 6 天（本周再次累计到 5）→ 加班复发（按周循环，非永久）----
+    const newWeekEmp = makeEmployee({
+      isScheduledToday: true,
+      daysWorkedThisWeek: MAX_WEEK,      // 新周再次满 5 天
+      consecutiveWorkDays: MAX_WEEK * 2, // 长期计数器继续增长，不影响本周判定
+      morale: 70,
+    });
+    expect(checkOvertime(newWeekEmp)).toBe(true);
+    expect(computeStaffCost([newWeekEmp])).toBe(Math.round(daily * OT_MULTIPLIER)); // 249 复发
   });
 });
