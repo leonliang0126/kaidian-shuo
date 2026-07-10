@@ -63,7 +63,7 @@ describe('机制3：危机贷款续命', () => {
   it('cash<0 时 takeCrisisLoan 回正并扣 1 AP', () => {
     const s = createNewGame(cfg('学校门口', 'clean'), createRng(123));
     s.cash = -5000;
-    const r = takeCrisisLoan(s, 'bank', () => 0.5);
+    const { state: r } = takeCrisisLoan(s, 'bank', () => 0.5);
     const need = 5000 + CRISIS_LOAN_BUFFER;
     expect(r.cash).toBe(s.cash + need);
     expect(r.actionPointsCurrent).toBe(s.actionPointsCurrent - 1);

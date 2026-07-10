@@ -199,6 +199,17 @@ export function migrateGameState(raw: unknown): GameState {
     bailoutRateMultiplier:
       typeof src.bailoutRateMultiplier === 'number' ? src.bailoutRateMultiplier : 1,
     crisisLoanCount: typeof src.crisisLoanCount === 'number' ? src.crisisLoanCount : 0,
+    // —— 本次增量字段（缺即补默认，旧档不报错）——
+    crisisActionUsed:
+      typeof src.crisisActionUsed === 'object' && src.crisisActionUsed !== null
+        ? (src.crisisActionUsed as Record<string, number>)
+        : {},
+    friendLoanAttempts: typeof src.friendLoanAttempts === 'number' ? src.friendLoanAttempts : 0,
+    friendLoanSuccessCount:
+      typeof src.friendLoanSuccessCount === 'number' ? src.friendLoanSuccessCount : 0,
+    // —— 本次增量字段（缺即补默认，旧档不报错）——
+    crisisLoanBlockedToday:
+      typeof src.crisisLoanBlockedToday === 'boolean' ? src.crisisLoanBlockedToday : false,
     staffNotifications: Array.isArray(src.staffNotifications) ? (src.staffNotifications as string[]) : [],
   };
 

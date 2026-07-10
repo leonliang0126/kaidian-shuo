@@ -194,6 +194,7 @@ export function resetDailyActionState(state: GameState): GameState {
   s.actionPointsMax = maxAp;
   s.actionPointsCurrent = maxAp;
   s.selectedActionsToday = [];
+  s.crisisLoanBlockedToday = false; // 新的一天解除"被拒禁用"标记
   const next: Record<string, number> = {};
   for (const [k, v] of Object.entries(s.actionCooldowns ?? {})) {
     if (v > s.day) next[k] = v;

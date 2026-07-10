@@ -60,6 +60,8 @@ export interface CrisisActionDef {
   name: string;
   effect: string;
   risk: string;
+  /** 可选：累计使用上限（防无限拖延）。不写则视为无限（见 getCrisisActionMaxUses）。 */
+  maxUses?: number;
 }
 
 /** 真实债务渠道。 */

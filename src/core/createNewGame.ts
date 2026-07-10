@@ -38,6 +38,8 @@ export interface OpeningConfig {
   storeName: string;
   tutorialSeen?: boolean;
   seed?: number;
+  /** 起手资金（开局页随机生成，5000–20万）；不传则回落到 randomInitialCash()。 */
+  initialCash?: number;
 }
 
 // 开局默认决策（开局仅选 5 项，其余每日在决策面板调整）
@@ -49,6 +51,7 @@ const INITIAL_CREDIT = 70;
 
 /** 创建新游戏状态（统一 10 万起手 + setup 超额一次性自动贷款）。 */
 export function createNewGame(cfg: OpeningConfig, rng: RNG): GameState {
+  const initialCash = cfg.initialCash ?? INITIAL_CASH;
   const loc = getLocationProfile(cfg.locationType);
   const sp = getStoreProfile(cfg.storeType);
   const rent = loc.baseMonthlyRent;
@@ -59,9 +62,9 @@ export function createNewGame(cfg: OpeningConfig, rng: RNG): GameState {
   const setupCost =
     decorationCost + deposit + OPENING_INVENTORY_COST + LOCATION_TRANSFER_FEE[cfg.locationType];
   // 超额 → 一次性自动贷款（仅 setup，绝不在天里弹窗）
-  const over = Math.max(0, setupCost - INITIAL_CASH);
+  const over = Math.max(0, setupCost - initialCash);
   const loans: Loan[] = over > 0 ? [computeSetupLoan(over)] : [];
-  const cash = INITIAL_CASH - setupCost + over; // over>0 时等价于 0，over=0 时为 10万内自付后的余量
+  const cash = initialCash - setupCost + over; // over>0 时等价于 0，over=0 时为起手资金内自付后的余量
   const debt = loans.reduce((s, l) => s + l.balance, 0);
   const monthlyRepayment = Math.round(
     loans.reduce((s, l) => s + (l.balance * l.apr) / MONTHLY_INTEREST_DIVISOR, 0),
@@ -191,6 +194,11 @@ export function createNewGame(cfg: OpeningConfig, rng: RNG): GameState {
     predatoryLoanCount: 0,
     bailoutRateMultiplier: 1,
     crisisLoanCount: 0,
+    // —— 本次增量字段（危机应对次数上限 + 亲友借款尝试计数）——
+    crisisActionUsed: {},
+    friendLoanAttempts: 0,
+    friendLoanSuccessCount: 0,
+    crisisLoanBlockedToday: false,
     staffNotifications: [],
   };
 

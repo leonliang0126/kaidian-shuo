@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import clsx from 'clsx';
 
 interface ModalProps {
@@ -10,10 +11,25 @@ interface ModalProps {
   dismissable?: boolean;
 }
 
-/** 弹窗壳（移动端底部抽屉式 + 桌面居中）。 */
+/** 弹窗壳（移动端底部抽屉式 + 桌面居中）。
+ *  通过 createPortal 渲染到 document.body，并在打开时锁定 <body> 背景滚动，
+ *  修复移动端（尤其 iOS Safari）页面滚动时 fixed 弹窗漂移的问题。
+ */
 export function Modal({ open, title, onClose, children, dismissable = true }: ModalProps) {
+  // 打开时锁定背景滚动；卸载/关闭时恢复。SSR/测试环境（无 document）做空值守卫。
+  useEffect(() => {
+    if (!open) return;
+    if (typeof document === 'undefined') return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open]);
+
   if (!open) return null;
-  return (
+
+  const content = (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center"
       onClick={() => {
@@ -36,4 +52,8 @@ export function Modal({ open, title, onClose, children, dismissable = true }: Mo
       </div>
     </div>
   );
+
+  // SSR / 测试环境无 document.body 时直接渲染（避免 portal 崩溃）
+  if (typeof document === 'undefined') return content;
+  return createPortal(content, document.body);
 }

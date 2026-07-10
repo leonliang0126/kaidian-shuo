@@ -66,9 +66,9 @@ describe('危机贷款（takeCrisisLoan）', () => {
   it('续命金额 = max(0,−cash) + buffer，并扣 1 行动点', () => {
     const s = base();
     s.cash = -20000;
-    const r = takeCrisisLoan(s, 'bank', () => 0.5);
+    const { state: r } = takeCrisisLoan(s, 'bank', () => 0.5);
     const need = 20000 + CRISIS_LOAN_BUFFER;
-    expect(r.cash).toBe(s.cash + need); // -20000 + 30000 = 10000
+    expect(r.cash).toBe(s.cash + need); // -20000 + (20000 + 30000 buffer) = 30000
     expect(r.loans[0].balance).toBe(need);
     expect(r.actionPointsCurrent).toBe(s.actionPointsCurrent - 1);
     expect(r.debt).toBe(need);
@@ -76,8 +76,8 @@ describe('危机贷款（takeCrisisLoan）', () => {
   });
 
   it('渠道决定月供利率（高利贷 > 民间）', () => {
-    const bank = takeCrisisLoan(base(), 'bank', () => 0.5);
-    const pred = takeCrisisLoan(base(), 'predatory', () => 0.5);
+    const { state: bank } = takeCrisisLoan(base(), 'bank', () => 0.5);
+    const { state: pred } = takeCrisisLoan(base(), 'predatory', () => 0.5);
     expect(bank.monthlyRepayment).toBeLessThan(pred.monthlyRepayment);
   });
 });

@@ -280,11 +280,19 @@ export interface GameState {
   cumulativeNetProfit: number; // 累计净利（仅 EndingScreen 数据回顾）
   eventWeightMods: Record<string, number>; // 行动事件权重累加器（→ eventEngine 选池偏置）
   // —— 贷款子系统增量字段（INCREMENTAL_LOANFIX）——
-  autoBailoutCount: number; // 自动银行兜底已使用次数（0–2）；仅 cash<0 自动兜底成功 +1
+  autoBailoutCount: number; // [已废弃] 原自动银行兜底计数；现取消自动兜底，保留仅为旧档兼容，固定为 0，不再自增/不参与门控
   predatoryLoanCount: number; // 已借高利贷笔数（利率飙升计数器，逻辑真相源）
   bailoutRateMultiplier: number; // 下一笔高利贷相对基准利率乘子 = PREDATORY_APR_ESCALATION ^ predatoryLoanCount
   /** 累计危机借款次数（含自动兜底 + 手动危机贷）。前 2 次不触发 80% 上限判断，第 3 次起才判断。 */
   crisisLoanCount: number;
+  /** 危机应对行动已用次数（防无限拖延）：id → 次数。temporary_price_increase / close_shop 不设上限。 */
+  crisisActionUsed?: Record<string, number>;
+  /** 亲友借款尝试次数（含失败）：每次尝试都计入（成败都算），仅用于展示"第 N 次"。 */
+  friendLoanAttempts?: number;
+  /** 亲友成功借款次数：驱动拒绝率升档（成功 0 次=30% / 1 次=70% / 2 次+=95%；被拒不计入成功次数）。 */
+  friendLoanSuccessCount?: number;
+  /** 危机借款被拒绝后，当天禁止再次发起危机借款（次日 beginDay / resetDailyActionState 重置为 false）。 */
+  crisisLoanBlockedToday: boolean;
   /** 员工事件通知（离职/罢工/士气警告等），每次 endDay 生成，打开员工页后清空。 */
   staffNotifications: string[];
 }

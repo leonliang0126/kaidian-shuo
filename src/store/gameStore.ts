@@ -24,13 +24,16 @@ import { runMonthSettlement, applyMonthOption } from '../core/monthlyReport';
 import { createNewGame, type OpeningConfig } from '../core/createNewGame';
 import {
   saveGame,
-  loadGame,
+  loadGameRespectingBuild,
   isTutorialSeen,
   setTutorialSeen,
   clearSave,
   clearTutorialSeen,
 } from '../core/storage';
 import { getDecisionEffects, getOption } from '../data/decisionOptions';
+import { getCrisisActionMaxUses } from '../data/crisisActionDefs';
+import { LOAN_STORIES, pickStory, fillStory } from '../data/loanStories';
+import { fmtMoney, fmtSignedMoney } from '../utils/format';
 import { stabilityToBaseQuality, BATCH_CYCLE } from '../data/supplierStability';
 import { isMonthEnd, monthOfDay, clamp } from '../utils/constants';
 import {
@@ -40,8 +43,7 @@ import {
   resetDailyActionState,
 } from '../core/actionSystem';
 import { applyEventShock } from '../core/eventVisibleShock';
-import { takeCrisisLoan as takeLoanCore, canTakeCrisisLoan } from '../core/loanSystem';
-import { AUTO_BAILOUT_MAX } from '../data/setupCosts';
+import { takeCrisisLoan as takeLoanCore, canTakeCrisisLoan, isBankPrivateLocked } from '../core/loanSystem';
 import { applySegmentModulation } from '../core/segmentProfiles';
 import { rollBatchIfDue, batchQualityMods } from '../core/supplierStability';
 import { decayHeat, computeRepurchase } from '../core/repurchaseHeat';
@@ -73,6 +75,10 @@ interface GameStore {
   eventModal: EventDef | null;
   resolvedEvent: { event: EventDef; option: EventOption } | null;
   crisisOpen: boolean;
+  /** 顶部/底部短暂提示（借款/危机行动结果），约 2.5s 自动消失后由 Toast 组件调用 clearToast 清除。 */
+  toast: { type: 'success' | 'fail' | 'info'; msg: string } | null;
+  /** 叙事卡片（借款/危机应对的逐字故事），点击遮罩关闭；与 toast 并存不冲突。 */
+  story: { text: string; tone: 'success' | 'fail' | 'info' } | null;
   settlementModal: DailyResult | null;
   monthModal: MonthlyReport | null;
   lastEnding: EndingResult | null;
@@ -92,6 +98,8 @@ interface GameStore {
   chooseFocus: (focusId: string | null) => void;
   takeCrisisLoan: (kind: LoanChannel) => void;
   takeCrisisAction: (crisisId: string) => void;
+  clearToast: () => void;
+  dismissStory: () => void;
   endDay: () => void;
   closeSettlement: () => void;
   chooseMonthOption: (optionId: string) => void;
@@ -126,19 +134,9 @@ function beginDay(state: GameState): Partial<GameStore> {
   s = resetDailyActionState(s);
   s.dayModifiers = emptyModifiers();
 
-  // 现金流危机（cash<0）：自动兜底限次 / 否则强制弹危机面板
+  // 现金流危机（cash<0）：取消自动兜底，直接弹完整危机面板让玩家自己选
   if (s.cash < 0) {
-    // 前 AUTO_BAILOUT_MAX 次自动银行 4% 兜底，不弹面板、扣 1 行动点、autoBailoutCount+1
-    if (s.autoBailoutCount < AUTO_BAILOUT_MAX) {
-      s = takeLoanCore(s, 'bank', rng);
-      s.autoBailoutCount += 1;
-      s.netWorth = computeNetWorth(s);
-      s.bossStrain = s.softHidden.ownerFatigue;
-      // 兜底成功：现金回正，继续正常抽事件（不弹面板）
-    } else {
-      // 兜底已用尽：强制弹危机面板（仅允许高利贷）
-      return commit(s, { crisisOpen: true, eventModal: null, resolvedEvent: null });
-    }
+    return commit(s, { crisisOpen: true, eventModal: null, resolvedEvent: null });
   }
 
   // 抽普通事件
@@ -172,22 +170,8 @@ function proceedAfterSettlement(state: GameState): Partial<GameStore> {
     s.gameOver = true;
     return commit(s, { lastEnding: ending, crisisOpen: false });
   }
-  // 2) 现金流危机（cash<0）：自动兜底限次 / 否则强制弹危机面板
+  // 2) 现金流危机（cash<0）：取消自动兜底，直接弹完整危机面板让玩家自己选
   if (state.cash < 0) {
-    // 前 AUTO_BAILOUT_MAX 次自动银行 4% 兜底，不弹面板，回正后继续月结/进入下一天
-    if (state.autoBailoutCount < AUTO_BAILOUT_MAX) {
-      let s = takeLoanCore(state, 'bank', rng);
-      s.autoBailoutCount += 1;
-      s.netWorth = computeNetWorth(s);
-      s.bossStrain = s.softHidden.ownerFatigue;
-      // 兜底成功：继续月结或进入下一天（与下方 3/4 同款推进）
-      if (isMonthEnd(s.day)) {
-        const { state: ms, report } = runMonthSettlement(s, rng);
-        return commit(ms, { monthModal: report });
-      }
-      return advanceDayState(s);
-    }
-    // 兜底已用尽：强制弹危机面板（仅允许高利贷）
     return commit(state, { crisisOpen: true });
   }
   // 3) 月结
@@ -209,12 +193,36 @@ function advanceDayState(state: GameState): Partial<GameStore> {
   return beginDay(s);
 }
 
+// 危机应对行动结果 toast 文案（按行动 id 给一句简短提示）
+const CRISIS_ACTION_LABEL: Record<string, string> = {
+  sell_equipment: '变卖设备',
+  clearance_sale: '清仓促销',
+  delay_rent: '拖欠房租',
+  delay_supplier_payment: '拖欠供应商',
+  layoff: '裁员',
+};
+
+/** 根据危机行动 id 与现金变动，拼出一句结果 toast（close_shop 走结局不弹）。 */
+function crisisActionToast(
+  id: string,
+  cashDelta: number,
+): { type: 'success' | 'fail' | 'info'; msg: string } | null {
+  if (id === 'close_shop') return null; // 收店走结局屏，不弹 toast
+  if (id === 'temporary_price_increase') {
+    return { type: 'info', msg: '临时提价生效（转化 −4%）' };
+  }
+  const label = CRISIS_ACTION_LABEL[id] ?? '危机应对';
+  return { type: cashDelta > 0 ? 'success' : 'info', msg: `${label} ${fmtSignedMoney(cashDelta)}` };
+}
+
 export const useGameStore = create<GameStore>((set, get) => ({
   phase: 'tutorial',
   game: null,
   eventModal: null,
   resolvedEvent: null,
   crisisOpen: false,
+  toast: null,
+  story: null,
   settlementModal: null,
   monthModal: null,
   lastEnding: null,
@@ -223,7 +231,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   hirePageOpen: false,
 
   init: () => {
-    const save = loadGame();
+    const save = loadGameRespectingBuild();
     if (save) {
       rng = createRng(save.seed);
       set({ game: save, phase: 'playing' });
@@ -239,7 +247,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   dismissTutorial: (neverShow) => {
     if (neverShow) setTutorialSeen(true);
-    const save = loadGame();
+    const save = loadGameRespectingBuild();
     if (save) {
       rng = createRng(save.seed);
       set({ game: save, phase: 'playing' });
@@ -332,31 +340,133 @@ export const useGameStore = create<GameStore>((set, get) => ({
   takeCrisisLoan: (kind) => {
     const g = get().game;
     if (!g) return;
+    // 锁死分支：银行/亲友借满 CRISIS_LOAN_BANK_CUTOFF 笔后点按钮直接弹"风控拒/彻底拒绝"故事，不借款
+    if (kind === 'bank' && isBankPrivateLocked(g)) {
+      set({ story: { text: pickStory(LOAN_STORIES.bank.reject), tone: 'info' }, crisisOpen: false });
+      return;
+    }
+    if (kind === 'private' && isBankPrivateLocked(g)) {
+      set({ story: { text: pickStory(LOAN_STORIES.private.reject2), tone: 'fail' }, crisisOpen: false });
+      return;
+    }
     // 玩家手动发起：强制 80% 净资上限校验（含 AP 校验；setup 一次性贷款/自动兜底不受此限）
     const check = canTakeCrisisLoan(g, kind);
-    if (!check.ok) return; // 上限命中或 AP 耗尽：拒绝（UI 已禁用对应按钮）
-    let s = takeLoanCore(g, kind, rng);
-    s.netWorth = computeNetWorth(s);
-    s.bossStrain = s.softHidden.ownerFatigue;
-    const closed = s.cash >= 0;
-    set(commit(s, { crisisOpen: closed ? false : true }));
+    if (!check.ok) return; // 上限命中或 AP 耗尽：拒绝（UI 已禁用对应按钮，无故事/无 toast）
+
+    const { state: ns, result } = takeLoanCore(g, kind, rng);
+    ns.netWorth = computeNetWorth(ns);
+    ns.bossStrain = ns.softHidden.ownerFatigue;
+
+    // 通道文案标签
+    const channelLabel = kind === 'bank' ? '银行' : kind === 'private' ? '亲友' : '周转';
+
+    // —— 选故事 + toast 摘要 ——
+    let storyText = '';
+    let tone: 'success' | 'fail' | 'info' = 'info';
+    let toastType: 'success' | 'fail' | 'info' = 'info';
+    let summary = '';
+
+    if (result.rejected) {
+      // 亲友拒绝（成功次数决定档位故事）或 高利贷无油水拒
+      if (kind === 'private') {
+        const sc = result.successCount ?? g.friendLoanSuccessCount ?? 0;
+        storyText =
+          sc >= 2
+            ? pickStory(LOAN_STORIES.private.reject2)
+            : sc === 1
+              ? pickStory(LOAN_STORIES.private.reject1)
+              : pickStory(LOAN_STORIES.private.reject0);
+        tone = 'fail';
+      } else {
+        // predatory 无油水拒
+        storyText = pickStory(LOAN_STORIES.predatory.reject);
+        tone = 'fail';
+      }
+      summary = `${channelLabel}拒绝借款`;
+      toastType = 'fail';
+      // Bug 1：被拒后当天禁用危机借款（次日 resetDailyActionState 重置），并关闭面板回游戏页
+      ns.crisisLoanBlockedToday = true;
+    } else {
+      // 成功借款（动态金额插值：文案说的金额 = 实际到账金额）
+      if (kind === 'bank') {
+        storyText = fillStory(pickStory(LOAN_STORIES.bank.success), result.amount);
+        tone = 'success';
+        toastType = 'success';
+      } else if (kind === 'private') {
+        storyText = fillStory(pickStory(LOAN_STORIES.private.success), result.amount);
+        tone = 'success';
+        toastType = 'success';
+      } else {
+        storyText = fillStory(pickStory(LOAN_STORIES.predatory.success), result.amount);
+        tone = 'fail'; // 高利贷提示风险
+        toastType = 'fail';
+      }
+      summary = `${channelLabel}借款到账 +¥${fmtMoney(result.amount)}（周息 ${Math.round(result.apr * 100)}%）`;
+    }
+
+    // Bug 5：任意危机选项结算后一律关闭危机面板，由 StoryCard 在游戏页之上展示故事
+    set(
+      commit(ns, {
+        crisisOpen: false,
+        toast: { type: toastType, msg: summary },
+        story: { text: storyText, tone },
+      }),
+    );
   },
 
   takeCrisisAction: (crisisId) => {
     const g = get().game;
     if (!g) return;
+    // Bug 5：零员工时裁员不可用（不执行、不计数，仅提示并保留面板供改选）
+    if (crisisId === 'layoff') {
+      const noEmployees = (g.stores[0]?.employees?.length ?? 0) === 0;
+      if (noEmployees) {
+        set({
+          toast: { type: 'info', msg: '店里已无员工可裁' },
+          story: { text: '店里已无员工可裁，裁员无从谈起。', tone: 'info' },
+        });
+        return;
+      }
+    }
+    // 防无限拖延：有限次数的应对行动用尽后直接拦截
+    const maxUses = getCrisisActionMaxUses(crisisId);
+    if (maxUses !== Infinity && (g.crisisActionUsed?.[crisisId] ?? 0) >= maxUses) {
+      return; // 已用尽，不再执行
+    }
     const res = applyCrisisAction(g, crisisId, rng);
     let s = res.state;
+    // 更新使用计数（id → 次数）
+    s.crisisActionUsed = {
+      ...(s.crisisActionUsed ?? {}),
+      [crisisId]: (s.crisisActionUsed?.[crisisId] ?? 0) + 1,
+    };
     s.netWorth = computeNetWorth(s);
     s.bossStrain = s.softHidden.ownerFatigue;
     if (crisisId === 'close_shop') {
-      // 主动关店 → 进入结局判定（不结束存档）
+      // 主动关店 → 进入结局判定（不结束存档，走结局屏，不弹故事）
       set(commit(s, { crisisOpen: false }));
       set(proceedAfterSettlement(s));
       return;
     }
-    const closed = s.cash >= 0;
-    set(commit(s, { crisisOpen: closed ? false : true }));
+    // 拼装结果 toast（按行动效果给一句提示）
+    const cashDelta = s.cash - g.cash;
+    const toast = crisisActionToast(crisisId, cashDelta);
+    // 危机应对行动故事（close_shop 走结局不弹；其余在 LOAN_STORIES.action 表内的弹叙事卡片）
+    const actionStory = (LOAN_STORIES.action as Record<string, readonly string[]>)[crisisId];
+    const story =
+      actionStory && actionStory.length > 0
+        ? { text: pickStory(actionStory), tone: 'info' as const }
+        : null;
+    // Bug 5：一律关闭危机面板，由 StoryCard 在游戏页之上展示故事
+    set(commit(s, { crisisOpen: false, toast, story }));
+  },
+
+  clearToast: () => {
+    set({ toast: null });
+  },
+
+  dismissStory: () => {
+    set({ story: null });
   },
 
   endDay: () => {
@@ -559,6 +669,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       settlementModal: null,
       monthModal: null,
       lastEnding: null,
+      toast: null,
+      story: null,
       candidates: [],
       staffPageOpen: false,
       hirePageOpen: false,

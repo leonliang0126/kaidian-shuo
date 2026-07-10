@@ -4,6 +4,7 @@
 import raw from './crisis-actions.v0.2.json';
 import type { CrisisActionDef } from '../types/actions';
 import type { EffectObject } from '../types/events';
+import { CRISIS_ACTION_MAX_USES } from './setupCosts';
 
 export const CRISIS_ACTIONS = raw as unknown as CrisisActionDef[];
 
@@ -52,4 +53,12 @@ export function getCrisisActionEffect(id: string): EffectObject | undefined {
 /** 是否为"危机贷款"类行动（由 loanSystem 处理）。 */
 export function isCrisisLoan(id: string): boolean {
   return id === 'bank_loan' || id === 'friend_family_loan' || id === 'micro_loan';
+}
+
+/**
+ * 返回某危机应对行动（非贷款）的累计使用上限。
+ * 查表 CRISIS_ACTION_MAX_USES；不在表中（如 temporary_price_increase / close_shop）返回 Infinity（无限/始终可用）。
+ */
+export function getCrisisActionMaxUses(id: string): number {
+  return CRISIS_ACTION_MAX_USES[id] ?? Infinity;
 }

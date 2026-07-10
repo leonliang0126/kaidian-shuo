@@ -14,12 +14,19 @@ import {
   takeCrisisLoan,
   isCrisisLoanOverCap,
   canTakeCrisisLoan,
+  isBankPrivateLocked,
 } from '../src/core/loanSystem';
 import {
   predatoryLoanApr,
   PREDATORY_APR_ESCALATION,
-  AUTO_BAILOUT_MAX,
+  CRISIS_LOAN_BANK_CUTOFF,
+  PREDATORY_REJECT_CUTOFF,
+  FRIEND_LOAN_MIN,
+  FRIEND_LOAN_MAX,
+  LOAN_SHARK_MIN,
+  LOAN_SHARK_MAX,
 } from '../src/data/setupCosts';
+import { getCrisisActionMaxUses } from '../src/data/crisisActionDefs';
 import { CASH_NEGATIVE_STREAK_BANKRUPTCY } from '../src/data/endingTriggers';
 import type { GameState } from '../src/types';
 
@@ -35,39 +42,69 @@ function fresh(): GameState {
   return createNewGame(cfg, createRng(cfg.seed));
 }
 
-describe('① 自动兜底限次（gameLoop F001 分支）', () => {
-  it('前 2 次 cash<0 自动银行兜底并 autoBailoutCount+1；第 3 次起不再兜底', () => {
-    // 并行对照：同一前置负现金状态，一份 autoBailoutCount=0（兜底），一份 =2（不兜底）
-    const rngA = createRng(11);
-    const rngB = createRng(11);
+describe('① cash<0 不再自动银行兜底（runDailyLoop 死代码一致性清理）', () => {
+  it('runDailyLoop 对 cash<0 不再自动银行兜底：不写贷款、autoBailoutCount 不变', () => {
+    const pre = fresh();
+    pre.cash = -50000;
+    pre.autoBailoutCount = 0;
 
-    const preBail = fresh();
-    preBail.cash = -50000;
-    preBail.autoBailoutCount = 0;
+    const r = runDailyLoop(pre, createRng(11)).state;
 
-    const preNoBail = fresh();
-    preNoBail.cash = -50000;
-    preNoBail.autoBailoutCount = 2;
-
-    const rBail = runDailyLoop(preBail, rngA).state;
-    const rNoBail = runDailyLoop(preNoBail, rngB).state;
-
-    expect(rBail.autoBailoutCount).toBe(1); // 兜底成功 +1
-    expect(rNoBail.autoBailoutCount).toBe(2); // 已达上限，不再 +1
-    // 兜底注入 need = max(0,50000) + buffer(10000) = 60000 现金；不兜底则无 → 现金恰好差 60000
-    const buffer = 10000;
-    expect(rNoBail.cash).toBe(rBail.cash - (50000 + buffer));
-    // 兜底多写入一笔银行贷款
-    expect(rNoBail.loans.length).toBe(rBail.loans.length - 1);
+    // 取消自动兜底：不偷偷写入任何银行贷款
+    expect(r.loans.length).toBe(0);
+    // autoBailoutCount 不再自增（保持 0）
+    expect(r.autoBailoutCount).toBe(0);
   });
 
-  it('连续 cash<0 多天：autoBailoutCount 仅前 2 次递增，之后停在 2', () => {
-    let state = fresh();
-    for (let i = 0; i < 5; i++) {
-      state.cash = -30000; // 每天强制负现金
-      state = runDailyLoop(state, createRng(100 + i)).state;
-    }
-    expect(state.autoBailoutCount).toBe(AUTO_BAILOUT_MAX); // 停在 2
+  it('并行对照：cash<0 与 cash>=0 的 runDailyLoop 均不写"自动兜底"贷款', () => {
+    const neg = fresh();
+    neg.cash = -30000;
+    const pos = fresh();
+    pos.cash = 1000;
+    const rNeg = runDailyLoop(neg, createRng(200)).state;
+    const rPos = runDailyLoop(pos, createRng(200)).state;
+    // clean 配置无 setup 贷款；两份均不写自动兜底贷款
+    expect(rNeg.loans.length).toBe(0);
+    expect(rPos.loans.length).toBe(0);
+    expect(rNeg.autoBailoutCount).toBe(0);
+  });
+});
+
+describe('①b 危机门控：第 3 次危机起银行/亲友禁用（isBankPrivateLocked / CRISIS_LOAN_BANK_CUTOFF）', () => {
+  it('CRISIS_LOAN_BANK_CUTOFF = 2：前 2 次危机可选银行/亲友，第 3 次起锁定', () => {
+    expect(CRISIS_LOAN_BANK_CUTOFF).toBe(2);
+  });
+
+  it('crisisLoanCount 0/1 → 不锁定（银行/亲友可选）；2/3 → 锁定（仅高利贷）', () => {
+    const s0 = fresh();
+    s0.crisisLoanCount = 0;
+    expect(isBankPrivateLocked(s0)).toBe(false);
+
+    const s1 = fresh();
+    s1.crisisLoanCount = 1;
+    expect(isBankPrivateLocked(s1)).toBe(false);
+
+    const s2 = fresh();
+    s2.crisisLoanCount = 2;
+    expect(isBankPrivateLocked(s2)).toBe(true);
+
+    const s3 = fresh();
+    s3.crisisLoanCount = 3;
+    expect(isBankPrivateLocked(s3)).toBe(true);
+  });
+
+  it('连续危机借款 → crisisLoanCount 递增，满 2 笔后第 3 次危机银行/亲友禁用', () => {
+    let s = fresh();
+    // 第 1 次危机借款（银行）
+    s.cash = -1000;
+    s = takeCrisisLoan(s, 'bank', () => 0.5).state;
+    expect(s.crisisLoanCount).toBe(1);
+    expect(isBankPrivateLocked(s)).toBe(false);
+    // 第 2 次危机借款（亲友）
+    s.cash = -1000;
+    s = takeCrisisLoan(s, 'private', () => 0.5).state;
+    expect(s.crisisLoanCount).toBe(2);
+    expect(isBankPrivateLocked(s)).toBe(true); // 第 3 次危机起银行/亲友禁用
   });
 });
 
@@ -83,7 +120,7 @@ describe('② 高利贷利率递增', () => {
     let s = fresh();
     s.cash = -1000;
 
-    const r1 = takeCrisisLoan(s, 'predatory', () => 0.5);
+    const { state: r1 } = takeCrisisLoan(s, 'predatory', () => 0.5);
     expect(r1.loans[r1.loans.length - 1].apr).toBeCloseTo(0.36, 4);
     expect(r1.loans[r1.loans.length - 1].loanNo).toBe(1);
     expect(r1.predatoryLoanCount).toBe(1);
@@ -91,7 +128,7 @@ describe('② 高利贷利率递增', () => {
 
     s = r1;
     s.cash = -1000;
-    const r2 = takeCrisisLoan(s, 'predatory', () => 0.5);
+    const { state: r2 } = takeCrisisLoan(s, 'predatory', () => 0.5);
     expect(r2.loans[r2.loans.length - 1].apr).toBeCloseTo(0.54, 4);
     expect(r2.loans[r2.loans.length - 1].loanNo).toBe(2);
     expect(r2.predatoryLoanCount).toBe(2);
@@ -99,7 +136,7 @@ describe('② 高利贷利率递增', () => {
 
     s = r2;
     s.cash = -1000;
-    const r3 = takeCrisisLoan(s, 'predatory', () => 0.5);
+    const { state: r3 } = takeCrisisLoan(s, 'predatory', () => 0.5);
     expect(r3.loans[r3.loans.length - 1].apr).toBeCloseTo(0.81, 4);
     expect(r3.loans[r3.loans.length - 1].loanNo).toBe(3);
     expect(r3.predatoryLoanCount).toBe(3);
@@ -111,7 +148,7 @@ describe('② 高利贷利率递增', () => {
     const s = fresh();
     s.cash = -1000;
     s.predatoryLoanCount = 5; // 即便高利贷计数很高，bank 仍按 4%
-    const r = takeCrisisLoan(s, 'bank', () => 0.5);
+    const { state: r } = takeCrisisLoan(s, 'bank', () => 0.5);
     expect(r.loans[r.loans.length - 1].apr).toBeCloseTo(0.04, 4);
     expect(r.predatoryLoanCount).toBe(5); // 未改变
   });
@@ -325,3 +362,136 @@ describe('⑤ 旧档迁移（缺 3 字段）', () => {
     expect(typeof migrated.loans).toBe('object');
   });
 });
+
+describe('⑥ 亲友借款：拒绝率按成功次数升档（修复"被拒不升档"bug）', () => {
+  it('成功时随机借到 5千–5万，且 cash 可能仍为负（缺口大时填不平）', () => {
+    const s = fresh();
+    s.cash = -200000; // 缺口极大，随机借款不足以填平
+    const { state, result } = takeCrisisLoan(s, 'private', () => 0.99); // 0.99 必成功
+    expect(result.ok).toBe(true);
+    expect(result.rejected).toBeFalsy();
+    expect(result.amount).toBeGreaterThanOrEqual(FRIEND_LOAN_MIN);
+    expect(result.amount).toBeLessThanOrEqual(FRIEND_LOAN_MAX);
+    expect(state.cash).toBe(s.cash + result.amount); // 仍为负
+    expect(state.cash).toBeLessThan(0);
+    expect(state.crisisLoanCount).toBe(1); // 成功才 +1
+    expect(state.friendLoanAttempts).toBe(1); // 尝试计入
+    expect(state.friendLoanSuccessCount).toBe(1); // 成功才 +1
+  });
+
+  it('成功 0 次：rng<0.3 拒绝（且 successCount=0，不借钱/不增计数/不增成功次数）；rng>=0.3 成功', () => {
+    // 拒绝路径：rng()=0.01 → 0.01 < 0.3 → 拒绝
+    let s = fresh();
+    s.cash = -1000;
+    const rej = takeCrisisLoan(s, 'private', () => 0.01);
+    expect(rej.result.ok).toBe(false);
+    expect(rej.result.rejected).toBe(true);
+    expect(rej.result.successCount).toBe(0);
+    expect(rej.state.cash).toBe(-1000); // 现金不变
+    expect(rej.state.crisisLoanCount).toBe(0); // 不增
+    expect(rej.state.friendLoanSuccessCount).toBe(0); // 成功次数不变
+    expect(rej.state.friendLoanAttempts).toBe(1); // 仍计入尝试
+
+    // 成功路径：rng()=0.99 → 0.99 >= 0.3 → 成功
+    s = fresh();
+    s.cash = -1000;
+    const ok = takeCrisisLoan(s, 'private', () => 0.99);
+    expect(ok.result.ok).toBe(true);
+    expect(ok.result.rejected).toBeFalsy();
+    expect(ok.state.friendLoanAttempts).toBe(1);
+    expect(ok.state.friendLoanSuccessCount).toBe(1);
+    expect(ok.state.crisisLoanCount).toBe(1);
+  });
+
+  it('被拒不升档：连续 3 次被拒，successCount 始终 0、拒绝率恒定 0.3、crisisLoanCount 不变', () => {
+    let s = fresh();
+    s.cash = -1000;
+    for (let i = 1; i <= 3; i++) {
+      const r = takeCrisisLoan(s, 'private', () => 0.01); // 0.01 < 0.3 必拒
+      expect(r.result.rejected).toBe(true);
+      expect(r.result.successCount).toBe(0);
+      expect(r.state.friendLoanSuccessCount).toBe(0); // 成功次数不变（被拒不升档）
+      expect(r.state.friendLoanAttempts).toBe(i); // 尝试每次 +1
+      expect(r.state.crisisLoanCount).toBe(0); // 不增
+      s = r.state;
+    }
+  });
+
+  it('成功 1 次后拒绝率升至 70%（successCount=1）：rng=0.5 拒绝、不升档', () => {
+    let s = fresh();
+    s.cash = -1000;
+    s = takeCrisisLoan(s, 'private', () => 0.99).state; // 成功，successCount=1
+    expect(s.friendLoanSuccessCount).toBe(1);
+    const r = takeCrisisLoan(s, 'private', () => 0.5); // 0.5 < 0.7 → 拒绝
+    expect(r.result.rejected).toBe(true);
+    expect(r.result.successCount).toBe(1);
+    expect(r.state.friendLoanSuccessCount).toBe(1); // 不升档
+    expect(r.state.friendLoanAttempts).toBe(2);
+  });
+
+  it('成功 2 次后拒绝率升至 95%（successCount>=2）：rng=0.9 拒绝、不升档', () => {
+    let s = fresh();
+    s.cash = -1000;
+    s = takeCrisisLoan(s, 'private', () => 0.99).state; // successCount=1
+    s = takeCrisisLoan(s, 'private', () => 0.99).state; // successCount=2
+    expect(s.friendLoanSuccessCount).toBe(2);
+    const r = takeCrisisLoan(s, 'private', () => 0.9); // 0.9 < 0.95 → 拒绝
+    expect(r.result.rejected).toBe(true);
+    expect(r.result.successCount).toBe(2);
+    expect(r.state.friendLoanSuccessCount).toBe(2); // 不升档
+  });
+});
+
+describe('⑨ 高利贷"无油水拒"：借满 PREDATORY_REJECT_CUTOFF 笔后第 4 次被拒', () => {
+  it('PREDATORY_REJECT_CUTOFF = 3：前 3 笔可借，第 4 笔无油水拒（不借钱/不增计数/不写 Loan）', () => {
+    expect(PREDATORY_REJECT_CUTOFF).toBe(3);
+
+    let s = fresh();
+    // 前 3 笔正常借到
+    for (let i = 1; i <= PREDATORY_REJECT_CUTOFF; i++) {
+      s.cash = -1000;
+      const { state, result } = takeCrisisLoan(s, 'predatory', () => 0.5);
+      expect(result.ok).toBe(true);
+      expect(result.rejected).toBeFalsy();
+      expect(state.predatoryLoanCount).toBe(i);
+      s = state;
+    }
+    expect(s.predatoryLoanCount).toBe(PREDATORY_REJECT_CUTOFF);
+    const loansBefore = s.loans.length;
+
+    // 第 4 笔：无油水拒
+    s.cash = -1000;
+    const rej = takeCrisisLoan(s, 'predatory', () => 0.5);
+    expect(rej.result.ok).toBe(false);
+    expect(rej.result.rejected).toBe(true);
+    expect(rej.state.predatoryLoanCount).toBe(PREDATORY_REJECT_CUTOFF); // 不增
+    expect(rej.state.loans.length).toBe(loansBefore); // 不写新贷款
+    expect(rej.state.cash).toBe(-1000); // 现金不变
+  });
+});
+
+describe('⑦ 高利贷随机额度', () => {
+  it('predatory amount ∈ [5000,80000] 且 predatoryLoanCount+1', () => {
+    const s = fresh();
+    s.cash = -1000;
+    const { state, result } = takeCrisisLoan(s, 'predatory', () => 0.5);
+    expect(result.amount).toBeGreaterThanOrEqual(LOAN_SHARK_MIN);
+    expect(result.amount).toBeLessThanOrEqual(LOAN_SHARK_MAX);
+    expect(state.predatoryLoanCount).toBe(1);
+    expect(result.apr).toBeCloseTo(0.36, 4);
+  });
+});
+
+describe('⑧ 危机应对行动使用上限映射（getCrisisActionMaxUses）', () => {
+  it('有限/无限映射正确', () => {
+    expect(getCrisisActionMaxUses('sell_equipment')).toBe(1);
+    expect(getCrisisActionMaxUses('clearance_sale')).toBe(1);
+    expect(getCrisisActionMaxUses('delay_rent')).toBe(2);
+    expect(getCrisisActionMaxUses('delay_supplier_payment')).toBe(2);
+    expect(getCrisisActionMaxUses('layoff')).toBe(1);
+    // 不设上限（无限 / 始终可用）
+    expect(getCrisisActionMaxUses('temporary_price_increase')).toBe(Infinity);
+    expect(getCrisisActionMaxUses('close_shop')).toBe(Infinity);
+  });
+});
+

@@ -4,7 +4,15 @@ import { createRng } from '../src/core/rng';
 import { createNewGame } from '../src/core/createNewGame';
 import { takeCrisisLoan, applyMonthlyInterest, prepayLoan } from '../src/core/loanSystem';
 import { takeCrisisAction } from '../src/core/actionSystem';
-import { CRISIS_LOAN_BUFFER, LOAN_APR, MONTHLY_INTEREST_DIVISOR } from '../src/data/setupCosts';
+import {
+  CRISIS_LOAN_BUFFER,
+  LOAN_APR,
+  MONTHLY_INTEREST_DIVISOR,
+  FRIEND_LOAN_MIN,
+  FRIEND_LOAN_MAX,
+  LOAN_SHARK_MIN,
+  LOAN_SHARK_MAX,
+} from '../src/data/setupCosts';
 import type { GameState } from '../src/types';
 
 function freshGame(): GameState {
@@ -18,9 +26,9 @@ function freshGame(): GameState {
 }
 
 describe('危机贷款（takeCrisisLoan）', () => {
-  it('银行贷款：cash↑、债务/月供累加、消耗 1 行动点', () => {
+  it('银行贷款：cash↑、债务/月供累加、消耗 1 行动点（确定性填平缺口）', () => {
     const s = freshGame();
-    const r = takeCrisisLoan(s, 'bank', () => 0.5);
+    const { state: r } = takeCrisisLoan(s, 'bank', () => 0.5);
     const need = 10000 + CRISIS_LOAN_BUFFER; // max(0,−cash)+buffer
     expect(r.cash).toBe(s.cash + need);
     expect(r.loans.length).toBe(1);
@@ -29,12 +37,22 @@ describe('危机贷款（takeCrisisLoan）', () => {
     expect(r.actionPointsCurrent).toBe(s.actionPointsCurrent - 1);
   });
 
-  it('民间/高利贷渠道按各自年利率计月供', () => {
-    const privateR = takeCrisisLoan(freshGame(), 'private', () => 0.5);
-    const predR = takeCrisisLoan(freshGame(), 'predatory', () => 0.5);
-    const need = 10000 + CRISIS_LOAN_BUFFER;
-    expect(privateR.monthlyRepayment).toBe(Math.round((need * LOAN_APR.private) / MONTHLY_INTEREST_DIVISOR));
-    expect(predR.monthlyRepayment).toBe(Math.round((need * LOAN_APR.predatory) / MONTHLY_INTEREST_DIVISOR));
+  it('亲友/高利贷渠道额度随机但落在区间内，月供按各自年利率', () => {
+    const { state: privateR } = takeCrisisLoan(freshGame(), 'private', () => 0.5);
+    const { state: predR } = takeCrisisLoan(freshGame(), 'predatory', () => 0.5);
+    // 亲友随机 5千–5万
+    expect(privateR.loans[0].balance).toBeGreaterThanOrEqual(FRIEND_LOAN_MIN);
+    expect(privateR.loans[0].balance).toBeLessThanOrEqual(FRIEND_LOAN_MAX);
+    // 高利贷随机 5千–8万
+    expect(predR.loans[0].balance).toBeGreaterThanOrEqual(LOAN_SHARK_MIN);
+    expect(predR.loans[0].balance).toBeLessThanOrEqual(LOAN_SHARK_MAX);
+    // 月供按各自年利率
+    expect(privateR.monthlyRepayment).toBe(
+      Math.round((privateR.loans[0].balance * LOAN_APR.private) / MONTHLY_INTEREST_DIVISOR),
+    );
+    expect(predR.monthlyRepayment).toBe(
+      Math.round((predR.loans[0].balance * LOAN_APR.predatory) / MONTHLY_INTEREST_DIVISOR),
+    );
   });
 });
 
@@ -67,7 +85,7 @@ describe('月结月息（applyMonthlyInterest）', () => {
 describe('提前还本（prepayLoan）', () => {
   it('减少余额并扣现金，可清空贷款', () => {
     const s = freshGame();
-    const loan = takeCrisisLoan(s, 'bank', () => 0.5);
+    const { state: loan } = takeCrisisLoan(s, 'bank', () => 0.5);
     const balanceBefore = loan.loans[0].balance;
     const r = prepayLoan(loan, loan.loans[0].id, balanceBefore); // 全额还
     expect(r.loans.length).toBe(0);

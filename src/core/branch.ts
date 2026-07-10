@@ -2,6 +2,9 @@
 import type { GameState, StoreState } from '../types';
 import type { RNG } from './rng';
 import { cloneState } from './effectResolver';
+import { DEPOSIT_MULTIPLIER } from '../utils/constants';
+import { OPENING_INVENTORY_COST } from '../data/setupCosts';
+import { getDecorationCost } from '../data/decisionOptions';
 
 /** 总部日摊成本（架构 §10.4）：storeCount>=3 起算，月 8000 + 每多一店 4000，按 30 天日摊。 */
 export function headquartersDailyCost(storeCount: number): number {
@@ -11,14 +14,21 @@ export function headquartersDailyCost(storeCount: number): number {
   return 0;
 }
 
-/** 单店估值（架构 §10.15）：rent × 6。 */
+/** 单店估值（架构 §10.15）：rent × 6。仅用于银行收店阈值（endingEngine），勿用于净资产。 */
 export function storeValuation(store: StoreState): number {
   return store.rent * 6;
 }
 
-/** 净资产 = cash + Σ估值 − debt。 */
+/** 单店实际可收回资产（用于净资产）：押金 + 首批备货 + 装修投入。 */
+function storeEquityAssets(store: StoreState): number {
+  const deposit = store.rent * DEPOSIT_MULTIPLIER;
+  const decorationValue = getDecorationCost(store.decorationLevel);
+  return deposit + OPENING_INVENTORY_COST + decorationValue;
+}
+
+/** 净资产 = cash + Σ门店实际资产 − debt。 */
 export function computeNetWorth(state: GameState): number {
-  const totalVal = state.stores.reduce((sum, s) => sum + storeValuation(s), 0);
+  const totalVal = state.stores.reduce((sum, s) => sum + storeEquityAssets(s), 0);
   return Math.round(state.cash + totalVal - state.debt);
 }
 

@@ -77,7 +77,7 @@ describe('平衡目标：危机贷款续命 vs 高利贷必死', () => {
       createRng(1),
     );
     s.cash = -20000;
-    const r = takeCrisisLoan(s, 'bank', () => 0.5);
+    const { state: r } = takeCrisisLoan(s, 'bank', () => 0.5);
     expect(r.cash).toBeGreaterThanOrEqual(0); // 续命回正
     expect(r.actionPointsCurrent).toBe(s.actionPointsCurrent - 1);
     // 续命后还能继续跑循环不抛错

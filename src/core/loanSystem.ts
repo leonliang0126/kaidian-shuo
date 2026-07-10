@@ -3,6 +3,7 @@
 // 绝不做每日循环弹窗（见 doc §8.6）。
 import type { GameState } from '../types';
 import type { Loan, LoanChannel, CrisisLoanCheck } from '../types/actions';
+import { randInt } from './rng';
 import type { RNG } from './rng';
 import { cloneState } from './effectResolver';
 import {
@@ -15,6 +16,15 @@ import {
   PREDATORY_APR_ESCALATION,
   CRISIS_LOAN_NETWORTH_CAP_RATIO,
   CRISIS_LOAN_GRACE_COUNT,
+  CRISIS_LOAN_BANK_CUTOFF,
+  PREDATORY_REJECT_CUTOFF,
+  FRIEND_LOAN_MIN,
+  FRIEND_LOAN_MAX,
+  LOAN_SHARK_MIN,
+  LOAN_SHARK_MAX,
+  FRIEND_REJECT_BASE,
+  FRIEND_REJECT_STEP,
+  FRIEND_REJECT_CAP,
 } from '../data/setupCosts';
 import { clamp } from '../utils/constants';
 
@@ -48,42 +58,132 @@ export function computeSetupLoan(over: number): Loan {
   };
 }
 
+/** 危机借款结果（供 store 拼装 toast / 故事 / 决定面板状态）。 */
+export interface CrisisLoanResult {
+  /** 是否成功借到（亲友拒绝 / 高利贷无油水拒时为 false）。 */
+  ok: boolean;
+  /** 拒绝（亲友拒绝 / 高利贷无油水拒，ok=false 时为真）。拒绝时不借钱、不增 crisisLoanCount。 */
+  rejected?: boolean;
+  channel: LoanChannel;
+  /** 实际借到金额（失败为 0）。 */
+  amount: number;
+  /** 该笔利率。 */
+  apr: number;
+  /** 亲友拒绝时的"成功借款次数"档位（0/1/2+），供 store 选对应拒绝故事。成功路径不携带。 */
+  successCount?: number;
+}
+
 /**
  * 危机贷款：仅 cash<0 危机态可用；加现金 + 写 Loan + 扣 1 行动点 → 回到当天。
  * 高利贷（predatory）按飙升公式写入 apr 并递增 predatoryLoanCount / 更新 bailoutRateMultiplier。
+ * 本次增量：
+ *   - 借款额改为随机：bank 仍确定性填平缺口（need = max(0,−cash)+buffer）；
+ *     private 随机 5千–5万；predatory 随机 5千–8万。
+ *   - 亲友（private）拒绝率按"成功借款次数"升档：成功 0 次=30% / 1 次=70% / 2 次+=95% 封顶；
+ *     被拒不升档（被拒不计入成功次数）。每次尝试（无论成败）都计入 friendLoanAttempts；
+ *     拒绝时不借钱、不增 crisisLoanCount、不增 friendLoanSuccessCount、不写 Loan。
+ *   - 高利贷（predatory）借满 PREDATORY_REJECT_CUTOFF 笔后判定"无油水拒"，不借钱、不增计数。
  * 注意：本函数不校验 80% 净资上限——该上限仅约束"玩家在危机面板手动发起"的路径（store action 层），
  * setup 一次性贷款与自动兜底（core 直调本函数）不受此限。
  */
-export function takeCrisisLoan(state: GameState, channel: LoanChannel, _rng: RNG): GameState {
-  const need = Math.max(0, -state.cash) + CRISIS_LOAN_BUFFER;
-  // 高利贷：按已借笔数写入飙升利率，并记录第几笔（UI 文案用）
+export function takeCrisisLoan(
+  state: GameState,
+  channel: LoanChannel,
+  rng: RNG,
+): { state: GameState; result: CrisisLoanResult } {
   const isPredatory = channel === 'predatory';
-  const apr = isPredatory ? predatoryLoanApr(state.predatoryLoanCount) : LOAN_APR[channel];
-  const loanNo = isPredatory ? state.predatoryLoanCount + 1 : undefined;
+  const s = cloneState(state);
+
+  // —— 亲友借款：拒绝率判定（按"成功借款次数"升档，被拒不升档）——
+  if (channel === 'private') {
+    const successCount = s.friendLoanSuccessCount ?? 0;
+    const rejectChance =
+      successCount === 0
+        ? FRIEND_REJECT_BASE
+        : successCount === 1
+          ? FRIEND_REJECT_BASE + FRIEND_REJECT_STEP
+          : FRIEND_REJECT_CAP; // 0.3 / 0.7 / 0.95
+    s.friendLoanAttempts = (s.friendLoanAttempts ?? 0) + 1; // 每次尝试都计入（成败都算）
+    if (rng() < rejectChance) {
+      // 亲友拒绝：不借钱、不增 crisisLoanCount、不增 friendLoanSuccessCount、不写 Loan；
+      // 危机面板保持打开、现金不变。
+      return {
+        state: s,
+        result: {
+          ok: false,
+          rejected: true,
+          channel,
+          amount: 0,
+          apr: LOAN_APR.private,
+          successCount,
+        },
+      };
+    }
+  }
+
+  // —— 成功路径：计算借款额与利率 ——
+  let amount: number;
+  let apr: number;
+  if (channel === 'bank') {
+    // 银行保持确定性：一次性填平缺口（缺口 + buffer）
+    amount = Math.max(0, -s.cash) + CRISIS_LOAN_BUFFER;
+    apr = LOAN_APR.bank;
+  } else if (channel === 'private') {
+    // 亲友随机 5万–15万
+    amount = randInt(rng, FRIEND_LOAN_MIN, FRIEND_LOAN_MAX);
+    apr = LOAN_APR.private;
+  } else {
+    // 高利贷：借满 PREDATORY_REJECT_CUTOFF 笔后判定"无油水拒"（不借钱、不增计数）
+    if ((s.predatoryLoanCount ?? 0) >= PREDATORY_REJECT_CUTOFF) {
+      return {
+        state: s,
+        result: {
+          ok: false,
+          rejected: true,
+          channel,
+          amount: 0,
+          apr: predatoryLoanApr(s.predatoryLoanCount ?? 0),
+        },
+      };
+    }
+    // 高利贷随机 5千–8万；利率按已借笔数飙升
+    amount = randInt(rng, LOAN_SHARK_MIN, LOAN_SHARK_MAX);
+    apr = predatoryLoanApr(s.predatoryLoanCount ?? 0);
+  }
+
+  // 高利贷：按已借笔数写入飙升利率，并记录第几笔（UI 文案用）
+  const loanNo = isPredatory ? s.predatoryLoanCount + 1 : undefined;
   const loan: Loan = {
     id: nextLoanId(),
     channel,
-    principal: need,
+    principal: amount,
     apr,
-    balance: need,
+    balance: amount,
     accruedInterest: 0,
-    startDate: state.day,
+    startDate: s.day,
     overdueDays: 0,
     loanNo,
   };
-  const s = cloneState(state);
   s.loans = [...s.loans, loan];
-  s.cash += need;
+  s.cash += amount;
   s.actionPointsCurrent = Math.max(0, s.actionPointsCurrent - 1);
   syncLoanTotals(s);
   s.crisisLoanCount = (s.crisisLoanCount ?? 0) + 1;
   s.bossStrain = s.softHidden.ownerFatigue;
+  if (channel === 'private') {
+    // 亲友成功：计入成功次数（驱动下次拒绝率升档）
+    s.friendLoanSuccessCount = (s.friendLoanSuccessCount ?? 0) + 1;
+  }
   if (isPredatory) {
     // 不变式：bailoutRateMultiplier === PREDATORY_APR_ESCALATION ** predatoryLoanCount
     s.predatoryLoanCount += 1;
     s.bailoutRateMultiplier = PREDATORY_APR_ESCALATION ** s.predatoryLoanCount;
   }
-  return s;
+
+  return {
+    state: s,
+    result: { ok: true, channel, amount, apr },
+  };
 }
 
 /**
@@ -101,6 +201,8 @@ export function isCrisisLoanOverCap(state: GameState): boolean {
  * - 宽限期内（crisisLoanCount < CRISIS_LOAN_GRACE_COUNT）：跳过 80% 上限判断。
  * - 触及 80% 净资上限（isCrisisLoanOverCap）：拒绝（reason='cap'），仅限银行/亲属；
  *   高利贷（predatory）始终不受上限约束（靠随机不借率 + 利率飙升劝退）。
+ * 注意：银行/亲友的"锁死"（isBankPrivateLocked）由 store action 层单独拦截并弹故事，
+ * 不走本校验。
  */
 export function canTakeCrisisLoan(state: GameState, channel: LoanChannel): CrisisLoanCheck {
   if (state.actionPointsCurrent <= 0) return { ok: false, reason: 'ap' };
@@ -110,6 +212,15 @@ export function canTakeCrisisLoan(state: GameState, channel: LoanChannel): Crisi
   const inGrace = (state.crisisLoanCount ?? 0) < CRISIS_LOAN_GRACE_COUNT;
   if (!inGrace && isCrisisLoanOverCap(state)) return { ok: false, reason: 'cap' };
   return { ok: true, reason: null };
+}
+
+/**
+ * 危机借款达 CRISIS_LOAN_BANK_CUTOFF 笔后，银行/亲友渠道禁用、仅许高利贷。
+ * 替代旧版"前 2 次自动银行兜底、之后只许高利贷"的压迫感：
+ * 现在前 2 次危机由玩家自己选（仍可借银行/亲友），第 3 次起（crisisLoanCount >= CUTOFF）锁定。
+ */
+export function isBankPrivateLocked(state: GameState): boolean {
+  return (state.crisisLoanCount ?? 0) >= CRISIS_LOAN_BANK_CUTOFF;
 }
 
 /** 月结扣月息：balance × apr / 12；现金不足 → 利息滚入本金（利滚利封顶）+ 逾期 +1。 */

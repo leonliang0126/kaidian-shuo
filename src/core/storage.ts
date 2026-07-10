@@ -1,12 +1,14 @@
 // localStorage 存档层（架构 §9.3）
 import type { GameState } from '../types';
-import { SAVE_KEY, TUTORIAL_KEY } from '../utils/constants';
+import { SAVE_KEY, TUTORIAL_KEY, BUILD_KEY } from '../utils/constants';
+import { BUILD_ID } from '../utils/buildId';
 import { migrateGameState, SAVE_VERSION } from './migration';
 
 /** 存档整个 GameState。 */
 export function saveGame(state: GameState): void {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    localStorage.setItem(BUILD_KEY, BUILD_ID);
   } catch (e) {
     // 隐私模式/容量超限时静默失败，不影响游戏
     console.warn('[kaidian-shuo] 存档失败', e);
@@ -40,6 +42,25 @@ export function loadGame(): GameState | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * 读取存档，但仅当存档来自同一构建版本（BUILD_ID 一致）时才恢复；
+ * 否则视为旧部署，清档并返回 null，让游戏从开局/教程页重新开始。
+ * 这保证了「新部署的链接 = 全新进度」，同时同一版本内刷新仍正常恢复。
+ */
+export function loadGameRespectingBuild(): GameState | null {
+  try {
+    if (localStorage.getItem(BUILD_KEY) !== BUILD_ID) {
+      // 新部署 / 构建版本变化 → 旧档失效，清掉并重新开始
+      clearSave();
+      localStorage.removeItem(BUILD_KEY);
+      return null;
+    }
+  } catch {
+    /* ignore */
+  }
+  return loadGame();
 }
 
 /** 清除存档。 */

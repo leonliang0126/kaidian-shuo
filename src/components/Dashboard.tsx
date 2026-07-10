@@ -1,11 +1,17 @@
 // 今日经营仪表盘：流水/毛利/净利 + 成本拆解 + 漏斗 + 现金曲线 + 复购/供应。
+// 分页重构（T04）：新增 showCashCurve（默认 true）；HomePage 传 false 自行在末尾渲染现金曲线。
 import { useGameStore } from '../store/gameStore';
 import { Card } from './ui/Card';
 import { FunnelChart } from './FunnelChart';
 import { CashCurve } from './CashCurve';
 import { fmtMoney, fmtSignedMoney, fmtPct } from '../utils/format';
 
-export function Dashboard() {
+interface DashboardProps {
+  /** 是否渲染「现金曲线」卡。默认 true 向后兼容；HomePage 传 false 自行在末尾渲染。 */
+  showCashCurve?: boolean;
+}
+
+export function Dashboard({ showCashCurve = true }: DashboardProps) {
   const game = useGameStore((s) => s.game);
   if (!game) return null;
   const r = game.lastSettlement;
@@ -60,10 +66,13 @@ export function Dashboard() {
         </Card>
       )}
 
-      <Card className="px-4 py-3">
-        <div className="text-sm font-semibold text-ink mb-1">现金曲线</div>
-        <CashCurve log={game.businessLog} />
-      </Card>
+      {/* 现金曲线（决策①：HomePage 传 false，自行在末尾渲染） */}
+      {showCashCurve && (
+        <Card className="px-4 py-3">
+          <div className="text-sm font-semibold text-ink mb-1">现金曲线</div>
+          <CashCurve log={game.businessLog} />
+        </Card>
+      )}
     </div>
   );
 }

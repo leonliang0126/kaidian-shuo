@@ -1,5 +1,5 @@
 // 开局设置（phase==='opening'）：店名 / 店型 / 位置 / 装修。
-// 统一起手 10 万（doc §8.6）：开业成本超出部分一次性自动借款，绝不在天里弹窗。
+// 起手资金改为开局页随机（5000–20万，可刷新最多 3 次）：开业成本超出部分一次性自动借款，绝不在天里弹窗。
 import { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { Card } from './ui/Card';
@@ -10,7 +10,7 @@ import { STORE_PROFILES } from '../data/storeProfiles';
 import { LOCATION_PROFILES } from '../data/locationProfiles';
 import { DEPOSIT_MULTIPLIER } from '../utils/constants';
 import {
-  INITIAL_CASH,
+  randomInitialCash,
   OPENING_INVENTORY_COST,
   LOCATION_TRANSFER_FEE,
   MONTHLY_INTEREST_DIVISOR,
@@ -37,6 +37,9 @@ export function OpeningSetup() {
   const [storeType, setStoreType] = useState<StoreType>('奶茶饮品');
   const [location, setLocation] = useState<LocationType>('学校门口');
   const [decoration, setDecoration] = useState<DecorationLevel>('clean');
+  const [initialCash, setInitialCash] = useState(() => randomInitialCash());
+  const [reroll, setReroll] = useState(0);
+  const MAX_REROLL = 3;
 
   // —— 与 createNewGame 完全一致的 setup 成本公式 ——
   const rent = LOCATION_PROFILES[location].baseMonthlyRent;
@@ -44,16 +47,16 @@ export function OpeningSetup() {
   const decoCost = getDecorationCost(decoration);
   const transfer = LOCATION_TRANSFER_FEE[location];
   const setupCost = decoCost + deposit + OPENING_INVENTORY_COST + transfer;
-  const over = Math.max(0, setupCost - INITIAL_CASH);
+  const over = Math.max(0, setupCost - initialCash);
   const loan = over > 0 ? computeSetupLoan(over) : null;
-  const availableCash = INITIAL_CASH - setupCost + over; // over>0 时恒为 0
+  const availableCash = initialCash - setupCost + over; // over>0 时恒为 0
   const loanInterest = loan ? Math.round((loan.balance * loan.apr) / MONTHLY_INTEREST_DIVISOR) : 0;
 
   return (
-    <div className="px-4 py-6 space-y-4">
+    <div className="h-[100dvh] overflow-y-auto px-4 py-6 space-y-4">
       <div>
         <h1 className="text-2xl font-bold text-ink">开店说</h1>
-        <p className="text-sm text-sub mt-1">先给你的店定个基础盘，统一起手 {fmtMoney(INITIAL_CASH)}。</p>
+        <p className="text-sm text-sub mt-1">先给你的店定个基础盘，起手资金可刷新（最多 3 次）。</p>
       </div>
 
       <Card className="px-4 py-3">
@@ -65,6 +68,26 @@ export function OpeningSetup() {
           className="mt-2 w-full rounded-xl border border-black/10 px-3 py-2 text-sm outline-none focus:border-primary"
           placeholder="给店起个名字"
         />
+      </Card>
+
+      <Card className="px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold text-ink">开局资金</div>
+            <div className="text-2xl font-bold text-ink mt-0.5">{fmtMoney(initialCash)}</div>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={reroll >= MAX_REROLL}
+            onClick={() => {
+              setInitialCash(randomInitialCash());
+              setReroll((c) => c + 1);
+            }}
+          >
+            {reroll >= MAX_REROLL ? '已刷新满 3 次' : `刷新随机（剩 ${MAX_REROLL - reroll} 次）`}
+          </Button>
+        </div>
       </Card>
 
       <Selector
@@ -104,7 +127,7 @@ export function OpeningSetup() {
         {transfer > 0 && <Row label="选址转让费" value={fmtMoney(transfer)} />}
         <div className="border-t border-black/5 my-1" />
         <Row label="合计" value={fmtMoney(setupCost)} bold />
-        <Row label="统一起手" value={fmtMoney(INITIAL_CASH)} />
+        <Row label="起手资金" value={fmtMoney(initialCash)} />
         {loan ? (
           <>
             <div className="border-t border-black/5 my-1" />
@@ -131,6 +154,7 @@ export function OpeningSetup() {
             decorationLevel: decoration,
             storeName: name.trim() || '我的小店',
             seed: Math.floor(Math.random() * 1e9),
+            initialCash,
           })
         }
       >

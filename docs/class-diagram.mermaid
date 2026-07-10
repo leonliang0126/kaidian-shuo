@@ -1,104 +1,46 @@
 classDiagram
-    class EmployeeAttribute {
-        <<enumeration>>
-        super_worker
-        old_smooth
-        slacker
-        rookie
-        all_rounder
-        troublemaker
-        social_butterfly
-        guanxi_hire
-    }
+  class AppShell {
+    +TabKey activeTab
+    +setActiveTab(t: TabKey): void
+  }
+  class TabBar {
+    +TabKey active
+    +onChange(t: TabKey): void
+  }
+  class StatusBar {
+    +StatusBarVariant variant
+  }
+  class EndDayButton {
+    +hasModal: boolean
+  }
 
-    class Employee {
-        +string id
-        +string name
-        +number joinDay
-        +EmployeeAttribute attribute
-        +boolean isExposed
-        +number morale
-        +number monthlySalary
-        +number daysWorkedThisWeek
-        +boolean isScheduledToday
-        +number[] weeklyWorkDays
-        +number consecutiveWorkDays
-        +boolean isTempStaff
-        +number efficiencyCache
-        +getCurrentEfficiency() number
-        +getDailySalary() number
-        +isOvertimeToday() boolean
-    }
+  AppShell --> TabBar : renders(active,onChange)
+  AppShell --> EndDayButton : renders(fixed)
+  AppShell --> HomePage : keep-alive
+  AppShell --> StaffTab : keep-alive
+  AppShell --> ActionTab : keep-alive
+  AppShell --> BusinessTab : keep-alive
+  note for AppShell "activeTab 为本地 useState，不进 store"
 
-    class EmployeeAttributeConfig {
-        +EmployeeAttribute type
-        +string label
-        +string emoji
-        +number[] efficiencyRange
-        +number baseMoraleDecay
-        +string specialMechanic
-        +string[] descriptionHints
-        +number efficiencyVolatility
-    }
+  HomePage --> StatusBar : variant=home
+  HomePage --> FocusSelector
+  HomePage --> Dashboard : showCashCurve=false
+  HomePage --> RiskEstimate
+  HomePage --> WindPanel
+  HomePage --> EventCard
+  HomePage --> CashCurve : 末尾
 
-    class StoreState {
-        +string id
-        +string name
-        +StoreType storeType
-        +LocationType locationType
-        +number rent
-        +number deposit
-        +DecorationLevel decorationLevel
-        +number decorationEntryBonus
-        +number decorationAovBonus
-        +SupplierTier supplierTier
-        +PriceStrategy priceStrategy
-        +PromotionTier promotionTier
-        +number rating
-        +number repurchaseRate
-        +number deliveryRatio
-        +number platformRate
-        +boolean isInCrisis
-        +number crisisDays
-        +CashflowStatus cashflowStatus
-        +number monthlyRevenue
-        +number monthlyGrossProfit
-        +number monthlyNetProfit
-        +number monthlyPromoCost
-        +number monthlyDeliveryRevenue
-        +number monthlyStaffCost
-        +number lastMonthNetProfit
-        +number monthlyNetProfitPositiveStreak
-        +number repurchaseRateStartOfMonth
-        +number ratingStartOfMonth
-        +number heat
-        +number currentBatchQuality
-        +number batchRenewDay
-        +number supplierStability
-        +Employee[] employees  NEW
-    }
+  StaffTab --> StatusBar : variant=mini
+  StaffTab --> StaffPage
+  StaffPage ..> EmployeeDetailModal : modal
+  StaffPage ..> LayoffConfirmModal : modal
 
-    class DecisionState {
-        +SupplierTier supplierTier
-        +PriceStrategy priceStrategy
-        +DecorationLevel decorationLevel
-        +PromotionTier promotionTier
-    }
+  ActionTab --> StatusBar : variant=mini
+  ActionTab --> ActionPointPanel
 
-    class StaffSystem {
-        +generateCandidate(rng, day, decorationLevel) Candidate
-        +generateEmployee(candidate, day) Employee
-        +computeDailyEfficiency(employee, store, hiddenLines) number
-        +applyMoraleDecay(employees, today) Employee[]
-        +checkOvertime(employee) boolean
-        +checkResignOrStrike(employees, store) ResignOrStrikeResult
-        +tryExposeAttributes(employee, day) Employee
-        +computeStaffCost(employees) number
-        +computeCapacity(employees) number
-        +fireEmployee(employee, state) FireResult
-        +generateEmployeeName(rng) string
-    }
+  BusinessTab --> StatusBar : variant=mini
+  BusinessTab --> DecisionPanel
+  BusinessTab --> BusinessLog
 
-    StoreState "1" *-- "0..*" Employee : contains
-    Employee --> EmployeeAttribute : has type
-    EmployeeAttributeConfig --> EmployeeAttribute : configures
+  HirePage ..> StaffPage : 由+招聘打开(modal)
+  note for HirePage "保持 Modal 浮层，不入 tab"

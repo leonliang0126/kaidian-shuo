@@ -3,6 +3,8 @@ import type { GameState } from '../types';
 
 export const SAVE_KEY = 'kaidian-shuo:save:v1';
 export const TUTORIAL_KEY = 'tutorialSeen';
+/** 记录存档所属构建版本；与当前 BUILD_ID 不一致时视为旧部署，自动清档（详见 storage.ts）。 */
+export const BUILD_KEY = 'kaidian-shuo:build';
 
 // 派生常量（架构 §5.1 / §9.7）
 export const BASE_EXPOSURE = 1000;

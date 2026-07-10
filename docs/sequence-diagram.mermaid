@@ -1,32 +1,33 @@
 sequenceDiagram
-    participant Player as 玩家
-    participant StaffPage as StaffPage UI
-    participant Store as gameStore
-    participant StaffSys as staffSystem
-    participant Settle as settlement
-    participant Result as DailyResult
+  participant App
+  participant Store
+  participant AppShell
+  participant TabBar
+  participant Pages as 当前页容器
+  participant Overlays as 全局浮层
 
-    Player->>StaffPage: 点击排班开关
-    StaffPage->>Store: setSchedule(empId, true)
-    Store->>Store: 更新 employee.isScheduledToday
-    Store-->>StaffPage: 更新 UI
+  App->>Store: 读 phase
+  alt phase !== 'playing'
+    App->>App: 渲染 TutorialModal / OpeningSetup（全屏，无 TabBar）
+  else phase === 'playing'
+    App->>AppShell: 渲染 <AppShell/>
+    AppShell->>AppShell: useState activeTab='home'
+    AppShell->>Pages: HomePage visible / 其余 invisible(keep-alive)
+    AppShell->>TabBar: active='home', onChange=setActiveTab
+    AppShell->>Overlays: 渲染 Crisis/Month/Settlement/Event/StaffEvent/Ending/Toast/StoryCard（不变）
+    Note over AppShell,TabBar: 用户点击「员工」
+    TabBar->>AppShell: onChange('staff')
+    AppShell->>AppShell: setActiveTab('staff')
+    AppShell->>Pages: HomePage→invisible(保留scrollTop)
+    AppShell->Pages: StaffTab→visible(恢复自身scrollTop)
+    AppShell->>TabBar: active='staff'
+  end
 
-    Note over Player,Result: 当日结束结算
-
-    Player->>Store: endDay()
-    Store->>StaffSys: applyMoraleDecay(employees, day)
-    StaffSys-->>Store: { employees, events }
-
-    Store->>StaffSys: checkResignOrStrike(employees, store)
-    StaffSys-->>Store: strikeResult
-
-    Store->>Settle: settleAllStores(state, rng)
-    Settle->>Settle: for each store:
-    Settle->>StaffSys: computeCapacity(employees)
-    StaffSys-->>Settle: 排班人数 × 70
-    Settle->>StaffSys: computeStaffCost(employees)
-    StaffSys-->>Settle: Σ(月薪/30 × 加班倍率)
-    Settle->>Settle: 计算 revenue / profit
-    Settle-->>Store: { stores, totalNetProfit, mainDaily }
-
-    Store-->>Player: 展示结算结果
+  Note over Store,EndDayButton: EndDayButton 禁用逻辑
+  Store->>EndDayButton: hasModal = eventModal||crisisOpen||settlementModal||monthModal||lastEnding
+  alt hasModal === true
+    EndDayButton->>EndDayButton: disabled
+  else hasModal === false
+    EndDayButton->>EndDayButton: 可点击 endDay()
+  end
+  Note over Overlays: 优先级恒为 结局>危机>月结>员工动态>事件>结算；StoryCard z-70 最顶
