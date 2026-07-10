@@ -59,13 +59,14 @@ import {
   checkResignOrStrike,
   tryExposeAttributes,
   resetWeeklyWorkDays,
+  applyFullWeekWarning,
   getDayOfWeek,
   getWeekNumber,
   applyAllRest,
   applySalaryRaise,
   getMaxEmployees,
 } from '../core/staffSystem';
-import { REFRESH_CANDIDATES_AP_COST, ALL_REST_MORALE_BONUS, SALARY_RAISE_MORALE_PER_500 } from '../data/staffConstants';
+import { REFRESH_CANDIDATES_AP_COST, ALL_REST_MORALE_BONUS } from '../data/staffConstants';
 
 type Phase = 'tutorial' | 'opening' | 'playing';
 
@@ -620,6 +621,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       // 周重置：周日结束后重置，为新周一准备
       if (getDayOfWeek(s.day) === 7) {
         employees = resetWeeklyWorkDays(employees);
+        // 连续满勤周计数更新后，检测濒临离职 warning（基于 consecutiveFullWeeks）
+        const fw = applyFullWeekWarning(employees);
+        employees = fw.employees;
+        for (const ev of fw.events) staffEvents.push(ev);
       }
 
       return { ...store, employees };
@@ -838,7 +843,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const empIndex = store.employees.findIndex((e) => e.id === employeeId);
     if (empIndex < 0) return;
 
-    const emp = applySalaryRaise(store.employees[empIndex], amount, SALARY_RAISE_MORALE_PER_500);
+    const emp = applySalaryRaise(store.employees[empIndex], amount);
     const newEmployees = [...store.employees];
     newEmployees[empIndex] = emp;
     const newStore = { ...store, employees: newEmployees };

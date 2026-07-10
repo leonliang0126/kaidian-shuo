@@ -24,7 +24,8 @@ export interface Employee {
   daysWorkedThisWeek: number;           // 本周已上班天数
   isScheduledToday: boolean;            // 今日是否排班
   weeklyWorkDays: number[];             // 本周每天排班记录 [day1, day2, ...]
-  consecutiveWorkDays: number;          // 连续工作天数（用于长期不放假检测）
+  consecutiveWorkDays: number;
+  consecutiveFullWeeks?: number;           // 连续满勤周数（每周 7 天班记 1 周；用于濒临离职判定，缺省按 0）          // 连续工作天数（用于长期不放假检测）
   isTempStaff: boolean;                 // 是否为事件临时员工
   efficiencyCache: number;              // 今日效率系数（由属性+士气+特殊机制计算后缓存）
   /**

@@ -22,6 +22,9 @@ import {
   CANDIDATE_COUNT_MIN,
   CANDIDATE_COUNT_MAX,
   DAYS_PER_WEEK,
+  SALARY_RAISE_MORALE_FLAT,
+  FULL_WEEKS_TO_WARN,
+  CONTINUOUS_WORK_PENALTY_THRESHOLD,
 } from '../data/staffConstants';
 import { clamp } from '../utils/constants';
 
@@ -192,8 +195,8 @@ export function applyMoraleDecay(
       newMorale += MORALE_RECOVERY_REST;
     }
 
-    // 连续工作超过 7 天惩罚
-    if (emp.consecutiveWorkDays > DAYS_PER_WEEK) {
+    // 连续工作超过阈值天数惩罚（阈值后移至 14 天：连续上班满 14 天起才扣士气）
+    if (emp.consecutiveWorkDays >= CONTINUOUS_WORK_PENALTY_THRESHOLD) {
       newMorale += MORALE_DECAY_CONTINUOUS;
     }
 
@@ -202,25 +205,8 @@ export function applyMoraleDecay(
       newMorale -= 2;
     }
 
-    // 士气警告（= 进入 warning 状态）：士气跨过 ≤ LOW_MORALE_THRESHOLD 且原 > 阈值
-    if (newMorale <= LOW_MORALE_THRESHOLD && emp.morale > LOW_MORALE_THRESHOLD) {
-      if (status !== 'warning') {
-        status = 'warning';
-        warningWorkDays = 0; // 进入 warning 重置计数器（进 warning 当天若排班即计第 1 天）
-      }
-      events.push({
-        type: 'morale_warning',
-        employeeId: emp.id,
-        employeeName: emp.name,
-        description: `${emp.name} 士气已降至 ${Math.max(0, Math.round(newMorale))}，濒临离职！建议安排休息或涨工资。`,
-      });
-    }
-
-    // 士气回升越过阈值 → 退出 warning（撤回辞呈）
-    if (status === 'warning' && newMorale > LOW_MORALE_THRESHOLD) {
-      status = 'stable';
-      warningWorkDays = 0;
-    }
+    // 注意：濒临离职 warning 的进入/退出已移至 resetWeeklyWorkDays 之后的 applyFullWeekWarning，
+    // 基于 consecutiveFullWeeks（连续满勤周）驱动，避免在员工连续上班早期就因士气低误触发。
 
     newMorale = clamp(Math.round(newMorale), 0, 100);
 
@@ -444,14 +430,42 @@ export function isWeekStart(day: number): boolean {
   return getDayOfWeek(day) === 1;
 }
 
-/** 重置所有员工的每周排班数据 */
+/** 重置所有员工的每周排班数据，并基于本周是否满勤更新 consecutiveFullWeeks（连续满勤周计数）。 */
 export function resetWeeklyWorkDays(employees: Employee[]): Employee[] {
-  return employees.map((e) => ({
-    ...e,
-    daysWorkedThisWeek: 0,
-    weeklyWorkDays: [],
-    // 不重置 consecutiveWorkDays（连续工作日跨周跟踪）
-  }));
+  return employees.map((e) => {
+    const isFullWeek = e.daysWorkedThisWeek >= DAYS_PER_WEEK; // 一周 7 天全部排班 = 满勤周
+    return {
+      ...e,
+      daysWorkedThisWeek: 0,
+      weeklyWorkDays: [],
+      // 不重置 consecutiveWorkDays（连续工作日跨周跟踪）
+      consecutiveFullWeeks: isFullWeek ? (e.consecutiveFullWeeks ?? 0) + 1 : 0,
+    };
+  });
+}
+
+/**
+ * 濒临离职警告（基于连续满勤周）：在 resetWeeklyWorkDays（周日）之后调用。
+ * - consecutiveFullWeeks >= FULL_WEEKS_TO_WARN（连续两周满勤）→ 进入 warning 并广播事件；
+ * - consecutiveFullWeeks 清零（休息了一周）→ 退出 warning（撤回辞呈）。
+ * 与 applyMoraleDecay 解耦：warning 不再因"士气低"误触发，只有长期不休息才濒临离职。
+ */
+export function applyFullWeekWarning(employees: Employee[]): { employees: Employee[]; events: string[] } {
+  const events: string[] = [];
+  const updated = employees.map((emp) => {
+    const fullWeeks = emp.consecutiveFullWeeks ?? 0;
+    if (fullWeeks >= FULL_WEEKS_TO_WARN && emp.status !== 'warning') {
+      events.push(
+        `${emp.name} 已经连续两周全勤没休息，濒临离职！建议安排休息或涨工资。`,
+      );
+      return { ...emp, status: 'warning' as const, warningWorkDays: 0 };
+    }
+    if (emp.status === 'warning' && fullWeeks < FULL_WEEKS_TO_WARN) {
+      return { ...emp, status: 'stable' as const, warningWorkDays: 0 };
+    }
+    return emp;
+  });
+  return { employees: updated, events };
 }
 
 /** 全员放假：所有员工不排班，士气全体恢复；同时退出 warning（撤回辞呈）。 */
@@ -466,13 +480,12 @@ export function applyAllRest(employees: Employee[], moraleBonus: number): Employ
   }));
 }
 
-/** 涨工资恢复士气；若加薪后士气 > LOW_MORALE_THRESHOLD 则退出 warning。 */
+/** 涨工资恢复士气（固定 +SALARY_RAISE_MORALE_FLAT，与涨幅脱钩）；加薪后士气越过阈值则退出 warning。 */
 export function applySalaryRaise(
   employee: Employee,
   amount: number,
-  moralePerAmount: number,
 ): Employee {
-  const moraleGain = Math.floor(amount / 500) * moralePerAmount;
+  const moraleGain = SALARY_RAISE_MORALE_FLAT;
   const newMorale = clamp(employee.morale + moraleGain, 0, 100);
   const exitedWarning = employee.status === 'warning' && newMorale > LOW_MORALE_THRESHOLD;
   return {

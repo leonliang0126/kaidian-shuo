@@ -22,6 +22,7 @@ import {
   resetWeeklyWorkDays,
   applyAllRest,
   applySalaryRaise,
+  applyFullWeekWarning,
   getMaxEmployees,
   getScheduledCount,
   computeOwnerCapacity,
@@ -398,13 +399,13 @@ describe('applyMoraleDecay', () => {
     expect(employees[0].morale).toBeLessThan(70);
   });
 
-  it('休息员工士气恢复 +5', () => {
+  it('休息员工士气恢复 +40', () => {
     const emp = makeEmployee({
       isScheduledToday: false,
       morale: 50,
     });
     const { employees } = applyMoraleDecay([emp], 10);
-    expect(employees[0].morale).toBe(55); // 50 + 5
+    expect(employees[0].morale).toBe(90); // 50 + 40
   });
 
   it('加班员工额外扣减士气 -10', () => {
@@ -423,12 +424,11 @@ describe('applyMoraleDecay', () => {
 
   it('士气 ≤30 时额外 -2', () => {
     const emp = makeEmployee({
-      isScheduledToday: false, // 休息，+5
-      morale: 27,              // 27 + 5 = 32... 但 ≤30 额外 -2... 休息日不加额外惩罚
-      // 实际上：27+5=32，>30，所以不触发额外减
+      isScheduledToday: false, // 休息，+40
+      morale: 27,              // 27 + 40 = 67，远高于 30，不触发额外 -2
     });
     const { employees } = applyMoraleDecay([emp], 10);
-    expect(employees[0].morale).toBe(32); // 27+5=32 正常
+    expect(employees[0].morale).toBe(67); // 27+40=67 正常
 
     // 测试士气 25，排班（消耗 baseMoraleDecay），可能到 ≤30
     const emp2 = makeEmployee({
@@ -440,28 +440,35 @@ describe('applyMoraleDecay', () => {
     expect(r.employees[0].morale).toBeLessThanOrEqual(25 + 5 - 2); // baseMoraleDecay + 额外惩罚
   });
 
-  it('士气警告：当士气降至 ≤20 且原 >20 时触发', () => {
-    const emp = makeEmployee({
-      isScheduledToday: true,
-      morale: 22,
-    });
-    const { employees, events } = applyMoraleDecay([emp], 10);
+  it('applyMoraleDecay 不再因士气低生成 morale_warning（warning 改由 applyFullWeekWarning 基于满勤周驱动）', () => {
+    const emp = makeEmployee({ isScheduledToday: true, morale: 22 });
+    const { events } = applyMoraleDecay([emp], 10);
     const hasWarning = events.some((e) => e.type === 'morale_warning');
-    // 排班消耗后可能 ≤20
-    if (employees[0].morale <= 20) {
-      expect(hasWarning).toBe(true);
-    }
+    expect(hasWarning).toBe(false); // 士气低仍消耗，但不再自动进 warning
   });
 
-  it('连续工作超过 7 天额外惩罚 -5', () => {
-    const emp = makeEmployee({
-      isScheduledToday: false, // 休息
-      consecutiveWorkDays: 8,  // > 7
-      morale: 70,
-    });
-    const { employees } = applyMoraleDecay([emp], 10);
-    // 休息 +5，但连续工作惩罚 -5 → 70 + 5 - 5 = 70
-    expect(employees[0].morale).toBe(70);
+  it('applyFullWeekWarning：连续满勤两周 → 进入 warning', () => {
+    const emp = { ...makeEmployee({ status: 'stable', morale: 60 }), consecutiveFullWeeks: 2 };
+    const { employees, events } = applyFullWeekWarning([emp]);
+    expect(employees[0].status).toBe('warning');
+    expect(events.some((e) => e.includes('濒临离职'))).toBe(true);
+  });
+
+  it('applyFullWeekWarning：休息一周（满勤周清零）→ 退出 warning', () => {
+    const emp = { ...makeEmployee({ status: 'warning', morale: 60 }), consecutiveFullWeeks: 0 };
+    const { employees } = applyFullWeekWarning([emp]);
+    expect(employees[0].status).toBe('stable');
+  });
+
+  it('连续工作达 14 天起额外惩罚 -5（阈值后移：13 天不扣，14 天起扣）', () => {
+    const emp13 = makeEmployee({ isScheduledToday: false, consecutiveWorkDays: 13, morale: 50 });
+    const r13 = applyMoraleDecay([emp13], 10);
+    expect(r13.employees[0].morale).toBe(90); // 休息 +40，未达阈值无额外惩罚
+
+    const emp14 = makeEmployee({ isScheduledToday: false, consecutiveWorkDays: 14, morale: 50 });
+    const r14 = applyMoraleDecay([emp14], 10);
+    // 休息 +40，连续工作惩罚 -5 → 50 + 40 - 5 = 85
+    expect(r14.employees[0].morale).toBe(85);
   });
 
   it('士气值 clamp 到 [0, 100]', () => {
@@ -806,25 +813,27 @@ describe('applyAllRest', () => {
 // 11. 涨工资
 // ==============================================================================
 describe('applySalaryRaise', () => {
-  it('涨 500 元：士气 +5', () => {
+  it('涨工资固定 +20 士气（与涨幅脱钩）', () => {
     const emp = makeEmployee({ monthlySalary: 5000, morale: 50 });
-    const result = applySalaryRaise(emp, 500, 5);
+    const result = applySalaryRaise(emp, 500);
     expect(result.monthlySalary).toBe(5500);
-    expect(result.morale).toBe(55); // 50 + 5
+    expect(result.morale).toBe(70); // 50 + 20
   });
 
-  it('涨 1000 元：士气 +10', () => {
-    const emp = makeEmployee({ monthlySalary: 5000, morale: 30 });
-    const result = applySalaryRaise(emp, 1000, 5);
+  it('低士气员工涨工资 +20 后越过阈值退出 warning', () => {
+    const emp = makeEmployee({ monthlySalary: 5000, morale: 15, status: 'warning', warningWorkDays: 3 });
+    const result = applySalaryRaise(emp, 1000);
     expect(result.monthlySalary).toBe(6000);
-    expect(result.morale).toBe(40); // 30 + 10
+    expect(result.morale).toBe(35); // 15 + 20
+    expect(result.status).toBe('stable');
+    expect(result.warningWorkDays).toBe(0);
   });
 
-  it('涨 1 元（不足 500）：士气不变', () => {
+  it('涨 1 元也固定 +20 士气', () => {
     const emp = makeEmployee({ monthlySalary: 5000, morale: 50 });
-    const result = applySalaryRaise(emp, 1, 5);
+    const result = applySalaryRaise(emp, 1);
     expect(result.monthlySalary).toBe(5001);
-    expect(result.morale).toBe(50); // floor(1/500)*5 = 0
+    expect(result.morale).toBe(70); // 50 + 20（固定，不按涨幅比例）
   });
 });
 

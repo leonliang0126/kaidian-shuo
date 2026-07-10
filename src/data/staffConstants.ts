@@ -23,10 +23,13 @@ export const TEMP_STAFF_SALARY_MULTIPLIER = 1.5;
 export const MORALE_DECAY_OVERTIME = -10;
 
 /** 士气恢复基数（休息一天不排班） */
-export const MORALE_RECOVERY_REST = 5;
+export const MORALE_RECOVERY_REST = 40;
 
-/** 士气衰减基数（连续工作超过 7 天） */
+/** 士气衰减基数（连续工作超过阈值天数） */
 export const MORALE_DECAY_CONTINUOUS = -5;
+
+/** 连续工作惩罚触发阈值：连续上班满此天数起才扣士气（之前为 7，现后移至 14 以匹配“两周满勤才濒临离职”） */
+export const CONTINUOUS_WORK_PENALTY_THRESHOLD = 14;
 
 /** 主动离职士气阈值（低于此值次日主动离职） */
 export const RESIGN_MORALE_THRESHOLD = 15;
@@ -55,8 +58,11 @@ export const DAYS_PER_WEEK = 7;
 /** 全员放假士气恢复值 */
 export const ALL_REST_MORALE_BONUS = 10;
 
-/** 涨工资士气恢复：每 500 元涨幅恢复的士气值 */
-export const SALARY_RAISE_MORALE_PER_500 = 5;
+/** 涨工资固定恢复的士气值（每次涨薪动作 +20，与涨幅脱钩） */
+export const SALARY_RAISE_MORALE_FLAT = 20;
+
+/** 连续满勤周数达到此值 → 进入濒临离职 warning（每周 7 天班，连续 2 周 = 14 天班） */
+export const FULL_WEEKS_TO_WARN = 2;
 
 /** 低士气阈值（≤ 此值触发警告） */
 export const LOW_MORALE_THRESHOLD = 20;

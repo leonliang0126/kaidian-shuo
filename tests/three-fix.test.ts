@@ -114,7 +114,7 @@ describe('块 A · 离职过渡状态机', () => {
   it('A3: 加薪使士气 >20 退出 warning → 后续连续排班也不再离职', () => {
     let emp = mkEmp({ status: 'warning', morale: 15, warningWorkDays: 3 });
     // 加薪 5000、每 500 元 +5 士气 → 增益 50 → morale 65 > 20 → 退出 warning
-    emp = applySalaryRaise(emp, 5000, 5);
+    emp = applySalaryRaise(emp, 5000); // 固定 +20 士气（与涨幅脱钩）→ morale 15+20=35 > 20 退出 warning
     expect(emp.status).toBe('stable');
     expect(emp.warningWorkDays).toBe(0);
 
