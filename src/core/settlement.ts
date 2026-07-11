@@ -162,6 +162,8 @@ export function settleAllStores(
   stores: StoreState[];
   totalNetProfit: number;
   mainDaily: DailyResult;
+  /** 全店汇总 DailyResult（各门店金额求和；总部日摊只加一次）。用于首页「今日经营」展示。 */
+  aggregateDaily: DailyResult;
   anyOverload: boolean;
 } {
   let totalNetProfit = 0;
@@ -209,6 +211,80 @@ export function settleAllStores(
     cashAfter: Math.round(state.cash + totalNetProfit),
   };
 
-  return { stores, totalNetProfit: Math.round(totalNetProfit), mainDaily, anyOverload };
+  // 全店汇总 DailyResult：对各门店 daily 求和，总部日摊只加一次（修复 storeCount>=3 重复累加 bug）。
+  const aggregateDaily: DailyResult = buildAggregateDaily(state, dailies, totalNetProfit, anyOverload);
+
+  return {
+    stores,
+    totalNetProfit: Math.round(totalNetProfit),
+    mainDaily,
+    aggregateDaily,
+    anyOverload,
+  };
+}
+
+/**
+ * 由各门店 DailyResult 构建全店汇总 DailyResult。
+ * - 金额字段（流水/毛利/成本/订单/曝光等）对各门店求和
+ * - 房租日摊 = Σ(store.rent/30)；总部日摊 = headquartersDailyCost(storeCount) 只加一次
+ * - 净利按聚合后成本重算；保本/安全线用聚合 costSum 重算
+ */
+function buildAggregateDaily(
+  state: GameState,
+  dailies: DailyResult[],
+  totalNetProfit: number,
+  anyOverload: boolean,
+): DailyResult {
+  const sum = (f: (d: DailyResult) => number) => dailies.reduce((acc, d) => acc + f(d), 0);
+  const totalRevenue = sum((d) => d.revenue);
+  const totalOrders = sum((d) => d.orders);
+  const totalGrossProfit = sum((d) => d.grossProfit);
+  const totalPromoCost = sum((d) => d.promoCost);
+  const totalStaffCost = sum((d) => d.staffCost);
+  const totalPlatformCost = sum((d) => d.platformCost);
+
+  // 房租日摊 = 各店 rent/30 之和；总部日摊只加一次（修复重复累加）
+  const rentDailySum = state.stores.reduce((acc, st) => acc + st.rent / 30, 0);
+  const fixedCostDaily = Math.round(rentDailySum + headquartersDailyCost(state.storeCount));
+
+  // 聚合净利
+  const netProfit =
+    totalGrossProfit - totalPromoCost - totalStaffCost - fixedCostDaily - totalPlatformCost;
+
+  // 保本/安全线：用聚合 costSum 重算
+  const costSum = totalPromoCost + totalStaffCost + fixedCostDaily + totalPlatformCost;
+  const grossMargin = totalRevenue > 0 ? totalGrossProfit / totalRevenue : dailies[0].grossMarginRate;
+  const breakEvenRevenue = grossMargin > 0 ? costSum / grossMargin : 0;
+  const safeRevenue = breakEvenRevenue * 1.4;
+
+  // 率/值字段取主店值（聚合难以加权平均，主店具代表性）
+  const main = dailies[0];
+  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : main.avgOrderValue;
+
+  return {
+    day: state.day,
+    eventId: null, // 由调用方（store/gameLoop）填入今日事件 id
+    decisions: { ...main.decisions },
+    exposure: sum((d) => d.exposure),
+    dineInExposure: sum((d) => d.dineInExposure),
+    deliveryExposure: sum((d) => d.deliveryExposure),
+    entryRate: main.entryRate,
+    conversionRate: main.conversionRate,
+    repurchaseRate: main.repurchaseRate,
+    orders: totalOrders,
+    avgOrderValue,
+    revenue: totalRevenue,
+    grossMarginRate: grossMargin,
+    grossProfit: totalGrossProfit,
+    promoCost: totalPromoCost,
+    staffCost: totalStaffCost,
+    fixedCostDaily,
+    platformCost: totalPlatformCost,
+    netProfit: Math.round(netProfit),
+    cashAfter: Math.round(state.cash + totalNetProfit),
+    breakEvenRevenue: Math.round(breakEvenRevenue),
+    safeRevenue: Math.round(safeRevenue),
+    capacityOverload: anyOverload,
+  };
 }
 

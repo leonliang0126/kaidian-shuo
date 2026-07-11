@@ -96,6 +96,8 @@ interface GameStore {
   settlementModal: DailyResult | null;
   monthModal: MonthlyReport | null;
   lastEnding: EndingResult | null;
+  /** 首页「关店」确认弹窗开关（复用 decent_exit 结局逻辑，无二次确认的月结关店不同）。 */
+  closeConfirmOpen: boolean;
   // —— 员工系统 UI 状态 ——
   candidates: Candidate[];
   staffPageOpen: boolean;
@@ -118,6 +120,10 @@ interface GameStore {
   closeSettlement: () => void;
   chooseMonthOption: (optionId: string) => void;
   resetGame: () => void;
+  // —— 首页「关店」确认流程（复用月度结算关店逻辑进入 decent_exit 结局）——
+  openCloseConfirm: () => void;
+  cancelCloseConfirm: () => void;
+  confirmCloseShop: () => void;
   // —— 员工系统 actions ——
   openStaffPage: () => void;
   closeStaffPage: () => void;
@@ -254,6 +260,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   settlementModal: null,
   monthModal: null,
   lastEnding: null,
+  closeConfirmOpen: false,
   candidates: [],
   staffPageOpen: false,
   hirePageOpen: false,
@@ -551,18 +558,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // 5) 结算全门店
     const settle = settleAllStores(s, rng);
+    const eventId =
+      get().resolvedEvent?.event.id ??
+      get().eventModal?.id ??
+      null;
     const mainDaily: DailyResult = {
       ...settle.mainDaily,
-      eventId:
-        get().resolvedEvent?.event.id ??
-        get().eventModal?.id ??
-        null,
+      eventId,
+    };
+    // 首页「今日经营」展示全店汇总（aggregateDaily 已含 eventId 占位，这里注入今日事件 id）
+    const aggregateDaily: DailyResult = {
+      ...settle.aggregateDaily,
+      eventId,
     };
     s = {
       ...s,
       stores: settle.stores,
       cash: s.cash + settle.totalNetProfit,
-      lastSettlement: mainDaily,
+      lastSettlement: aggregateDaily,
     };
 
     // 6) 员工每日逻辑：士气衰减、属性暴露、离职/罢工检测
@@ -727,12 +740,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
       settlementModal: null,
       monthModal: null,
       lastEnding: null,
+      closeConfirmOpen: false,
       toast: null,
       story: null,
       candidates: [],
       staffPageOpen: false,
       hirePageOpen: false,
     });
+  },
+
+  // ====== 首页「关店」确认流程 ======
+
+  openCloseConfirm: () => {
+    set({ closeConfirmOpen: true });
+  },
+
+  cancelCloseConfirm: () => {
+    set({ closeConfirmOpen: false });
+  },
+
+  confirmCloseShop: () => {
+    const g = get().game;
+    if (!g) return;
+    // 复用月度结算「关店止损」逻辑（applyMonthOption 'close' → activeEnding='decent_exit'），
+    // 走 proceedAfterSettlement 触发 evaluateEndings 置位 lastEnding/gameOver，弹出结局屏
+    // （与危机关店 takeCrisisAction('close_shop') 路径一致；advanceDayState 不会触发结局判定）。
+    const s = applyMonthOption(g, 'close', rng);
+    set({ closeConfirmOpen: false, monthModal: null });
+    set(proceedAfterSettlement(s));
   },
 
   // ====== 员工系统 actions ======

@@ -115,11 +115,16 @@ export function runDailyLoop(prev: GameState, rng: RNG): DailyLoopResult {
     ...settle.mainDaily,
     eventId: todayEvent?.id ?? forced?.id ?? null,
   };
+  // 首页「今日经营」展示全店汇总
+  const aggregateDaily = {
+    ...settle.aggregateDaily,
+    eventId: mainDaily.eventId,
+  };
   state = {
     ...state,
     stores: settle.stores,
     cash: state.cash + settle.totalNetProfit,
-    lastSettlement: mainDaily,
+    lastSettlement: aggregateDaily,
   };
 
   // 11) 偶发暗线重罚
