@@ -137,7 +137,8 @@ export function runDailyLoop(prev: GameState, rng: RNG): DailyLoopResult {
   // 12) 峰值净资 / 现金负连续 / 累计净利 / 暗线健康
   state.peakNetWorth = Math.max(state.peakNetWorth, state.netWorth);
   state.cashNegativeStreak = state.cash < 0 ? state.cashNegativeStreak + 1 : 0;
-  state.cumulativeNetProfit += mainDaily.netProfit;
+  // 累计净利须按全店汇总（aggregateDaily）累加；用主店单店 mainDaily 会漏算分店。
+  state.cumulativeNetProfit += aggregateDaily.netProfit;
   const allHealthy = (Object.values(state.hiddenLines ?? {}) as number[]).every((v) => v <= 40);
   state.hiddenHealthyStreak = allHealthy ? state.hiddenHealthyStreak + 1 : 0;
 
@@ -162,8 +163,9 @@ export function runDailyLoop(prev: GameState, rng: RNG): DailyLoopResult {
       eventId: mainDaily.eventId,
       eventTitle: todayEvent?.title,
       decisions: state.decisions,
-      revenue: mainDaily.revenue,
-      netProfit: mainDaily.netProfit,
+      // 经营日志记全店汇总（aggregateDaily）；eventId 沿用 mainDaily 注入的今日事件 id。
+      revenue: aggregateDaily.revenue,
+      netProfit: aggregateDaily.netProfit,
       cashAfter: state.cash,
     },
   ];
@@ -197,5 +199,6 @@ export function runDailyLoop(prev: GameState, rng: RNG): DailyLoopResult {
   state.dayModifiers = emptyModifiers();
   state = decaySoftHidden(state);
 
-  return { state, daily: mainDaily, todayEvent, forced, monthReport };
+  // 返回的 daily 为对外的「结算展示」值，须为全店汇总（aggregateDaily）；用主店单店 mainDaily 会导致开分店后展示数据不变。
+  return { state, daily: aggregateDaily, todayEvent, forced, monthReport };
 }

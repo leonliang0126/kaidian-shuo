@@ -661,7 +661,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // 8) 峰值净资 / 现金负连续 / 累计净利 / 暗线健康
     s.peakNetWorth = Math.max(s.peakNetWorth, s.netWorth);
     s.cashNegativeStreak = s.cash < 0 ? s.cashNegativeStreak + 1 : 0;
-    s.cumulativeNetProfit += mainDaily.netProfit;
+    // 累计净利须按全店汇总（aggregateDaily）累加；用主店单店 mainDaily 会漏算分店。
+    s.cumulativeNetProfit += aggregateDaily.netProfit;
     const allHealthy = (Object.values(s.hiddenLines ?? {}) as number[]).every(
       (v) => v <= 40,
     );
@@ -688,8 +689,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
         eventId: mainDaily.eventId,
         eventTitle: get().resolvedEvent?.event.title,
         decisions: s.decisions,
-        revenue: mainDaily.revenue,
-        netProfit: mainDaily.netProfit,
+        // 经营日志记全店汇总（aggregateDaily），与结算弹窗/首页「今日经营」一致；eventId 沿用 mainDaily 注入的今日事件 id。
+        revenue: aggregateDaily.revenue,
+        netProfit: aggregateDaily.netProfit,
         cashAfter: s.cash,
       },
     ];
@@ -711,7 +713,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     s.bossStrain = s.softHidden.ownerFatigue;
 
-    set(commit(s, { settlementModal: mainDaily, eventModal: null, resolvedEvent: null }));
+    // 结算弹窗展示全店汇总（aggregateDaily）；用主店单店 mainDaily 会导致开分店后弹窗数据不变。
+    set(commit(s, { settlementModal: aggregateDaily, eventModal: null, resolvedEvent: null }));
   },
 
   closeSettlement: () => {
